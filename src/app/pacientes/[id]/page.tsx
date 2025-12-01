@@ -130,8 +130,9 @@ export default function PatientDetailPage({ params }: PatientDetailPageProps) {
   const [selectedTab, setSelectedTab] = useState<PatientTab>('dados-pessoais');
   const [isEditing, setIsEditing] = useState(false);
 
-  // In a real app, you would fetch patient data using the id
-  console.log('Patient ID:', id);
+  // TODO: In a real app, fetch patient data using the id from Supabase
+  // For now, using mock data - id is available for future use
+  void id;
 
   // Data states
   const [dadosPessoais, setDadosPessoais] = useState<DadosPessoais>(mockDadosPessoais);
@@ -153,8 +154,7 @@ export default function PatientDetailPage({ params }: PatientDetailPageProps) {
   };
 
   const handleSave = () => {
-    // Here you would save to Supabase
-    console.log('Saving data...');
+    // TODO: Implement save to Supabase
     setIsEditing(false);
   };
 
