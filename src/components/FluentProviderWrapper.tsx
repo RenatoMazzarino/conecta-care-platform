@@ -2,6 +2,7 @@
 
 import {
   FluentProvider,
+  SSRProvider,
   webLightTheme,
   webDarkTheme,
   Theme,
@@ -60,10 +61,12 @@ export function FluentProviderWrapper({ children }: FluentProviderWrapperProps) 
   const theme = isDarkMode ? webDarkTheme : webLightTheme;
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, theme }}>
-      <FluentProvider theme={theme} style={{ minHeight: '100vh' }}>
-        {children}
-      </FluentProvider>
-    </ThemeContext.Provider>
+    <SSRProvider>
+      <ThemeContext.Provider value={{ isDarkMode, toggleTheme, theme }}>
+        <FluentProvider theme={theme} style={{ minHeight: '100vh' }}>
+          {children}
+        </FluentProvider>
+      </ThemeContext.Provider>
+    </SSRProvider>
   );
 }
