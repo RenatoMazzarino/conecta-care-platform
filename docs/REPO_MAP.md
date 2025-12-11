@@ -27,3 +27,11 @@ Estado atual baseado no repositório (sem suposições).
 
 ## Segurança / Permissões / Multi-tenant
 - Não há implementação de escopo de tenant, perfis ou autorização no código atual.
+
+## Referência visual
+- Comparativo canônico: `html/comparativo-fluent.html` (Opção A – Fluent clássico).
+
+## Pastas-chave do shell Fluent A
+- Páginas de referência: `src/app/pacientes/page.tsx` e `src/app/pacientes/[id]/page.tsx` (command bar + header + abas + cards).  
+- Layout base: `src/components/layout/CommandBar.tsx`, `src/components/layout/Header.tsx`, `src/components/layout/Breadcrumb.tsx`.  
+- Estilos globais e provider: `src/app/globals.css`, `src/components/FluentProviderWrapper.tsx`.

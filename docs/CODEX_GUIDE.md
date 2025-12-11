@@ -17,6 +17,38 @@ Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operac
 - **Stack visual**: Fluent clássico + CSS/Tailwind simples. **Não usar Fluent 2 puro nem MUI.**  
 - **Referências visuais**: `src/app/pacientes/[id]/page.tsx` (detalhe) e `src/app/pacientes/page.tsx` (lista) são o padrão a ser seguido para o módulo de Pacientes.
 
+## Referência visual canônica
+- Fonte: `html/comparativo-fluent.html` (Opção A – Fluent clássico).  
+- Reforço: **não** usar Fluent 2 puro nem MUI neste repositório. Ajustes visuais devem respeitar a casca (command bar + header + abas + cards) conforme o comparativo.
+
+## Glossário operacional (Escalas)
+- **Plantão**: bloco de 12h; dois plantões por dia por paciente para garantir cobertura 24/7.  
+- **Escala por paciente**: visão/agenda dos plantões atribuídos a um paciente.  
+- **Escala por profissional**: visão/agenda do profissional com plantões distribuídos em pacientes.  
+- **Check-in/out**: registro de início/fim do plantão com geo + biometria (API externa, ex.: SERPRO) + validação de permanência via BLE.  
+- **Troca de plantão**: substituição solicitada; só efetiva com aprovação de escalista/supervisor.  
+- **Ocorrência**: evento relevante em um plantão (atraso, falta, incidente).  
+- **Aprovação**: workflow obrigatório para trocas/alterações que impactem cobertura ou pagamento.  
+- **Cobertura**: estado que garante que o paciente está assistido (sem gaps).
+
+## Modelo mínimo do módulo Escalas (MVP)
+- Plantões de 12h (2/dia/paciente) como regra base.  
+- Módulos separados: visão por paciente e visão por profissional.  
+- Fluxos de aprovação para trocas/alterações de escala.  
+- Check-in/out com geolocalização, biometria via API externa (ex.: SERPRO) e monitoramento de permanência por BLE.  
+- Cada plantão deve gerar eventos auditáveis e alimentar Financeiro (horas, atrasos com corte mediante aprovação).
+
+## Taxonomia de eventos auditáveis (padrão de nomes)
+- Padrão sugerido: `<domínio>.<entidade>.<ação>` com contexto mínimo (actor, role, timestamp, origem, tenant, ids).  
+- Core Escalas (exemplos): `escalas.plantao.criado`, `escalas.plantao.aprovado`, `escalas.plantao.checkin_realizado`, `escalas.plantao.checkout_realizado`, `escalas.plantao.troca_solicitada`, `escalas.plantao.troca_aprovada`, `escalas.plantao.ocorrencia_registrada`.  
+- Suporte Pacientes/GED (exemplos): `paciente.cadastro.atualizado`, `paciente.documento.anexado`, `paciente.documento.assinado`, `paciente.historico.registrado`.  
+- Cada evento deve ser extensível para armazenar payload de origem (geo, biometria, BLE, documento) sem inventar schema inexistente.
+
+## Procedimento padrão de sincronização Repo x Banco
+- Ao encontrar erro de coluna/constraint inexistente: pausar a feature, consultar o schema real (Supabase) e alinhar DTOs antes de alterar UI.  
+- Não inventar migrations; documentar o gap em `docs/OPEN_TODO.md` e abrir pergunta em `docs/CODEX_QUESTIONS.md` se o schema não estiver disponível.  
+- Ajustar validações/consumo para refletir apenas campos existentes; usar mocks mínimos e explicitamente marcados até o backend ser alinhado.
+
 ## Arquitetura atual do repo (real)
 - **Front-end**: Next.js (App Router) em `src/app`; Fluent UI 9; Tailwind 4 importado em `globals.css`.  
 - **Layout**: `FluentProviderWrapper` com tema claro/escuro, `Header` com launcher/search/actions, `CommandBar` (versão Fluent A), `Breadcrumb`.  

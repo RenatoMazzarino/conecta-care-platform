@@ -3,22 +3,22 @@
 Pendências reais (priorizadas) – máximo 15 itens.
 
 ## Segurança/Permissões
-- Definir modelo de tenants/perfis (empresa, paciente/família, profissional, supervisores/gerentes) e aplicar scoping/autorização explícita nas páginas/serviços.
-- Planejar trilha de auditoria para qualquer ação sensível (cadastro de paciente, alterações de escala, checkin/checkout) com quem/quando/origem, integrada ao frontend.
+- Modelo de tenants/perfis definido e aplicado no front/back — DoD: roles/claims claros + checagem de escopo nas páginas/serviços de pacientes/escalas.
+- Trilha de auditoria desenhada para ações sensíveis — DoD: lista de eventos + campos mínimos (actor, role, origem, geo/IP, payload) documentada e acoplada ao fluxo de UI.
 
 ## Backend/API
-- Conectar páginas de pacientes ao Supabase (listar e detalhar) com DTOs alinhados ao schema real antes de expor na UI.
-- Especificar/implantar serviço para auditoria/histórico por paciente (endpoint unificado que permita anexar eventos de escalas, GED e administrativos).
-- Introduzir rotas/serviços para Escalas (por paciente e por profissional) respeitando plantões de 12h e fluxo de aprovação, mesmo que inicial com dados mock.
+- Integrar pacientes ao Supabase — DoD: DTOs alinhados ao schema real, listagem/detalhe consumindo API real sem campos inventados.
+- Serviço de auditoria/histórico por paciente — DoD: endpoint unificado especificado e capaz de anexar eventos de escalas, GED e administrativos.
+- Serviços de Escalas (paciente e profissional) — DoD: rotas/handlers definidos respeitando plantões 12h, aprovação obrigatória e payload mínimo para checkin/checkout.
 
 ## UI
-- Criar telas de Escalas (paciente e profissional) usando a casca Fluent A (command bar + header contextual + abas + cards), prevendo ações de aprovação/ocorrências.
-- Conectar abas Financeiro/Clínico/Documentos/Historico do detalhe do paciente a dados reais ou placeholders dinâmicos alinhados a serviços futuros.
-- Ajustar home (`src/app/page.tsx`) para refletir o estado real dos módulos (desabilitar/rotular como “em breve” o que não existir ou linkar para as novas rotas de Escalas).
+- Telas de Escalas (paciente e profissional) na casca Fluent A — DoD: command bar + header contextual + abas + cards com ações de aprovação/ocorrências (mock inicial permitido).
+- Abas Financeiro/Clínico/Documentos/Histórico ligadas a dados reais ou placeholders dinâmicos — DoD: conteúdo vindo de fonte real ou mock explícito, sem dados fictícios não mapeados.
+- Home refletindo estado real dos módulos — DoD: módulos inexistentes marcados como “em breve” ou apontando para novas rotas de Escalas.
 
 ## Dados/Schema
-- Formalizar schema de paciente no Supabase (campos hoje usados em mock) antes de integrar; documentar constraints (PAC-ID, status, alergias, responsável legal).
-- Definir modelo mínimo para GED (metadados de documentos + vínculos com paciente e entidades operacionais) mantendo compatibilidade com auditoria.
+- Schema de paciente formalizado no Supabase — DoD: tabela/documentação com campos usados no front (PAC-ID, status, alergias, responsável legal) e constraints registradas.
+- Modelo mínimo de GED definido — DoD: metadados + vínculos com paciente/entidades operacionais descritos, compatíveis com auditoria.
 
 ## Qualidade/Testes
-- Habilitar pipeline de lint no CI e criar smoke tests manuais/documentados para `/pacientes` e `/pacientes/[id]`; planejar testes e2e quando Escalas estiver disponível.
+- Pipeline de lint no CI e smoke tests manuais — DoD: `npm run lint` no CI e roteiro de validação de `/pacientes` e `/pacientes/[id]`; plano de e2e quando Escalas estiver disponível.
