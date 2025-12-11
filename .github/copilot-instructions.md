@@ -1,4 +1,4 @@
-**AVISO**: a fonte de verdade está em `docs/CODEX_GUIDE.md`. Para o visual, consulte também `html/comparativo-fluent.html` (Opção A).  
+**AVISO**: fonte de verdade em `docs/CODEX_GUIDE.md`. Visual oficial: `html/comparativo-fluent.html` (Fluent clássico – Opção A).  
 Resumo mínimo para contexto rápido:
 
 - Padrão visual obrigatório: Fluent clássico (Opção A) — command bar com título "Conecta Care · Pacientes" + breadcrumb; header do paciente com badges (status/alergia) e metadados; abas em linha (Dados pessoais, Endereço & logística, Rede de apoio, Administrativo, Financeiro, Clínico, Documentos/GED, Histórico & Auditoria); cards em grid responsivo com borda leve.  

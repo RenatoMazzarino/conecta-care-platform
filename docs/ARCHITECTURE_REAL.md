@@ -21,6 +21,12 @@
 - **Tabs**: abas horizontais em linha para seções (ex.: Dados pessoais, Endereço & logística…).  
 - **Cards**: conteúdo em grid responsivo de cards brancos com borda/sombra sutis (3 colunas desktop, quebra em telas menores).
 
+## Camadas e responsabilidades
+- **UI (src/app + src/components)**: páginas e componentes de apresentação, seguindo shell Fluent A.  
+- **Services/Helpers (a definir)**: orquestram chamadas e regras de composição de dados.  
+- **API Routes (a implementar)**: endpoints Next/Edge para servir dados e aplicar validação.  
+- **Supabase**: persistência/autenticação; schema real deve guiar DTOs (sem colunas inventadas).
+
 ## Integrações / Dados
 - Supabase: `src/lib/supabase/client.ts` cria client com `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`; exportado via `src/lib/supabase/index.ts`. Ainda não é utilizado por páginas/serviços.  
 - Tipos: `src/types/patient.ts` define estruturas de paciente e enum de abas (inclui Financeiro, Clínico, Documentos, Histórico). Não há schemas nem validações conectadas.
@@ -31,6 +37,6 @@
 - ESLint + Tailwind 4; sem setup de testes automatizados além do lint.
 
 ## Padrão de rotas futuras (planejado, não implementado)
-- Escalas: `/escalas/pacientes` e `/escalas/profissionais` devem herdar o mesmo shell (CommandBar + Header + Tabs + Cards) e respeitar regra de plantões 12h/aprovação.  
+- Escalas (REST planejado): `/api/escalas/pacientes` e `/api/escalas/profissionais` para listar/criar/atualizar plantões e atribuições; UI em `/escalas/pacientes` e `/escalas/profissionais` reutilizando o shell.  
 - GED/Auditoria: rotas futuras devem acoplar à casca existente com timeline e ações de documento.  
 - Financeiro/Inventário/Clínico: espelhar dados/controles ligados à operação, reutilizando o padrão Fluent A.

@@ -2,12 +2,19 @@
 
 Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operacional completa; o módulo de Escalas é o núcleo da operação, e Pacientes é a âncora de dados que alimenta Escalas, Financeiro, Inventário, Clínico, GED e Auditoria.
 
-## Visão 360 do produto e regras operacionais
-- **Escalas (core)**: plantões de 12h (2 por dia/paciente), visões por paciente e por profissional, check-in/out com geolocalização, biometria via API externa (ex.: SERPRO) e monitoramento de permanência por BLE. Trocas/alterações requerem aprovação de escalista/supervisor. Toda escala impacta faturamento e pagamento (cálculo granular, atrasos com possível corte mediante aprovação).  
-- **Pacientes (base)**: cadastro único consumível por Escalas; sem duplicação de dados.  
-- **GED + Auditoria**: documentos e timeline granular para prova e conformidade; eventos de escalas (checkin/checkout, trocas, ocorrências, aprovações) devem ser auditáveis.  
-- **Financeiro/Inventário/Clínico**: conectados à operação (plantões geram faturamento; inventário ligado a atendimento; clínico como resumo/espelho).  
-- **Segurança/Multi-tenant**: escopo por empresa de home care; perfis incluem empresa, paciente/família, profissional, médicos/fisio/nutri, supervisores/gerentes/responsáveis. Autorização deve ser explícita e auditável.
+## O que é a Conecta Care (visão 360)
+- **Escalas é o core operacional**: cobertura contínua, presença, rastreabilidade e faturamento partem do módulo de escalas.  
+- **Pacientes é a base de dados**: cadastro único que alimenta Escalas e demais módulos, sem duplicação.  
+- **GED + Auditoria**: sustentam conformidade, prova e rastreabilidade (documentos + eventos).  
+- **Módulos de suporte (Financeiro, Inventário, Clínico)**: espelhos/resumos conectados à operação, não silos isolados.  
+- **Segurança/Multi-tenant**: escopo por empresa de home care; perfis incluem empresa, paciente/família, profissional, médicos/fisio/nutri, supervisores/gerentes/responsáveis; autorização deve ser explícita e auditável.
+
+## Regras do core Escalas (modelo real)
+- **Plantões são de 12h por paciente (2/dia)**. Paciente não tem folga; modelo “12x36” é do profissional, não do paciente.  
+- **Dois módulos**: Escala por Paciente e Escala por Profissional.  
+- **Aprovação obrigatória**: qualquer troca/alteração relevante precisa de escalista/supervisor.  
+- **Presença**: check-in/checkout com geolocalização + biometria via API (ex.: SERPRO) + monitoramento de permanência via BLE (celular pingando beacon no domicílio).  
+- **Financeiro**: cada plantão gera faturamento; atraso pode gerar corte proporcional (ex.: 1h) com aprovação/manual review.
 
 ## Padrão visual obrigatório – Fluent clássico (Opção A)
 - **Command bar**: fundo branco, título "Conecta Care · Pacientes", breadcrumb (ex.: "Pacientes > Lista > [Nome]") e ações à direita (Imprimir, Compartilhar, Salvar alterações ou ação primária da tela).  
@@ -38,16 +45,26 @@ Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operac
 - Check-in/out com geolocalização, biometria via API externa (ex.: SERPRO) e monitoramento de permanência por BLE.  
 - Cada plantão deve gerar eventos auditáveis e alimentar Financeiro (horas, atrasos com corte mediante aprovação).
 
-## Taxonomia de eventos auditáveis (padrão de nomes)
-- Padrão sugerido: `<domínio>.<entidade>.<ação>` com contexto mínimo (actor, role, timestamp, origem, tenant, ids).  
-- Core Escalas (exemplos): `escalas.plantao.criado`, `escalas.plantao.aprovado`, `escalas.plantao.checkin_realizado`, `escalas.plantao.checkout_realizado`, `escalas.plantao.troca_solicitada`, `escalas.plantao.troca_aprovada`, `escalas.plantao.ocorrencia_registrada`.  
-- Suporte Pacientes/GED (exemplos): `paciente.cadastro.atualizado`, `paciente.documento.anexado`, `paciente.documento.assinado`, `paciente.historico.registrado`.  
-- Cada evento deve ser extensível para armazenar payload de origem (geo, biometria, BLE, documento) sem inventar schema inexistente.
+## Entidades mínimas do MVP de Escalas
+- **PatientShift/Shift (plantão)**: janela de 12h por paciente.  
+- **ShiftAssignment**: vincula plantão a um profissional.  
+- **Checkin/Checkout**: registros de presença com geo/biometria.  
+- **PresencePing (BLE)**: pings periódicos para comprovar permanência.  
+- **SwapRequest/SwapApproval**: solicitações e aprovações de troca.  
+- **Occurrence/Note**: eventos e observações do plantão.  
+- **Status**: Scheduled, Confirmed, InProgress, Completed, Missed, Cancelled (ou equivalente).
 
-## Procedimento padrão de sincronização Repo x Banco
-- Ao encontrar erro de coluna/constraint inexistente: pausar a feature, consultar o schema real (Supabase) e alinhar DTOs antes de alterar UI.  
-- Não inventar migrations; documentar o gap em `docs/OPEN_TODO.md` e abrir pergunta em `docs/CODEX_QUESTIONS.md` se o schema não estiver disponível.  
-- Ajustar validações/consumo para refletir apenas campos existentes; usar mocks mínimos e explicitamente marcados até o backend ser alinhado.
+## Taxonomia de eventos auditáveis (padrão de nomes)
+- Padrão: `<domínio>.<entidade>.<ação>` com contexto mínimo (actor, role, timestamp, origem, tenant, ids).  
+- Escalas (core): `schedule.shift.create`, `schedule.shift.update`, `schedule.assignment.create`, `schedule.checkin`, `schedule.checkout`, `schedule.presence.ping`, `schedule.swap.requested`, `schedule.swap.approved`, `schedule.swap.rejected`, `schedule.occurrence.logged`.  
+- Pacientes/GED: `patient.update`, `patient.address.update`, `patient.status.update`, `document.create`, `document.version_create`, `document.download`, `document.archive`, `patient.history.append`.  
+- Cada evento deve aceitar payload contextual (geo, biometria, BLE, documento) sem inventar schema inexistente.
+
+## Procedimento oficial de sincronização Repo x Banco
+1. Comparar payloads/DTOs do front com snapshot do banco (Supabase); se houver pasta de snapshots (ex.: `db/snapshots`), usar como referência.  
+2. Encontrou erro de coluna/check constraint inexistente: pausar a feature, registrar em `docs/OPEN_TODO.md` e alinhar DTO/payload ao schema real antes de pensar em migration.  
+3. Não inventar colunas/tabelas. Se schema não disponível, abrir dúvida em `docs/CODEX_QUESTIONS.md` e usar mock explícito.  
+4. Só propor migrations após o alinhamento; mantenha validações e consumo fiéis ao que existe no banco.
 
 ## Arquitetura atual do repo (real)
 - **Front-end**: Next.js (App Router) em `src/app`; Fluent UI 9; Tailwind 4 importado em `globals.css`.  
