@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Conecta Care - Comparativo Fluent vs Fluent 2</title>
+  <style>
+    :root {
+      --cc-bg: #f3f2f1;
+      --cc-text: #201f1e;
+      --cc-muted: #605e5c;
+      --cc-border: #e1dfdd;
+      --cc-primary: #0078d4;
+      --cc-primary-dark: #005a9e;
+
+      /* Fluent 2 */
+      --cc2-bg: #f5f5f7;
+      --cc2-surface: #ffffff;
+      --cc2-border: #e0e0e8;
+      --cc2-primary: #115ea3;
+      --cc2-primary-soft: #e1edf9;
+      --cc2-text: #111827;
+      --cc2-muted: #6b7280;
+      --cc2-radius-lg: 12px;
+      --cc2-radius-xl: 16px;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: #f0f0f4;
+      color: var(--cc-text);
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto 32px auto;
+    }
+
+    .section-title {
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #616161;
+      margin-bottom: 8px;
+    }
+
+    /* ---------- VERSÃO FLUENT "CLÁSSICA" ---------- */
+    .shell-fluent {
+      background: var(--cc-bg);
+      border-radius: 4px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      border: 1px solid var(--cc-border);
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+
+    .fluent-commandbar {
+      background: #ffffff;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--cc-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .fluent-commandbar-left {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .app-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cc-muted);
+    }
+
+    .patient-breadcrumb {
+      font-size: 12px;
+      color: var(--cc-muted);
+    }
+
+    .fluent-commandbar-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 2px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      background: #ffffff;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--cc-primary);
+      color: #ffffff;
+      border-color: var(--cc-primary-dark);
+    }
+
+    .btn-ghost {
+      border-color: var(--cc-border);
+      color: var(--cc-muted);
+    }
+
+    .patient-header {
+      background: #ffffff;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--cc-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .patient-header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .patient-name {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .patient-meta {
+      font-size: 12px;
+      color: var(--cc-muted);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .badge-status {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #e4f6e4;
+      color: #0b6a0b;
+      border: 1px solid #c0e6c0;
+    }
+
+    .badge-allergy {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #fde7e9;
+      color: #a4262c;
+      border: 1px solid #f3babf;
+    }
+
+    .patient-header-side {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--cc-muted);
+    }
+
+    .patient-header-highlight {
+      font-weight: 600;
+      color: var(--cc-primary-dark);
+    }
+
+    .tabs {
+      background: #ffffff;
+      border-bottom: 1px solid var(--cc-border);
+      display: flex;
+      gap: 4px;
+      padding: 0 16px;
+      overflow-x: auto;
+    }
+
+    .tab {
+      font-size: 13px;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      color: var(--cc-muted);
+    }
+
+    .tab.active {
+      color: var(--cc-primary-dark);
+      border-bottom-color: var(--cc-primary);
+      font-weight: 600;
+    }
+
+    .tab-content {
+      padding: 16px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 2px;
+      border: 1px solid var(--cc-border);
+      padding: 12px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .card-body {
+      font-size: 12px;
+      color: var(--cc-muted);
+    }
+
+    .card-body dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      row-gap: 4px;
+      column-gap: 8px;
+    }
+
+    .card-body dt {
+      font-weight: 500;
+    }
+
+    .card-body dd {
+      margin: 0;
+    }
+
+    /* ---------- VERSÃO FLUENT 2 ---------- */
+    .shell-fluent2 {
+      background: var(--cc2-bg);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow:
+        0 18px 35px rgba(15, 23, 42, 0.10),
+        0 0 0 1px rgba(148, 163, 184, 0.18);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+    }
+
+    .fluent2-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .fluent2-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fluent2-app-title {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--cc2-muted);
+    }
+
+    .fluent2-patient-name {
+      font-size: 22px;
+      font-weight: 650;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      color: var(--cc2-text);
+    }
+
+    .chip-status {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .chip-allergy {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .fluent2-meta {
+      font-size: 12px;
+      color: var(--cc2-muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .fluent2-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn2 {
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn2-primary {
+      background: var(--cc2-primary);
+      color: white;
+      box-shadow: 0 8px 16px rgba(17,94,163,0.25);
+    }
+
+    .btn2-ghost {
+      border-color: rgba(148,163,184,0.6);
+      color: var(--cc2-muted);
+      background: rgba(255,255,255,0.7);
+    }
+
+    .btn2-icon {
+      font-size: 14px;
+    }
+
+    .fluent2-tabs {
+      display: inline-flex;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(148,163,184,0.12);
+      margin-bottom: 16px;
+      gap: 2px;
+    }
+
+    .fluent2-tab {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--cc2-muted);
+      white-space: nowrap;
+    }
+
+    .fluent2-tab.active {
+      background: white;
+      color: var(--cc2-primary);
+      box-shadow: 0 4px 10px rgba(15,23,42,0.08);
+    }
+
+    .fluent2-content {
+      display: grid;
+      grid-template-columns: 2.2fr 1.4fr;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .fluent2-main-column,
+    .fluent2-side-column {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card2 {
+      background: var(--cc2-surface);
+      border-radius: var(--cc2-radius-lg);
+      border: 1px solid var(--cc2-border);
+      padding: 14px 14px 12px 14px;
+      box-shadow: 0 8px 14px rgba(15, 23, 42, 0.03);
+    }
+
+    .card2-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .card2-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cc2-text);
+    }
+
+    .card2-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--cc2-primary-soft);
+      color: var(--cc2-primary);
+    }
+
+    .card2-body {
+      font-size: 12px;
+      color: var(--cc2-muted);
+    }
+
+    .card2-body dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      row-gap: 4px;
+      column-gap: 8px;
+    }
+
+    .card2-body dt {
+      font-weight: 500;
+    }
+
+    .card2-body dd {
+      margin: 0;
+    }
+
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 4px 0 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #f3f4ff;
+      color: #4f46e5;
+    }
+
+    .tag-muted {
+      background: #f3f4f6;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="section-title">Comparativo visual</div>
+    <h1>Paciente – Fluent vs Fluent 2</h1>
+  </div>
+
+  <!-- ================= FLUENT "CLÁSSICO" ================= -->
+  <div class="page">
+    <h2 style="font-size:16px; margin-bottom:8px;">Versão A – Fluent clássico (mais próxima do seu layout atual)</h2>
+    <p style="font-size:12px; color:#616161; margin-bottom:12px;">
+      Comando superior, abas em linha e cards padrão, cantos pouco arredondados e layout mais “sistema de gestão” tradicional.
+    </p>
+
+    <div class="shell-fluent">
+      <!-- Command Bar -->
+      <div class="fluent-commandbar">
+        <div class="fluent-commandbar-left">
+          <div class="app-title">Conecta Care · Pacientes</div>
+          <div class="patient-breadcrumb">Pacientes &gt; Lista &gt; João da Silva</div>
+        </div>
+        <div class="fluent-commandbar-right">
+          <button class="btn btn-ghost">Imprimir</button>
+          <button class="btn btn-ghost">Compartilhar</button>
+          <button class="btn btn-primary">Salvar alterações</button>
+        </div>
+      </div>
+
+      <!-- Header Paciente -->
+      <div class="patient-header">
+        <div class="patient-header-main">
+          <div class="patient-name">
+            João da Silva
+            <span class="badge-status">Ativo · Home Care 24h</span>
+            <span class="badge-allergy">Alergia: Dipirona</span>
+          </div>
+          <div class="patient-meta">
+            <span>Paciente: <strong>PAC-000134</strong></span>
+            <span>Idade: 78 anos</span>
+            <span>Responsável: Maria da Silva</span>
+            <span>Convênio: Unimed · Plano Ouro</span>
+          </div>
+        </div>
+        <div class="patient-header-side">
+          <span class="patient-header-highlight">Escala: Complexidade Alta</span>
+          <span>Endereço: Pedreira · SP</span>
+          <span>Última atualização: 29/11/2025 14:32</span>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active">Dados pessoais</div>
+        <div class="tab">Endereço & logística</div>
+        <div class="tab">Rede de apoio</div>
+        <div class="tab">Administrativo</div>
+        <div class="tab">Financeiro</div>
+        <div class="tab">Clínico</div>
+        <div class="tab">Documentos (GED)</div>
+        <div class="tab">Histórico & Auditoria</div>
+      </div>
+
+      <!-- Conteúdo (exemplo: visão geral combinando campos principais) -->
+      <div class="tab-content">
+        <div class="cards-grid">
+          <div class="card">
+            <div class="card-title">Identificação</div>
+            <div class="card-body">
+              <dl>
+                <dt>Nome completo</dt><dd>João da Silva</dd>
+                <dt>Nome social</dt><dd>Não informado</dd>
+                <dt>CPF</dt><dd>123.456.789-00</dd>
+                <dt>Data de nascimento</dt><dd>01/01/1947</dd>
+                <dt>Estado civil</dt><dd>Casado</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Endereço & logística</div>
+            <div class="card-body">
+              <dl>
+                <dt>Endereço</dt><dd>Rua das Flores, 123 – Centro</dd>
+                <dt>Cidade</dt><dd>Pedreira/SP · CEP 13920-000</dd>
+                <dt>Ponto de referência</dt><dd>Próximo ao Hospital Municipal</dd>
+                <dt>Local de atendimento</dt><dd>Residência · Térreo</dd>
+                <dt>Acesso</dt><dd>Entrada principal · Sem escadas</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Responsáveis & Contatos</div>
+            <div class="card-body">
+              <dl>
+                <dt>Responsável legal</dt><dd>Maria da Silva (filha)</dd>
+                <dt>Telefone</dt><dd>(19) 99999-0000</dd>
+                <dt>E-mail</dt><dd>maria.silva@example.com</dd>
+                <dt>Contato secundário</dt><dd>João Filho – (11) 98888-7777</dd>
+                <dt>Preferência contato</dt><dd>WhatsApp · período comercial</dd>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FLUENT 2 ================= -->
+  <div class="page">
+    <h2 style="font-size:16px; margin-bottom:8px;">Versão B – Fluent 2 (mais moderna, arredondada e “calma”)</h2>
+    <p style="font-size:12px; color:#616161; margin-bottom:12px;">
+      Casca mais suave, cards com cantos grandes, tabs em “pílula” e hierarquia visual mais limpa, no estilo dashboard moderno.
+    </p>
+
+    <div class="shell-fluent2">
+      <!-- Header principal -->
+      <div class="fluent2-header">
+        <div class="fluent2-title-block">
+          <span class="fluent2-app-title">Conecta Care · Paciente</span>
+          <div class="fluent2-patient-name">
+            João da Silva
+            <span class="chip-status">Ativo · Home Care 24h</span>
+            <span class="chip-allergy">Alergia: Dipirona</span>
+          </div>
+          <div class="fluent2-meta">
+            <span>PAC-000134</span>
+            <span>78 anos · 01/01/1947</span>
+            <span>Responsável: Maria da Silva</span>
+            <span>Convênio: Unimed · Ouro</span>
+          </div>
+        </div>
+        <div class="fluent2-actions">
+          <button class="btn2 btn2-ghost">
+            <span class="btn2-icon">🧾</span> Imprimir
+          </button>
+          <button class="btn2 btn2-ghost">
+            <span class="btn2-icon">🔗</span> Compartilhar
+          </button>
+          <button class="btn2 btn2-primary">
+            <span class="btn2-icon">💾</span> Salvar alterações
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs em pílula -->
+      <div class="fluent2-tabs">
+        <button class="fluent2-tab active">Dados pessoais</button>
+        <button class="fluent2-tab">Endereço & logística</button>
+        <button class="fluent2-tab">Rede de apoio</button>
+        <button class="fluent2-tab">Administrativo</button>
+        <button class="fluent2-tab">Financeiro</button>
+        <button class="fluent2-tab">Clínico</button>
+        <button class="fluent2-tab">Documentos (GED)</button>
+        <button class="fluent2-tab">Histórico</button>
+      </div>
+
+      <!-- Layout em 2 colunas -->
+      <div class="fluent2-content">
+        <!-- Coluna principal -->
+        <div class="fluent2-main-column">
+          <div class="card2">
+            <div class="card2-header">
+              <div class="card2-title">Identificação</div>
+              <span class="card2-chip">Dados pessoais</span>
+            </div>
+            <div class="card2-body">
+              <dl>
+                <dt>Nome completo</dt><dd>João da Silva</dd>
+                <dt>Nome social</dt><dd>Não informado</dd>
+                <dt>CPF</dt><dd>123.456.789-00</dd>
+                <dt>Data de nascimento</dt><dd>01/01/1947 · 78 anos</dd>
+                <dt>Estado civil</dt><dd>Casado</dd>
+              </dl>
+              <ul class="pill-list">
+                <li class="pill tag-muted">Documento validado</li>
+                <li class="pill tag-muted">Termo LGPD assinado</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="card2">
+            <div class="card2-header">
+              <div class="card2-title">Endereço & logística de atendimento</div>
+              <span class="card2-chip">Home Care</span>
+            </div>
+            <div class="card2-body">
+              <dl>
+                <dt>Endereço</dt><dd>Rua das Flores, 123 – Centro</dd>
+                <dt>Cidade</dt><dd>Pedreira/SP · CEP 13920-000</dd>
+                <dt>Ponto de referência</dt><dd>Próximo ao Hospital Municipal</dd>
+                <dt>Tipo de imóvel</dt><dd>Casa térrea · Acesso facilitado</dd>
+                <dt>Observações</dt><dd>Portão com cadeado · Necessita avisar ao chegar</dd>
+              </dl>
+              <ul class="pill-list">
+                <li class="pill tag-muted">Sem escadas</li>
+                <li class="pill tag-muted">Vaga para ambulância</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna lateral -->
+        <div class="fluent2-side-column">
+          <div class="card2">
+            <div class="card2-header">
+              <div class="card2-title">Responsáveis & contatos</div>
+              <span class="card2-chip">Rede de apoio</span>
+            </div>
+            <div class="card2-body">
+              <dl>
+                <dt>Responsável legal</dt><dd>Maria da Silva · Filha</dd>
+                <dt>Telefone</dt><dd>(19) 99999-0000</dd>
+                <dt>E-mail</dt><dd>maria.silva@example.com</dd>
+                <dt>Contato secundário</dt><dd>João Filho – (11) 98888-7777</dd>
+                <dt>Preferência</dt><dd>WhatsApp · horário comercial</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="card2">
+            <div class="card2-header">
+              <div class="card2-title">Resumo rápido</div>
+              <span class="card2-chip">Visão geral</span>
+            </div>
+            <div class="card2-body">
+              <dl>
+                <dt>Convênio</dt><dd>Unimed · Ouro</dd>
+                <dt>Complexidade</dt><dd>Alta · Dependência grau III</dd>
+                <dt>Equipe</dt><dd>3 enfermeiras · 2 técnicos</dd>
+                <dt>Última atualização</dt><dd>29/11/2025 · 14:32</dd>
+              </dl>
+              <ul class="pill-list">
+                <li class="pill">Escala ativa</li>
+                <li class="pill">GED com documentos válidos</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

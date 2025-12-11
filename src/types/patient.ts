@@ -64,4 +64,12 @@ export interface Paciente {
   administrativo?: Administrativo;
 }
 
-export type PatientTab = 'dados-pessoais' | 'endereco-logistica' | 'rede-apoio' | 'administrativo';
+export type PatientTab =
+  | 'dados-pessoais'
+  | 'endereco-logistica'
+  | 'rede-apoio'
+  | 'administrativo'
+  | 'financeiro'
+  | 'clinico'
+  | 'documentos'
+  | 'historico';
