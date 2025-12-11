@@ -1,6 +1,7 @@
-## Padrão visual Conecta Care – Layout Fluent A
+**AVISO**: a fonte de verdade está em `docs/CODEX_GUIDE.md`.  
+Resumo mínimo para contexto rápido:
 
-- **Layout do paciente (referência)**: command bar superior em fundo branco com título "Conecta Care · Pacientes", breadcrumb (ex.: "Pacientes > Lista > [Nome]") e ações à direita (Imprimir, Compartilhar, Salvar alterações). Header do paciente em branco com nome em destaque, badges de status e alergia, linha de metadados (PAC-ID, idade, responsável, convênio) e coluna lateral com complexidade, cidade/UF e última atualização. Abas horizontais em linha (Dados pessoais, Endereço & logística, Rede de apoio, Administrativo, Financeiro, Clínico, Documentos (GED), Histórico & Auditoria). Conteúdo em cards com borda leve, fundo branco e grid responsivo (3 colunas no desktop, quebrando em telas menores).
-- **Diretriz**: toda nova tela ou módulo deve herdar essa casca (command bar + header + abas + grid de cards). Variam apenas os dados e o conteúdo interno dos cards.
-- **Stack visual**: não usar Fluent 2 puro nem MUI neste repositório. O guideline é Fluent clássico com Tailwind/CSS simples por cima dos componentes existentes.
-- **Fontes de verdade visual**: `src/app/pacientes/[id]/page.tsx` é o template para telas do módulo de Pacientes. `src/app/pacientes/page.tsx` segue o mesmo padrão para a lista e deve ser mantido alinhado.
+- Padrão visual obrigatório: Fluent clássico (Opção A) — command bar com título "Conecta Care · Pacientes" + breadcrumb; header do paciente com badges (status/alergia) e metadados; abas em linha (Dados pessoais, Endereço & logística, Rede de apoio, Administrativo, Financeiro, Clínico, Documentos/GED, Histórico & Auditoria); cards em grid responsivo com borda leve.  
+- Stack visual: Fluent clássico + CSS/Tailwind simples. **Não usar Fluent 2 puro nem MUI.**  
+- Referências visuais: `src/app/pacientes/[id]/page.tsx` (detalhe) e `src/app/pacientes/page.tsx` (lista).  
+- Para regras completas de produto (Escalas como core), segurança, e padrões de contribuição, consultar `docs/CODEX_GUIDE.md`.
