@@ -186,7 +186,7 @@ const useStyles = makeStyles({
     marginTop: '8px',
     ':hover': {
       backgroundColor: tokens.colorNeutralBackground2Hover,
-      borderColor: '#0078d4',
+      border: '1px solid #0078d4',
     },
     ':active': {
       backgroundColor: tokens.colorNeutralBackground2Pressed,

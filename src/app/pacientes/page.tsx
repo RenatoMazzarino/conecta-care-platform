@@ -134,17 +134,17 @@ const useStyles = makeStyles({
   statusSuccess: {
     backgroundColor: '#e4f6e4',
     color: '#0b6a0b',
-    borderColor: '#c0e6c0',
+    border: '1px solid #c0e6c0',
   },
   statusWarning: {
     backgroundColor: '#fff4ce',
     color: '#8a6d1f',
-    borderColor: '#f4e3b0',
+    border: '1px solid #f4e3b0',
   },
   statusDanger: {
     backgroundColor: '#fde7e9',
     color: '#a4262c',
-    borderColor: '#f3babf',
+    border: '1px solid #f3babf',
   },
   linkButton: {
     display: 'inline-flex',

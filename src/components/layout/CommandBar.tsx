@@ -63,7 +63,7 @@ const useStyles = makeStyles({
   },
   primaryAction: {
     backgroundColor: '#0078d4',
-    borderColor: '#005a9e',
+    border: '1px solid #005a9e',
     color: '#ffffff',
     boxShadow: '0 1px 2px rgba(0, 0, 0, 0.12)',
     ':hover': {
