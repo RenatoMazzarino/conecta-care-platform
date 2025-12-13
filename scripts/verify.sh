@@ -11,5 +11,8 @@ unset npm_config_http_proxy || true
 echo "Verify: running lint"
 npm run lint
 
+echo "Verify: running typecheck"
+npm run typecheck
+
 echo "Verify: running build"
 npm run build
