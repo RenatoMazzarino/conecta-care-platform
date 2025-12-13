@@ -3,7 +3,7 @@
 ## 0) Metadados
 - Módulo: Pacientes
 - Aba: ABA01 — Dados Pessoais
-- Versão: 0.1
+- Versão: 0.2
 - Status: Aprovado
 - Última atualização: 2025-12-13
 - Referências:
@@ -22,13 +22,17 @@
 ## 2) Estrutura de UI (Cards e Campos)
 - Layout alvo: `src/components/patient/DadosPessoaisTab.tsx`.
 - Cards/seções:
-  - **Foto do paciente (seção lateral)**: exibe avatar; upload/alteração de foto é opcional e não bloqueia a ABA01 (ver TODO no fim).
+  - **Foto do paciente (seção lateral)**: exibe avatar (storage) via `photo_path`.
   - **Identificação**: dados básicos para identificação do paciente.
+  - **Naturalidade & filiação**: dados de origem e filiação (opcionais).
   - **Contato**: canais de contato do paciente.
+  - **Preferências & observações**: preferências de contato e observações gerais (opcionais).
+  - **Status**: status do cadastro do paciente.
 
 Tabela padrão por campo (obrigatória):
 | Card | Campo (label UI) | Nome técnico (schema.table.column) | Tipo PG | Tipo TS | Obrigatório | Default | Validações | Máscara | Descrição curta |
 |------|-------------------|------------------------|--------|--------|-------------|---------|-----------|--------|----------------|
+| Foto do paciente | Foto do paciente | `public.patients.photo_path` | `text` | `string \| null` | Não | `NULL` | caminho relativo/URL interna do Storage; não pode ser string vazia | — | Path da foto no Storage (ex.: `patients/<id>/photo.jpg`). |
 | Identificação | Nome completo | `public.patients.full_name` | `text` | `string` | Sim | — | trim; min 3; max 200 | — | Nome civil do paciente. |
 | Identificação | Nome social | `public.patients.social_name` | `text` | `string \| null` | Não | `NULL` | trim; max 200 | — | Nome social, quando aplicável. |
 | Identificação | CPF | `public.patients.cpf` | `text` | `string \| null` | Não | `NULL` | **normalizar para dígitos**; 11 dígitos; dígitos verificadores; único por `tenant_id` quando preenchido | `000.000.000-00` | Identificador fiscal do paciente. |
@@ -37,9 +41,21 @@ Tabela padrão por campo (obrigatória):
 | Identificação | Data de nascimento | `public.patients.date_of_birth` | `date` | `string \| null` | Não | `NULL` | não pode ser futura; idade plausível (ex.: <= 130 anos) | `YYYY-MM-DD` | Data de nascimento do paciente. |
 | Identificação | Sexo | `public.patients.gender` | `text` | `'M' \| 'F' \| 'Outro' \| null` | Não | `NULL` | valores permitidos: `M`, `F`, `Outro` | select | Sexo cadastral (conforme UI). |
 | Identificação | Estado civil | `public.patients.civil_status` | `text` | `'solteiro' \| 'casado' \| 'divorciado' \| 'viuvo' \| 'uniao_estavel' \| null` | Não | `NULL` | valores permitidos conforme lista da UI | select | Estado civil do paciente. |
+| Naturalidade & filiação | Local de nascimento | `public.patients.birth_place` | `text` | `string \| null` | Não | `NULL` | trim; max 200 | — | Local de nascimento (campo livre). |
+| Naturalidade & filiação | Nacionalidade | `public.patients.nationality` | `text` | `string \| null` | Não | `NULL` | trim; max 100 | — | Nacionalidade do paciente (opcional). |
+| Naturalidade & filiação | Naturalidade | `public.patients.naturalness` | `text` | `string \| null` | Não | `NULL` | trim; max 200 | — | Naturalidade (cidade/UF), quando aplicável. |
+| Naturalidade & filiação | Nome da mãe | `public.patients.mother_name` | `text` | `string \| null` | Não | `NULL` | trim; max 200 | — | Nome da mãe (opcional). |
+| Naturalidade & filiação | Nome do pai | `public.patients.father_name` | `text` | `string \| null` | Não | `NULL` | trim; max 200 | — | Nome do pai (opcional). |
 | Contato | Telefone principal | `public.patients.mobile_phone` | `text` | `string` | Sim | — | **normalizar para dígitos**; 10–11 dígitos (BR) ou 12–13 com DDI | `(00) 00000-0000` | Canal primário de contato. |
 | Contato | Telefone secundário | `public.patients.secondary_phone` | `text` | `string \| null` | Não | `NULL` | normalizar para dígitos; mesmas regras do principal | `(00) 00000-0000` | Canal secundário (opcional). |
+| Contato | Telefone de emergência | `public.patients.phone_emergency` | `text` | `string \| null` | Não | `NULL` | normalizar para dígitos; mesmas regras do principal | `(00) 00000-0000` | Contato de emergência (opcional). |
 | Contato | E-mail | `public.patients.email` | `text` | `string \| null` | Não | `NULL` | trim; lowercase; max 320; regex simples | — | E-mail do paciente (opcional). |
+| Preferências & observações | Método preferido de contato | `public.patients.preferred_contact_method` | `text` | `'whatsapp' \| 'phone' \| 'sms' \| 'email' \| 'other' \| null` | Não | `NULL` | valores permitidos conforme lista; opcional | select | Canal preferido para contato (opcional). |
+| Preferências & observações | Observações | `public.patients.observations` | `text` | `string \| null` | Não | `NULL` | trim; max 5000 | — | Observações gerais sobre o paciente (opcional). |
+| Status | Ativo | `public.patients.is_active` | `boolean` | `boolean` | Sim | `true` | — | toggle | Indica se o cadastro está ativo. |
+| Interno (auditoria) | Criado por | `public.patients.created_by` | `uuid` | `string \| null` | Não | `NULL` | — | — | ID do usuário (auth) que criou (interno). |
+| Interno (auditoria) | Atualizado por | `public.patients.updated_by` | `uuid` | `string \| null` | Não | `NULL` | — | — | ID do usuário (auth) que atualizou por último (interno). |
+| Interno (auditoria) | Deletado em | `public.patients.deleted_at` | `timestamptz` | `string \| null` | Não | `NULL` | — | — | Soft delete timestamp (interno). |
 
 ## 3) Modelo de Dados (Banco)
 Tabela(s) envolvidas:
@@ -56,6 +72,9 @@ Chaves e colunas mínimas:
 - Metadados:
   - `public.patients.created_at` (`timestamptz`, default `now()`).
   - `public.patients.updated_at` (`timestamptz`, default `now()`; atualizado via trigger `touch_updated_at`).
+  - `public.patients.created_by` (`uuid`, nullable; preenchido pela aplicação).
+  - `public.patients.updated_by` (`uuid`, nullable; preenchido pela aplicação).
+  - `public.patients.deleted_at` (`timestamptz`, nullable; soft delete quando aplicável).
 
 Índices necessários (mínimo):
 - `idx_patients_tenant_id`: btree em `tenant_id`.
@@ -67,13 +86,17 @@ Constraints/checks necessários (mínimo):
   - check `cpf` com regex `^[0-9]{11}$` quando não nulo.
   - unicidade por tenant quando não nulo.
 - Telefones:
-  - check `mobile_phone` e `secondary_phone` (quando não nulos) com regex de dígitos (ex.: `^[0-9]{10,13}$`).
+  - check `mobile_phone` (NOT NULL) e `secondary_phone`/`phone_emergency` (quando não nulos) com regex de dígitos (ex.: `^[0-9]{10,13}$`).
 - Email:
   - check simples quando não nulo (ex.: contém `@` e `.` após `@`) **e/ou** validação forte no app.
 - Data:
   - check `date_of_birth <= current_date` quando não nulo.
 - Domínios:
   - check para `gender` e `civil_status` conforme valores do contrato.
+- Preferência de contato:
+  - check para `preferred_contact_method` conforme valores do contrato.
+- Status:
+  - `is_active` boolean (`NOT NULL DEFAULT true`).
 
 ## 4) Segurança (RLS / Policies)
 RLS:
@@ -94,7 +117,13 @@ Leituras necessárias:
 - `getPatientById(patientId)`: retorna os campos da ABA01 de `public.patients` (por tenant) + metadados úteis (`updated_at`).
 
 Updates necessários:
-- `updatePatientDadosPessoais(patientId, payload)` onde `payload` contém **apenas** campos da ABA01 (`full_name`, `social_name`, `cpf`, `rg`, `rg_issuer`, `date_of_birth`, `gender`, `civil_status`, `mobile_phone`, `secondary_phone`, `email`).
+- `updatePatientDadosPessoais(patientId, payload)` onde `payload` contém **apenas** campos da ABA01:
+  - `full_name`, `social_name`, `cpf`, `rg`, `rg_issuer`, `date_of_birth`, `gender`, `civil_status`
+  - `birth_place`, `nationality`, `naturalness`, `mother_name`, `father_name`
+  - `photo_path`
+  - `mobile_phone`, `secondary_phone`, `phone_emergency`, `email`
+  - `preferred_contact_method`, `observations`, `is_active`
+  - Campos internos **não** podem ser enviados pelo app: `tenant_id`, `created_at`, `updated_at`, `created_by`, `updated_by`, `deleted_at`.
 - Regras obrigatórias:
   - normalizar CPF/telefones para dígitos antes de persistir.
   - `email` em lowercase e trimmed.
@@ -120,6 +149,9 @@ CPF:
 Telefone:
 - Entrada com máscara `(00) 00000-0000` (aceitar `(00) 0000-0000` quando aplicável).
 - Persistência: somente dígitos (aceitar 10–11 BR; opcional 12–13 com DDI).
+
+Método preferido de contato:
+- Campo opcional (select): `whatsapp`, `phone`, `sms`, `email`, `other`.
 
 Email:
 - `trim()` + `toLowerCase()`.
@@ -168,4 +200,4 @@ Testes manuais mínimos (ABA01):
 - [ ] Garantir isolamento por tenant (um tenant não lê/atualiza outro)
 
 TODOs (não bloqueiam a ABA01):
-- TODO: definir estratégia de foto do paciente (Storage + path na tabela vs coluna `photo_url`) e políticas RLS do bucket.
+- TODO: definir bucket/policies do Storage para `photo_path` (sem expor URLs públicas indevidas).
