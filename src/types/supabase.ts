@@ -36,90 +36,207 @@ export type Database = {
     Tables: {
       patients: {
         Row: {
-          birth_place: string | null
+          accept_email: boolean
+          accept_sms: boolean
+          block_marketing: boolean
           civil_status: string | null
+          cns: string | null
+          communication_preferences: Json
+          contact_notes: string | null
+          contact_time_preference: string | null
           cpf: string | null
+          cpf_status: string | null
           created_at: string
           created_by: string | null
           date_of_birth: string | null
           deleted_at: string | null
+          doc_validated_at: string | null
+          doc_validated_by: string | null
+          doc_validation_method: string | null
+          doc_validation_source: string | null
+          doc_validation_status: string | null
+          education_level: string | null
           email: string | null
+          email_verified: boolean
+          external_ids: Json | null
           father_name: string | null
           full_name: string
           gender: string | null
+          gender_identity: string | null
           id: string
           is_active: boolean
+          is_pcd: boolean
+          marketing_consent_history: string | null
+          marketing_consent_ip: unknown
+          marketing_consent_source: string | null
+          marketing_consent_status: string | null
+          marketing_consented_at: string | null
           mobile_phone: string
+          mobile_phone_verified: boolean
           mother_name: string | null
+          national_id: string | null
           nationality: string | null
-          naturalness: string | null
-          observations: string | null
-          phone_emergency: string | null
-          photo_path: string | null
-          preferred_contact_method: string | null
+          nickname: string | null
+          onboarding_step: number
+          photo_consent: boolean
+          photo_consent_date: string | null
+          photo_url: string | null
+          place_of_birth: string | null
+          place_of_birth_city: string | null
+          place_of_birth_country: string | null
+          place_of_birth_state: string | null
+          pref_contact_method: string | null
+          preferred_language: string | null
+          primary_contractor_id: string | null
+          profession: string | null
+          pronouns: string | null
+          race_color: string | null
+          record_status: string
           rg: string | null
+          rg_issued_at: string | null
           rg_issuer: string | null
+          rg_issuer_state: string | null
+          salutation: string | null
           secondary_phone: string | null
+          secondary_phone_type: string | null
           social_name: string | null
           tenant_id: string
           updated_at: string
           updated_by: string | null
         }
         Insert: {
-          birth_place?: string | null
+          accept_email?: boolean
+          accept_sms?: boolean
+          block_marketing?: boolean
           civil_status?: string | null
+          cns?: string | null
+          communication_preferences?: Json
+          contact_notes?: string | null
+          contact_time_preference?: string | null
           cpf?: string | null
+          cpf_status?: string | null
           created_at?: string
           created_by?: string | null
           date_of_birth?: string | null
           deleted_at?: string | null
+          doc_validated_at?: string | null
+          doc_validated_by?: string | null
+          doc_validation_method?: string | null
+          doc_validation_source?: string | null
+          doc_validation_status?: string | null
+          education_level?: string | null
           email?: string | null
+          email_verified?: boolean
+          external_ids?: Json | null
           father_name?: string | null
           full_name: string
           gender?: string | null
+          gender_identity?: string | null
           id?: string
           is_active?: boolean
+          is_pcd?: boolean
+          marketing_consent_history?: string | null
+          marketing_consent_ip?: unknown
+          marketing_consent_source?: string | null
+          marketing_consent_status?: string | null
+          marketing_consented_at?: string | null
           mobile_phone: string
+          mobile_phone_verified?: boolean
           mother_name?: string | null
+          national_id?: string | null
           nationality?: string | null
-          naturalness?: string | null
-          observations?: string | null
-          phone_emergency?: string | null
-          photo_path?: string | null
-          preferred_contact_method?: string | null
+          nickname?: string | null
+          onboarding_step?: number
+          photo_consent?: boolean
+          photo_consent_date?: string | null
+          photo_url?: string | null
+          place_of_birth?: string | null
+          place_of_birth_city?: string | null
+          place_of_birth_country?: string | null
+          place_of_birth_state?: string | null
+          pref_contact_method?: string | null
+          preferred_language?: string | null
+          primary_contractor_id?: string | null
+          profession?: string | null
+          pronouns?: string | null
+          race_color?: string | null
+          record_status?: string
           rg?: string | null
+          rg_issued_at?: string | null
           rg_issuer?: string | null
+          rg_issuer_state?: string | null
+          salutation?: string | null
           secondary_phone?: string | null
+          secondary_phone_type?: string | null
           social_name?: string | null
           tenant_id?: string
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
-          birth_place?: string | null
+          accept_email?: boolean
+          accept_sms?: boolean
+          block_marketing?: boolean
           civil_status?: string | null
+          cns?: string | null
+          communication_preferences?: Json
+          contact_notes?: string | null
+          contact_time_preference?: string | null
           cpf?: string | null
+          cpf_status?: string | null
           created_at?: string
           created_by?: string | null
           date_of_birth?: string | null
           deleted_at?: string | null
+          doc_validated_at?: string | null
+          doc_validated_by?: string | null
+          doc_validation_method?: string | null
+          doc_validation_source?: string | null
+          doc_validation_status?: string | null
+          education_level?: string | null
           email?: string | null
+          email_verified?: boolean
+          external_ids?: Json | null
           father_name?: string | null
           full_name?: string
           gender?: string | null
+          gender_identity?: string | null
           id?: string
           is_active?: boolean
+          is_pcd?: boolean
+          marketing_consent_history?: string | null
+          marketing_consent_ip?: unknown
+          marketing_consent_source?: string | null
+          marketing_consent_status?: string | null
+          marketing_consented_at?: string | null
           mobile_phone?: string
+          mobile_phone_verified?: boolean
           mother_name?: string | null
+          national_id?: string | null
           nationality?: string | null
-          naturalness?: string | null
-          observations?: string | null
-          phone_emergency?: string | null
-          photo_path?: string | null
-          preferred_contact_method?: string | null
+          nickname?: string | null
+          onboarding_step?: number
+          photo_consent?: boolean
+          photo_consent_date?: string | null
+          photo_url?: string | null
+          place_of_birth?: string | null
+          place_of_birth_city?: string | null
+          place_of_birth_country?: string | null
+          place_of_birth_state?: string | null
+          pref_contact_method?: string | null
+          preferred_language?: string | null
+          primary_contractor_id?: string | null
+          profession?: string | null
+          pronouns?: string | null
+          race_color?: string | null
+          record_status?: string
           rg?: string | null
+          rg_issued_at?: string | null
           rg_issuer?: string | null
+          rg_issuer_state?: string | null
+          salutation?: string | null
           secondary_phone?: string | null
+          secondary_phone_type?: string | null
           social_name?: string | null
           tenant_id?: string
           updated_at?: string
