@@ -38,6 +38,7 @@ export type Database = {
         Row: {
           accept_email: boolean
           accept_sms: boolean
+          birth_place: string | null
           block_marketing: boolean
           civil_status: string | null
           cns: string | null
@@ -76,15 +77,14 @@ export type Database = {
           mother_name: string | null
           national_id: string | null
           nationality: string | null
+          naturalness_city: string | null
+          naturalness_country: string | null
+          naturalness_state: string | null
           nickname: string | null
           onboarding_step: number
           photo_consent: boolean
           photo_consent_date: string | null
-          photo_url: string | null
-          place_of_birth: string | null
-          place_of_birth_city: string | null
-          place_of_birth_country: string | null
-          place_of_birth_state: string | null
+          photo_path: string | null
           pref_contact_method: string | null
           preferred_language: string | null
           primary_contractor_id: string | null
@@ -107,6 +107,7 @@ export type Database = {
         Insert: {
           accept_email?: boolean
           accept_sms?: boolean
+          birth_place?: string | null
           block_marketing?: boolean
           civil_status?: string | null
           cns?: string | null
@@ -145,15 +146,14 @@ export type Database = {
           mother_name?: string | null
           national_id?: string | null
           nationality?: string | null
+          naturalness_city?: string | null
+          naturalness_country?: string | null
+          naturalness_state?: string | null
           nickname?: string | null
           onboarding_step?: number
           photo_consent?: boolean
           photo_consent_date?: string | null
-          photo_url?: string | null
-          place_of_birth?: string | null
-          place_of_birth_city?: string | null
-          place_of_birth_country?: string | null
-          place_of_birth_state?: string | null
+          photo_path?: string | null
           pref_contact_method?: string | null
           preferred_language?: string | null
           primary_contractor_id?: string | null
@@ -176,6 +176,7 @@ export type Database = {
         Update: {
           accept_email?: boolean
           accept_sms?: boolean
+          birth_place?: string | null
           block_marketing?: boolean
           civil_status?: string | null
           cns?: string | null
@@ -214,15 +215,14 @@ export type Database = {
           mother_name?: string | null
           national_id?: string | null
           nationality?: string | null
+          naturalness_city?: string | null
+          naturalness_country?: string | null
+          naturalness_state?: string | null
           nickname?: string | null
           onboarding_step?: number
           photo_consent?: boolean
           photo_consent_date?: string | null
-          photo_url?: string | null
-          place_of_birth?: string | null
-          place_of_birth_city?: string | null
-          place_of_birth_country?: string | null
-          place_of_birth_state?: string | null
+          photo_path?: string | null
           pref_contact_method?: string | null
           preferred_language?: string | null
           primary_contractor_id?: string | null
