@@ -11,5 +11,8 @@ unset npm_config_http_proxy || true
 echo "Maintenance: syncing dependencies and lint"
 bash scripts/setup.sh
 
+echo "Maintenance: running typecheck"
+npm run typecheck
+
 echo "Maintenance: running build"
 npm run build

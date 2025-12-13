@@ -14,7 +14,9 @@ Plataforma Conecta Care para gestão de home care: cadastro e prontuário de pac
    - `npm run dev`
 
 ## Verificações
-- `bash scripts/verify.sh` (lint + build)
+- `npm run verify` (lint + typecheck + build)
+- `npm run typecheck` (tsc --noEmit)
+- `bash scripts/verify.sh` (lint + typecheck + build)
 - `bash scripts/typecheck.sh` (tsc --noEmit)
 - `bash scripts/test.sh` (quando houver testes)
 

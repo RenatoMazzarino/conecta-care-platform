@@ -15,6 +15,7 @@ import {
   PhoneRegular,
 } from '@fluentui/react-icons';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Header, CommandBar } from '@/components/layout';
 
 const useStyles = makeStyles({
@@ -230,6 +231,7 @@ const filterOptions = [
 
 export default function PacientesPage() {
   const styles = useStyles();
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFilter, setSelectedFilter] = useState<(typeof filterOptions)[number]['value']>('todos');
 
@@ -252,7 +254,7 @@ export default function PacientesPage() {
   };
 
   const handleNewPatient = () => {
-    window.location.href = '/pacientes/novo';
+    router.push('/pacientes/novo');
   };
 
   return (

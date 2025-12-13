@@ -16,6 +16,7 @@ Esta pasta é a **fonte canônica** de documentação do projeto (processo, cont
   - Índice do módulo Pacientes: `docs/contracts/pacientes/README.md`
 - `docs/runbooks/`: guias operacionais (Supabase local, workflow de migrations, geração de types, etc.).
   - `docs/runbooks/review-workflow.md`: fluxo de branches/PR e checks mínimos.
+  - `docs/runbooks/branch-protection.md`: como ativar branch protection e required status checks.
 
 ## Snapshots (antigo vs novo)
 - **Banco antigo (referência histórica):** `docs/repo_antigo/`
