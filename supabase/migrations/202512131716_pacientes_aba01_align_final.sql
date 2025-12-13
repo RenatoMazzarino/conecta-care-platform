@@ -308,7 +308,9 @@ BEGIN
       AND column_name = 'cpf_status'
   ) THEN
     EXECUTE 'alter table public.patients alter column cpf_status set default ''unknown''';
-    EXECUTE 'update public.patients set cpf_status = ''unknown'' where cpf is null and cpf_status = ''valid''';
+    -- `cpf_status` só faz sentido quando há CPF. Quando o CPF está ausente, padronizamos o status para `unknown`.
+    -- Também cobrimos o caso de linhas antigas com `cpf_status` NULL.
+    EXECUTE 'update public.patients set cpf_status = ''unknown'' where cpf_status is null or cpf is null';
   END IF;
 END $$;
 
@@ -362,6 +364,7 @@ BEGIN
 END $$;
 
 -- 6) CHECK regra 2 fases: `record_status` x `is_active` (dropar e recriar constraint canônica)
+-- Governança: nome canônico desta regra é `patients_record_status_phase_check` (evitar duplicidades futuras).
 DO $$
 DECLARE
   constraint_name record;
