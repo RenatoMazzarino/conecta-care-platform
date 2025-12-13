@@ -9,4 +9,4 @@ Atualize este arquivo sempre que:
 ## Abas
 | Aba | Contrato | Status | Migrations relacionadas |
 |-----|----------|--------|------------------------|
-| ABA01 | `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md` | Aprovado | `supabase/migrations/202512130452_base.sql`, `supabase/migrations/202512130453_pacientes_aba01_dados_pessoais.sql` |
+| ABA01 | `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md` | Aprovado | `supabase/migrations/202512130452_base.sql`, `supabase/migrations/202512130453_pacientes_aba01_dados_pessoais.sql`, `supabase/migrations/202512130704_pacientes_aba01_dados_pessoais_extend_legado.sql` |
