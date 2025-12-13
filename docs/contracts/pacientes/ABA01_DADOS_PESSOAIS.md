@@ -4,7 +4,7 @@
 - Módulo: Pacientes
 - Aba: ABA01 — Dados Pessoais
 - Versão: 0.1
-- Status: Draft
+- Status: Aprovado
 - Última atualização: 2025-12-13
 - Referências:
   - `docs/repo_antigo/schema_current.sql`
@@ -44,6 +44,10 @@ Tabela padrão por campo (obrigatória):
 ## 3) Modelo de Dados (Banco)
 Tabela(s) envolvidas:
 - `public.patients` (somente colunas da ABA01 + metadados padrão).
+
+Decisões explícitas (aprovadas):
+- `mobile_phone` é **obrigatório** (`NOT NULL`).
+- `gender` e `civil_status` são **TEXT + CHECK** (sem enum).
 
 Chaves e colunas mínimas:
 - PK: `public.patients.id` (`uuid`, default `gen_random_uuid()`).
