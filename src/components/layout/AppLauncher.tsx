@@ -19,6 +19,7 @@ import {
   BoxRegular,
   SettingsRegular,
 } from '@fluentui/react-icons';
+import { useRouter } from 'next/navigation';
 
 const useStyles = makeStyles({
   trigger: {
@@ -62,6 +63,7 @@ const appModules = [
 
 export function AppLauncher() {
   const styles = useStyles();
+  const router = useRouter();
 
   return (
     <Menu>
@@ -81,7 +83,7 @@ export function AppLauncher() {
               key={module.key}
               className={styles.menuItem}
               icon={module.icon}
-              onClick={() => window.location.href = module.href}
+              onClick={() => router.push(module.href)}
             >
               {module.name}
             </MenuItem>
