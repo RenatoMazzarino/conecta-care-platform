@@ -36,55 +36,94 @@ export type Database = {
     Tables: {
       patients: {
         Row: {
+          birth_place: string | null
           civil_status: string | null
           cpf: string | null
           created_at: string
+          created_by: string | null
           date_of_birth: string | null
+          deleted_at: string | null
           email: string | null
+          father_name: string | null
           full_name: string
           gender: string | null
           id: string
+          is_active: boolean
           mobile_phone: string
+          mother_name: string | null
+          nationality: string | null
+          naturalness: string | null
+          observations: string | null
+          phone_emergency: string | null
+          photo_path: string | null
+          preferred_contact_method: string | null
           rg: string | null
           rg_issuer: string | null
           secondary_phone: string | null
           social_name: string | null
           tenant_id: string
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
+          birth_place?: string | null
           civil_status?: string | null
           cpf?: string | null
           created_at?: string
+          created_by?: string | null
           date_of_birth?: string | null
+          deleted_at?: string | null
           email?: string | null
+          father_name?: string | null
           full_name: string
           gender?: string | null
           id?: string
+          is_active?: boolean
           mobile_phone: string
+          mother_name?: string | null
+          nationality?: string | null
+          naturalness?: string | null
+          observations?: string | null
+          phone_emergency?: string | null
+          photo_path?: string | null
+          preferred_contact_method?: string | null
           rg?: string | null
           rg_issuer?: string | null
           secondary_phone?: string | null
           social_name?: string | null
           tenant_id?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
+          birth_place?: string | null
           civil_status?: string | null
           cpf?: string | null
           created_at?: string
+          created_by?: string | null
           date_of_birth?: string | null
+          deleted_at?: string | null
           email?: string | null
+          father_name?: string | null
           full_name?: string
           gender?: string | null
           id?: string
+          is_active?: boolean
           mobile_phone?: string
+          mother_name?: string | null
+          nationality?: string | null
+          naturalness?: string | null
+          observations?: string | null
+          phone_emergency?: string | null
+          photo_path?: string | null
+          preferred_contact_method?: string | null
           rg?: string | null
           rg_issuer?: string | null
           secondary_phone?: string | null
           social_name?: string | null
           tenant_id?: string
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
