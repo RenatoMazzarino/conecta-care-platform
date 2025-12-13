@@ -5,6 +5,9 @@ create table public.patients (
   tenant_id uuid not null default app_private.current_tenant_id(),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
+  created_by uuid null,
+  updated_by uuid null,
+  deleted_at timestamptz null,
   full_name text not null,
   social_name text null,
   cpf text null,
@@ -13,15 +16,31 @@ create table public.patients (
   date_of_birth date null,
   gender text null,
   civil_status text null,
+  birth_place text null,
+  nationality text null,
+  naturalness text null,
+  mother_name text null,
+  father_name text null,
+  photo_path text null,
   mobile_phone text not null,
   secondary_phone text null,
+  phone_emergency text null,
   email text null,
+  preferred_contact_method text null,
+  observations text null,
+  is_active boolean not null default true,
   constraint patients_cpf_format_chk check (cpf is null or cpf ~ '^[0-9]{11}$'),
   constraint patients_mobile_phone_format_chk check (mobile_phone ~ '^[0-9]{10,13}$'),
   constraint patients_secondary_phone_format_chk check (secondary_phone is null or secondary_phone ~ '^[0-9]{10,13}$'),
+  constraint patients_phone_emergency_format_chk check (phone_emergency is null or phone_emergency ~ '^[0-9]{10,13}$'),
   constraint patients_email_format_chk check (email is null or email ~* '^[^@]+@[^@]+\\.[^@]+$'),
   constraint patients_date_of_birth_not_future_chk check (date_of_birth is null or date_of_birth <= current_date),
   constraint patients_gender_chk check (gender is null or gender in ('M', 'F', 'Outro')),
+  constraint patients_preferred_contact_method_chk check (
+    preferred_contact_method is null
+    or preferred_contact_method in ('whatsapp', 'phone', 'sms', 'email', 'other')
+  ),
+  constraint patients_is_active_bool_chk check (is_active in (true, false)),
   constraint patients_civil_status_chk check (
     civil_status is null
     or civil_status in ('solteiro', 'casado', 'divorciado', 'viuvo', 'uniao_estavel')
