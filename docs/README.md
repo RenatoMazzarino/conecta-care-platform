@@ -7,6 +7,7 @@ Esta pasta é a **fonte canônica** de documentação do projeto (processo, cont
   - `docs/repo_antigo/schema_current.sql`: snapshot do schema do banco antigo.
   - `docs/repo_antigo/snapshots/`: dumps históricos adicionais (quando existirem).
 - `docs/architecture/`: visão do repositório e decisões de arquitetura.
+  - `docs/architecture/AI_TOOLING.md`: esteira de ferramentas de IA e papéis.
   - `docs/architecture/decisions/`: ADRs curtos (opcional).
   - `docs/architecture/database/`: notas gerais do banco (padrões, convenções, decisões).
 - `docs/contracts/`: **contratos canônicos** por módulo/aba (o que a UI precisa e como isso vira schema, types e ações).
@@ -14,6 +15,7 @@ Esta pasta é a **fonte canônica** de documentação do projeto (processo, cont
   - `docs/contracts/pacientes/`: contratos do módulo de Pacientes, **uma aba = um contrato**.
   - Índice do módulo Pacientes: `docs/contracts/pacientes/README.md`
 - `docs/runbooks/`: guias operacionais (Supabase local, workflow de migrations, geração de types, etc.).
+  - `docs/runbooks/review-workflow.md`: fluxo de branches/PR e checks mínimos.
 
 ## Snapshots (antigo vs novo)
 - **Banco antigo (referência histórica):** `docs/repo_antigo/`
