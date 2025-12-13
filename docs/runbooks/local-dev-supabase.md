@@ -18,6 +18,5 @@
 - Seeds (se usados no futuro): `supabase/seed.sql`
 
 ## Tipos TypeScript (gerados a partir do schema local)
-- Gerar types (schema `public`): `supabase gen types typescript --local --schema public > src/types/supabase.public.ts`
-- Gerar types (com schemas extras, se necessário): `supabase gen types typescript --local > src/types/supabase.ts`
-
+- Arquivo canônico (único) de types gerados: `src/types/supabase.ts`
+- Gerar types a partir do schema local: `supabase gen types typescript --local > src/types/supabase.ts`

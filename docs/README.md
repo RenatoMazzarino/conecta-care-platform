@@ -12,7 +12,13 @@ Esta pasta é a **fonte canônica** de documentação do projeto (processo, cont
 - `docs/contracts/`: **contratos canônicos** por módulo/aba (o que a UI precisa e como isso vira schema, types e ações).
   - `docs/contracts/_templates/`: templates de contrato para copiar.
   - `docs/contracts/pacientes/`: contratos do módulo de Pacientes, **uma aba = um contrato**.
+  - Índice do módulo Pacientes: `docs/contracts/pacientes/README.md`
 - `docs/runbooks/`: guias operacionais (Supabase local, workflow de migrations, geração de types, etc.).
+
+## Snapshots (antigo vs novo)
+- **Banco antigo (referência histórica):** `docs/repo_antigo/`
+- **Banco novo (ao longo do tempo):** `db/snapshots/`
+- Regra: não misturar dumps/snapshots do banco novo dentro de `docs/repo_antigo/`.
 
 ## Fluxo oficial de trabalho
 Ordem obrigatória: **Contrato (MD) → Migrations → Types → UI → Actions**.
@@ -26,4 +32,3 @@ Ordem obrigatória: **Contrato (MD) → Migrations → Types → UI → Actions*
 ## Regra de ouro (obrigatória)
 Não criar/alterar **tabela/coluna/constraint “na mão”** (ou por conveniência) sem **contrato aprovado**.
 Se o contrato não existir ou não estiver aprovado, o próximo passo é **criar/atualizar o contrato** — não a migration.
-
