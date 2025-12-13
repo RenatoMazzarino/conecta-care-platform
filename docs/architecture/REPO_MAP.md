@@ -13,7 +13,7 @@ Estado atual baseado no repositório (sem suposições).
 - `src/lib`: integrações utilitárias (Supabase client).  
 - `docs`: documentação canônica.  
 - `html`: referência visual (`comparativo-fluent.html`).  
-- `db`: (não presente/sem conteúdo) — se surgirem snapshots, usar para schema real.
+- `db/snapshots`: dumps/snapshots de schema (quando existirem).
 
 ## Domínio Pacientes (base da operação)
 - Lista (`src/app/pacientes/page.tsx`): command bar, header de lista com contadores, filtros em abas e cards de pacientes com status/contatos/link.  
