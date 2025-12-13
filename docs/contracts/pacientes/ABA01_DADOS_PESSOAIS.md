@@ -71,7 +71,7 @@ Tabela padrão por campo (obrigatória):
 | Perfil | PCD | `public.patients.is_pcd` | `boolean` | `boolean` | Sim | `false` | — | toggle | Indica se é pessoa com deficiência. |
 | Naturalidade & filiação | Local de nascimento (texto livre) | `public.patients.birth_place` | `text` | `string \| null` | Não | `NULL` | trim; max 200 | — | Local de nascimento (campo livre). |
 | Naturalidade & filiação | Naturalidade — Cidade | `public.patients.naturalness_city` | `text` | `string \| null` | Não | `NULL` | trim; max 120 | — | Naturalidade (cidade); no Brasil, naturalidade é cidade/UF (e país quando aplicável). |
-| Naturalidade & filiação | Naturalidade — UF/Estado | `public.patients.naturalness_state` | `text` | `string \| null` | Não | `NULL` | trim; max 60 | — | Naturalidade (UF/estado). |
+| Naturalidade & filiação | Naturalidade — UF/Estado | `public.patients.naturalness_state` | `text` | `string \| null` | Não | `NULL` | trim; max 60; **se `naturalness_country = 'Brasil'` preferir UF `^[A-Z]{2}$` (validação forte no app)** | — | Naturalidade (UF/estado). |
 | Naturalidade & filiação | Naturalidade — País | `public.patients.naturalness_country` | `text` | `string \| null` | Não | `Brasil` | trim; max 60 | — | Naturalidade (país). |
 | Naturalidade & filiação | Nome da mãe | `public.patients.mother_name` | `text` | `string \| null` | Não | `NULL` | trim; max 200 | — | Nome da mãe. |
 | Naturalidade & filiação | Nome do pai | `public.patients.father_name` | `text` | `string \| null` | Não | `NULL` | trim; max 200 | — | Nome do pai. |
@@ -176,6 +176,7 @@ Constraints/checks necessários (mínimo):
   - check adicional de 2 fases vinculado a `is_active`:
     - `is_active = false` → `record_status in ('draft','onboarding')`
     - `is_active = true` → `record_status in ('active','inactive','deceased','discharged','pending_financial')`
+    - Nome canônico da constraint: `patients_record_status_phase_check`
 
 ## 4) Segurança (RLS / Policies)
 RLS:
