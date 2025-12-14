@@ -19,6 +19,9 @@ BEGIN
     RETURN;
   END IF;
 
+  -- Drop do nome canônico, se já existir (idempotente).
+  EXECUTE 'ALTER TABLE public.patients DROP CONSTRAINT IF EXISTS patients_email_format_chk';
+
   -- Drop qualquer CHECK de e-mail já existente (defensivo).
   FOR constraint_name IN
     SELECT con.conname
@@ -34,14 +37,25 @@ BEGIN
   END LOOP;
 
   -- Recria um CHECK canônico mais tolerante (sem regex frágil).
-  EXECUTE $sql$
-    ALTER TABLE public.patients
-    ADD CONSTRAINT patients_email_format_chk
-    CHECK (
-      email IS NULL OR (
-        position('@' in email) > 1
-        AND position('.' in split_part(email, '@', 2)) > 1
-      )
-    );
-  $sql$;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint con
+    JOIN pg_class rel ON rel.oid = con.conrelid
+    JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+    WHERE con.contype = 'c'
+      AND nsp.nspname = 'public'
+      AND rel.relname = 'patients'
+      AND con.conname = 'patients_email_format_chk'
+  ) THEN
+    EXECUTE $sql$
+      ALTER TABLE public.patients
+      ADD CONSTRAINT patients_email_format_chk
+      CHECK (
+        email IS NULL OR (
+          position('@' in email) > 1
+          AND position('.' in split_part(email, '@', 2)) > 1
+        )
+      );
+    $sql$;
+  END IF;
 END $$;
