@@ -308,9 +308,55 @@ BEGIN
       AND column_name = 'cpf_status'
   ) THEN
     EXECUTE 'alter table public.patients alter column cpf_status set default ''unknown''';
-    -- `cpf_status` só faz sentido quando há CPF. Quando o CPF está ausente, padronizamos o status para `unknown`.
-    -- Também cobrimos o caso de linhas antigas com `cpf_status` NULL.
-    EXECUTE 'update public.patients set cpf_status = ''unknown'' where cpf_status is null or cpf is null';
+    -- `cpf_status` pode existir historicamente como NULL; padronizamos para `unknown` (sem tentar inferir "valid"/"invalid").
+    EXECUTE 'update public.patients set cpf_status = ''unknown'' where cpf_status is null';
+  END IF;
+END $$;
+
+-- 4.b) CHECK de e-mail (fix canônico): garantir regex com `\.` (evitar padrão inválido com `\\.` que exige barra invertida no valor)
+DO $$
+DECLARE
+  constraint_name record;
+BEGIN
+  IF to_regclass('public.patients') IS NULL THEN
+    RETURN;
+  END IF;
+
+  FOR constraint_name IN
+    SELECT conname
+    FROM pg_constraint
+    WHERE conrelid = 'public.patients'::regclass
+      AND contype = 'c'
+      AND pg_get_constraintdef(oid) ILIKE '%email%'
+      AND pg_get_constraintdef(oid) ILIKE '%~*%'
+  LOOP
+    EXECUTE format('alter table public.patients drop constraint if exists %I', constraint_name.conname);
+  END LOOP;
+END $$;
+
+DO $$
+BEGIN
+  IF to_regclass('public.patients') IS NULL THEN
+    RETURN;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'patients'
+      AND column_name = 'email'
+  ) AND NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conrelid = 'public.patients'::regclass
+      AND conname = 'patients_email_format_chk'
+  ) THEN
+    EXECUTE $sql$
+      ALTER TABLE public.patients
+        ADD CONSTRAINT patients_email_format_chk
+        CHECK (email IS NULL OR email ~* '^[^@]+@[^@]+\.[^@]+$')
+    $sql$;
   END IF;
 END $$;
 
