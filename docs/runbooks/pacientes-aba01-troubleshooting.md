@@ -21,11 +21,12 @@ Este documento registra os **erros encontrados** durante o desenvolvimento/integ
 - Não é bug do `page.tsx`, mas polui o console e dificulta debug.
 
 **Correção**
-- Ajuste do script de dev para desabilitar sourcemaps no dev:
-  - `package.json` → `"dev": "next dev --disable-source-maps"`
+- Mantivemos o dev “padrão” com sourcemaps e criamos um modo opcional “clean”:
+  - `npm run dev` (padrão): `next dev` (com sourcemaps)
+  - `npm run dev:clean`: `next dev --disable-source-maps` (quando o console ficar barulhento)
 
 **Como validar**
-- Pare e rode `npm run dev` novamente. Os warnings devem sumir (ou reduzir drasticamente).
+- Rode `npm run dev:clean`. Os warnings devem sumir (ou reduzir drasticamente).
 
 ## 2) Erro do Next 16: `params` é Promise (rota dinâmica)
 **Sintoma**
@@ -71,11 +72,13 @@ Este documento registra os **erros encontrados** durante o desenvolvimento/integ
 - Extensões podem modificar o HTML antes da hidratação do React, causando mismatch.
 
 **Correção**
-- Reduzimos ruído do warning (sem “gambiarra” em lógica) adicionando:
-  - `suppressHydrationWarning` em `<html>` e `<body>` no `src/app/layout.tsx`
+- Não “calamos” esse warning globalmente no app.
+- Para confirmar se é extensão (e não bug do app), teste em navegador limpo:
+  - Use uma janela anônima **sem extensões** (ou um perfil novo do Chrome/Edge).
+  - Desative extensões que injetam atributos no DOM (ex.: Grammarly) e recarregue a página.
 
 **Como validar**
-- Recarregue a página com extensões ativas e confira que o warning não bloqueia o uso da UI.
+- Em navegador limpo, o warning deve desaparecer.
 
 ## 5) Seed de 2 pacientes para teste (aba sem mocks)
 **Objetivo**
@@ -95,20 +98,25 @@ Este documento registra os **erros encontrados** durante o desenvolvimento/integ
   - `http://localhost:3000/pacientes/2ea4508e-4615-4ff0-9d55-68ef15d5dadb`
   - `http://localhost:3000/pacientes/f42bcd9e-a4f1-4bdf-8390-a5224f55d953`
 
-## 6) Bug no CHECK de e-mail: inserts falhavam com `patients_email_format_chk`
+## 6) CHECK de e-mail (banco): regra simples para evitar falso negativo
 **Sintoma**
 - Inserir paciente com `email` não-nulo falhava com:
   - `violates check constraint "patients_email_format_chk"`
 
-**Causa**
-- A regex do CHECK estava com `\\.` dentro da string SQL, o que faz a regex procurar **uma barra invertida literal** antes do ponto.
-  - Resultado: e-mails normais (`a@b.com`) não passavam.
+**Decisão**
+- Regra **simples** no banco; validação forte fica no app (Zod).
 
 **Correção**
-- Ajuste defensivo na migration incremental:
-  - `supabase/migrations/202512131716_pacientes_aba01_align_final.sql`
-  - Drop + recriação do CHECK com padrão correto:
-    - `CHECK (email IS NULL OR email ~* '^[^@]+@[^@]+\\.[^@]+$')`
+- Nova migration incremental padronizando um CHECK tolerante:
+  - `supabase/migrations/202512141854_pacientes_email_check_relax.sql`
+  - CHECK canônico:
+    - `email IS NULL OR (position('@' in email) > 1 AND position('.' in split_part(email, '@', 2)) > 1)`
+
+**Como validar**
+- Após `supabase db reset --yes`, estes exemplos devem ser aceitos:
+  - `a@b.com`, `nome.sobrenome@empresa.com.br`
+- E estes devem ser rejeitados:
+  - `a@b`, `@b.com`, `a@.com`
 
 ## 7) Erro “tenant_id ausente…” ao carregar paciente (RLS + multi-tenant)
 **Sintoma**
@@ -124,12 +132,13 @@ Este documento registra os **erros encontrados** durante o desenvolvimento/integ
 **Correção (DEV LOCAL)**
 1) O client Supabase passou a aceitar um token opcional para dev:
    - `src/lib/supabase/client.ts`
-   - Se existir `NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN`, ele injeta `Authorization: Bearer <token>` em todas as requests.
+   - Se existir `NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN` **e** `NODE_ENV=development`, ele injeta `Authorization: Bearer <token>` nas requests.
+   - Em produção, esse bypass é ignorado e emite `console.warn` (para evitar ativação acidental).
 2) Documentação de exemplo:
-   - `.env.local.local.example` ganhou `NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN=__COLOQUE_AQUI__`
+   - `.env.local.local.example` ganhou `NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN=__COLOQUE_AQUI__`
 
 **Importante (segurança)**
-- Isso é **apenas para dev local**. Não use/defina `NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN` em ambientes online.
+- Isso é **apenas para dev local**. Não use/defina `NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN` em ambientes online.
 - `.env.local` / `.env.local.local` são arquivos locais e não devem ser commitados (o repo já ignora `.env*`).
 
 **Como validar**
@@ -157,4 +166,3 @@ Este documento registra os **erros encontrados** durante o desenvolvimento/integ
 3) `npm run dev`
 4) Abrir uma URL de paciente do seed (seção 5)
 5) Editar alguns campos e salvar (Aba 01)
-
