@@ -1,10 +1,15 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { makeStyles, tokens } from '@fluentui/react-components';
+import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { makeStyles, tokens, Spinner } from '@fluentui/react-components';
 import { Header, CommandBar } from '@/components/layout';
 import { DadosPessoaisTab } from '@/components/patient';
 import type { PatientTab, DadosPessoais, Endereco, RedeApoio, Administrativo } from '@/types/patient';
+import { getSupabaseClient } from '@/lib/supabase/client';
+
+const isDevBypassEnabled =
+  process.env.NODE_ENV === 'development' && Boolean(process.env.NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN);
 
 const useStyles = makeStyles({
   page: {
@@ -297,11 +302,48 @@ interface PatientPageClientProps {
 
 export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const styles = useStyles();
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedTab, setSelectedTab] = useState<PatientTab>('dados-pessoais');
   const [dadosPessoais] = useState<DadosPessoais>(mockDadosPessoais);
   const [endereco] = useState<Endereco>(mockEndereco);
   const [redeApoio] = useState<RedeApoio[]>(mockRedeApoio);
   const [administrativo] = useState<Administrativo>(mockAdministrativo);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkSession = async () => {
+      const supabase = getSupabaseClient();
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error('[auth] getSession failed', error);
+      }
+
+      if (session || isDevBypassEnabled) {
+        setIsAuthenticated(true);
+        setAuthChecked(true);
+        return;
+      }
+
+      setIsAuthenticated(false);
+      setAuthChecked(true);
+      router.replace(`/login?next=${encodeURIComponent(`/pacientes/${patientId}`)}`);
+    };
+
+    void checkSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [patientId, router]);
 
   const idade = useMemo(() => calculateAge(dadosPessoais.data_nascimento), [dadosPessoais.data_nascimento]);
   const breadcrumb = `Pacientes > Lista > ${dadosPessoais.nome_completo}`;
@@ -516,6 +558,15 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const handleSave = () => {
     // Futuras integrações: persistir dados no backend
   };
+
+  if (!authChecked || !isAuthenticated) {
+    return (
+      <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <Spinner size="medium" />
+        <div>Redirecionando para login...</div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
