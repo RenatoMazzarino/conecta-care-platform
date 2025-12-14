@@ -40,7 +40,17 @@ export function getSupabaseClient(): SupabaseClient<Database> {
           return fetch(input, init);
         }
 
+        const requestUrl =
+          typeof input === 'string' ? input : 'url' in input ? input.url : String(input);
+        if (!requestUrl.includes('/rest/v1')) {
+          return fetch(input, init);
+        }
+
         const headers = new Headers(init?.headers);
+        const currentAuth = headers.get('Authorization');
+        if (currentAuth && currentAuth !== `Bearer ${supabaseAnonKey}`) {
+          return fetch(input, init);
+        }
         headers.set('Authorization', `Bearer ${supabaseDevAccessToken}`);
 
         return fetch(input, { ...init, headers });
