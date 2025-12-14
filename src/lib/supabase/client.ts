@@ -3,7 +3,10 @@ import type { Database } from '@/types/supabase';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabaseAccessToken = process.env.NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN;
+const supabaseDevAccessToken = process.env.NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN;
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+let didWarnDevTokenInProd = false;
 
 let client: SupabaseClient<Database> | null = null;
 
@@ -25,10 +28,20 @@ export function getSupabaseClient(): SupabaseClient<Database> {
   client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     global: {
       fetch: (input, init) => {
-        if (!supabaseAccessToken) return fetch(input, init);
+        if (!supabaseDevAccessToken) return fetch(input, init);
+
+        if (!isDevelopment) {
+          if (!didWarnDevTokenInProd) {
+            didWarnDevTokenInProd = true;
+            console.warn(
+              '[supabase] NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN is set but NODE_ENV is not development. Ignoring it.',
+            );
+          }
+          return fetch(input, init);
+        }
 
         const headers = new Headers(init?.headers);
-        headers.set('Authorization', `Bearer ${supabaseAccessToken}`);
+        headers.set('Authorization', `Bearer ${supabaseDevAccessToken}`);
 
         return fetch(input, { ...init, headers });
       },
