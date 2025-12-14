@@ -61,7 +61,10 @@ export async function updatePatientDadosPessoais(
   patientId: string,
   payload: UpdatePatientDadosPessoaisPayload,
 ): Promise<PatientRow> {
-  const parsedPatientId = patientIdSchema.parse(patientId);
+  const parsedPatientId = patientIdSchema.safeParse(patientId);
+  if (!parsedPatientId.success) {
+    throw new Error('ID do paciente inválido (esperado UUID)');
+  }
   const parsedPayload = patientDadosPessoaisUpdateSchema.parse(payload);
   const normalizedPayload = normalizePayload(parsedPayload);
 
@@ -70,7 +73,7 @@ export async function updatePatientDadosPessoais(
   const { data, error } = await supabase
     .from('patients')
     .update(normalizedPayload)
-    .eq('id', parsedPatientId)
+    .eq('id', parsedPatientId.data)
     .is('deleted_at', null)
     .select('*')
     .maybeSingle();

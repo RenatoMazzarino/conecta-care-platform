@@ -7,13 +7,16 @@ export type PatientRow = Database['public']['Tables']['patients']['Row'];
 const patientIdSchema = z.string().uuid();
 
 export async function getPatientById(patientId: string): Promise<PatientRow> {
-  const parsedPatientId = patientIdSchema.parse(patientId);
+  const parsed = patientIdSchema.safeParse(patientId);
+  if (!parsed.success) {
+    throw new Error('ID do paciente inválido (esperado UUID)');
+  }
   const supabase = getSupabaseClient();
 
   const { data, error } = await supabase
     .from('patients')
     .select('*')
-    .eq('id', parsedPatientId)
+    .eq('id', parsed.data)
     .is('deleted_at', null)
     .maybeSingle();
 
@@ -27,4 +30,3 @@ export async function getPatientById(patientId: string): Promise<PatientRow> {
 
   return data;
 }
-
