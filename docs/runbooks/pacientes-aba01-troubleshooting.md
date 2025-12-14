@@ -121,28 +121,35 @@ Este documento registra os **erros encontrados** durante o desenvolvimento/integ
 ## 7) Erro “tenant_id ausente…” ao carregar paciente (RLS + multi-tenant)
 **Sintoma**
 - Request PostgREST falhava com `400` e a UI mostrava:
-  - `tenant_id ausente (defina auth.jwt()->>tenant_id ou current_setting(app.tenant_id))`
+  - `tenant_id ausente (...)`
 
 **Causa**
-- O banco exige um `tenant_id` via:
-  - claim `tenant_id` no JWT (`auth.jwt()->>'tenant_id'`) **ou**
-  - `current_setting('app.tenant_id', true)`
-- No dev, usando só `anon key`, não existe JWT com `tenant_id`, então a função `app_private.current_tenant_id()` lança exceção.
+- O banco exige um `tenant_id` para aplicar RLS por tenant.
+- Em produção, o tenant deve vir do **JWT do Supabase Auth**, normalmente em:
+  - `auth.jwt()->'app_metadata'->>'tenant_id'`
+- Sem sessão (ou sem `tenant_id` no JWT), a função `app_private.current_tenant_id()` lança exceção.
 
-**Correção (DEV LOCAL)**
-1) O client Supabase passou a aceitar um token opcional para dev:
-   - `src/lib/supabase/client.ts`
-   - Se existir `NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN` **e** `NODE_ENV=development`, ele injeta `Authorization: Bearer <token>` nas requests.
-   - Em produção, esse bypass é ignorado e emite `console.warn` (para evitar ativação acidental).
-2) Documentação de exemplo:
-   - `.env.local.local.example` ganhou `NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN=__COLOQUE_AQUI__`
+**Solução oficial (produção-first)**
+1) O app agora exige sessão para acessar `/pacientes/[id]`:
+   - Sem sessão → redireciona para `/login?next=/pacientes/<id>`
+2) O banco suporta tenant vindo do JWT em `app_metadata`:
+   - Migration: `supabase/migrations/202512142004_auth_tenant_from_jwt.sql`
+3) Para DEV local:
+   - crie um usuário e defina `tenant_id` no `app_metadata` (via Studio/SQL)
+   - faça login e abra `/pacientes/<uuid>`
+   - Runbook: `docs/runbooks/auth-tenancy.md`
+
+**Fallback DEV ONLY (opcional)**
+- Se você ainda não quiser usar login no dev, existe um bypass opt-in:
+  - `NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN` (somente em `NODE_ENV=development`)
 
 **Importante (segurança)**
 - Isso é **apenas para dev local**. Não use/defina `NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN` em ambientes online.
 - `.env.local` / `.env.local.local` são arquivos locais e não devem ser commitados (o repo já ignora `.env*`).
 
 **Como validar**
-- Após ajustar `.env.local`/`.env.local.local`, reinicie `npm run dev` e recarregue `/pacientes/<uuid>`.
+- Abra `/pacientes/<uuid>` sem login e confira o redirect para `/login`.
+- Faça login e recarregue `/pacientes/<uuid>`: deve carregar sem erro 400.
 
 ## 8) Tela sem rolagem vertical (scroll travado)
 **Sintoma**
