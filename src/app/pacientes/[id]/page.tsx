@@ -1,9 +1,10 @@
 import { PatientPageClient } from './PatientPageClient';
 
 interface PatientDetailPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default function PatientDetailPage({ params }: PatientDetailPageProps) {
-  return <PatientPageClient patientId={params.id} />;
+export default async function PatientDetailPage({ params }: PatientDetailPageProps) {
+  const { id } = await params;
+  return <PatientPageClient patientId={id} />;
 }
