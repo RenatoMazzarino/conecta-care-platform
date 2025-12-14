@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { makeStyles, tokens } from '@fluentui/react-components';
 import { Header, CommandBar } from '@/components/layout';
+import { DadosPessoaisTab } from '@/components/patient';
 import type { PatientTab, DadosPessoais, Endereco, RedeApoio, Administrativo } from '@/types/patient';
 
 const useStyles = makeStyles({
@@ -307,8 +308,6 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const responsavelLegal = redeApoio.find((item) => item.is_responsavel_legal)?.nome ?? 'Não informado';
   const cidadeUf = endereco.cidade && endereco.estado ? `${endereco.cidade}/${endereco.estado}` : endereco.cidade;
 
-  void patientId;
-
   const renderDefinitionList = (items: { label: string; value?: string | number | null }[]) => (
     <dl className={styles.definitionList}>
       {items.map((item) => (
@@ -318,42 +317,6 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
         </div>
       ))}
     </dl>
-  );
-
-  const renderDadosPessoais = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Identificação</div>
-        {renderDefinitionList([
-          { label: 'Nome completo', value: dadosPessoais.nome_completo },
-          { label: 'Nome social', value: 'Não informado' },
-          { label: 'CPF', value: dadosPessoais.cpf },
-          { label: 'Data de nascimento', value: `${dadosPessoais.data_nascimento} ${idade ? `· ${idade} anos` : ''}`.trim() },
-          { label: 'Estado civil', value: dadosPessoais.estado_civil || '—' },
-          { label: 'Sexo', value: dadosPessoais.sexo },
-        ])}
-      </div>
-
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Documentos</div>
-        {renderDefinitionList([
-          { label: 'RG', value: dadosPessoais.rg },
-          { label: 'Órgão emissor', value: dadosPessoais.orgao_emissor_rg },
-          { label: 'PAC-ID', value: 'PAC-000134' },
-          { label: 'Status', value: 'Ativo' },
-        ])}
-      </div>
-
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Contatos</div>
-        {renderDefinitionList([
-          { label: 'Telefone principal', value: dadosPessoais.telefone_principal },
-          { label: 'Telefone secundário', value: dadosPessoais.telefone_secundario },
-          { label: 'E-mail', value: dadosPessoais.email },
-          { label: 'Responsável legal', value: responsavelLegal },
-        ])}
-      </div>
-    </div>
   );
 
   const renderEnderecoLogistica = () => (
@@ -530,7 +493,7 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const renderTabContent = () => {
     switch (selectedTab) {
       case 'dados-pessoais':
-        return renderDadosPessoais();
+        return <DadosPessoaisTab patientId={patientId} />;
       case 'endereco-logistica':
         return renderEnderecoLogistica();
       case 'rede-apoio':
