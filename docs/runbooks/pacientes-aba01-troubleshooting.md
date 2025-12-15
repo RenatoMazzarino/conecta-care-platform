@@ -167,6 +167,27 @@ Este documento registra os **erros encontrados** durante o desenvolvimento/integ
 **Como validar**
 - Recarregue a página e teste a rolagem vertical.
 
+## 9) UI da Aba 01: VIEW (cards) vs formulário (onboarding)
+**Objetivo**
+- Melhorar a experiência de **leitura** na Aba 01 (evitar aparência de “formulário desabilitado”).
+- Preservar o layout “form-like” como base para um futuro fluxo de **onboarding** (cadastro em etapas).
+
+**O que foi feito**
+- **Modo VIEW (leitura)**: passou a renderizar os dados em **cards em grid (lado a lado)**, seguindo o seu mock Dynamics, com:
+  - card “Informações do paciente” de largura total;
+  - cards laterais para consentimentos, validação documental, status, auditoria e timeline;
+  - command bar no topo (Imprimir/Compartilhar/Salvar + Editar/Cancelar/Recarregar) integrado à aba.
+  - Arquivo: `src/components/patient/DadosPessoaisTab.tsx`
+- **Modelo de onboarding (referência)**: o formulário “lista” foi extraído para um componente dedicado:
+  - `src/features/pacientes/ui/onboarding/DadosPessoaisOnboardingForm.tsx`
+  - Documentação local: `src/features/pacientes/ui/onboarding/README.md`
+  - Esta documentação descreve o componente de edição que permanece como base para onboarding futuro.
+
+**Como validar**
+- Abra `/pacientes/<uuid>`:
+  - Em VIEW, os cards devem ficar em grid (2+ colunas em telas largas).
+  - Ao clicar em **Editar**, o formulário de edição deve abrir normalmente.
+
 ## Checklist rápido de validação (local)
 1) `supabase status` (confira URL/ports)
 2) `supabase db reset --yes`

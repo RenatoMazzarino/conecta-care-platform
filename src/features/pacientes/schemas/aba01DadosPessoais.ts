@@ -73,7 +73,7 @@ function trimmedString(max: number, label: string) {
 
 const dateString = z
   .string()
-  .regex(/^\\d{4}-\\d{2}-\\d{2}$/, { message: 'Data inválida' });
+  .regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'Data inválida' });
 
 const contactPreferencesSchema = z.object({
   sms: z.boolean().default(true),
@@ -218,7 +218,7 @@ export const patientDadosPessoaisUpdateSchema = z
   .strict()
   .superRefine((value, ctx) => {
     if (value.cpf != null) {
-      const digits = value.cpf.replace(/\\D/g, '');
+      const digits = value.cpf.replace(/\D/g, '');
       if (digits.length !== 11) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -229,7 +229,7 @@ export const patientDadosPessoaisUpdateSchema = z
     }
 
     if (value.mobile_phone != null) {
-      const digits = value.mobile_phone.replace(/\\D/g, '');
+      const digits = value.mobile_phone.replace(/\D/g, '');
       if (digits.length < 10 || digits.length > 13) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -240,7 +240,7 @@ export const patientDadosPessoaisUpdateSchema = z
     }
 
     if (value.secondary_phone != null) {
-      const digits = value.secondary_phone.replace(/\\D/g, '');
+      const digits = value.secondary_phone.replace(/\D/g, '');
       if (digits.length < 10 || digits.length > 13) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -252,7 +252,7 @@ export const patientDadosPessoaisUpdateSchema = z
 
     if (value.email != null) {
       const email = value.email.trim().toLowerCase();
-      if (email !== '' && !/^[^@]+@[^@]+\\.[^@]+$/.test(email)) {
+      if (email !== '' && !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ['email'],
@@ -332,14 +332,14 @@ export type PatientDadosPessoaisUpdate = z.output<typeof patientDadosPessoaisUpd
 export function normalizeCpf(value: string | null | undefined): string | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
-  const digits = value.replace(/\\D/g, '');
+  const digits = value.replace(/\D/g, '');
   return digits === '' ? null : digits;
 }
 
 export function normalizePhone(value: string | null | undefined): string | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
-  const digits = value.replace(/\\D/g, '');
+  const digits = value.replace(/\D/g, '');
   return digits === '' ? null : digits;
 }
 
@@ -360,7 +360,7 @@ export function normalizeText(value: string | null | undefined): string | null |
 export function normalizeFullName(value: string | null | undefined): string | null | undefined {
   if (value === undefined) return undefined;
   if (value === null) return null;
-  const collapsed = value.trim().replace(/\\s+/g, ' ');
+  const collapsed = value.trim().replace(/\s+/g, ' ');
   return collapsed === '' ? null : collapsed;
 }
 

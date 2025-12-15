@@ -2,16 +2,9 @@
 
 import {
   makeStyles,
+  mergeClasses,
   tokens,
-  Card,
-  CardHeader,
-  Field,
-  Input,
-  Select,
-  Avatar,
   Button,
-  Textarea,
-  Checkbox,
   Spinner,
   Toaster,
   Toast,
@@ -19,24 +12,16 @@ import {
   useId,
   useToastController,
 } from '@fluentui/react-components';
-import {
-  PersonRegular,
-  MailRegular,
-  PhoneRegular,
-  CameraRegular,
-  EditRegular,
-  SaveRegular,
-  DismissRegular,
-  ArrowClockwiseRegular,
-} from '@fluentui/react-icons';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { z } from 'zod';
+import { ArrowClockwiseRegular } from '@fluentui/react-icons';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import type { Json } from '@/types/supabase';
 import type { PatientRow } from '@/features/pacientes/actions/getPatientById';
 import { getPatientById } from '@/features/pacientes/actions/getPatientById';
 import { updatePatientDadosPessoais } from '@/features/pacientes/actions/updatePatientDadosPessoais';
+import { DadosPessoaisOnboardingForm } from '@/features/pacientes/ui/onboarding/DadosPessoaisOnboardingForm';
 import {
   patientDadosPessoaisUpdateSchema,
+  type PatientDadosPessoaisUpdate,
   genderOptions,
   civilStatusOptions,
   genderIdentityOptions,
@@ -54,68 +39,137 @@ import {
 
 const useStyles = makeStyles({
   container: {
+    padding: '0 0 32px',
+  },
+  grid: {
     display: 'grid',
-    gap: '24px',
-    padding: '24px',
-    gridTemplateColumns: '1fr',
-    '@media (min-width: 768px)': {
-      gridTemplateColumns: '200px 1fr',
+    gridTemplateColumns: '2fr 1fr',
+    gap: '16px',
+    alignItems: 'start',
+    '@media (max-width: 1100px)': {
+      gridTemplateColumns: '1fr',
     },
   },
-  photoSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
+  leftCol: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
     gap: '16px',
-    padding: '24px',
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderRadius: tokens.borderRadiusLarge,
-    height: 'fit-content',
+    '@media (max-width: 1100px)': {
+      gridTemplateColumns: '1fr',
+    },
   },
-  photoPlaceholder: {
-    width: '150px',
-    height: '150px',
-    borderRadius: '50%',
-    backgroundColor: tokens.colorNeutralBackground4,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  formSection: {
+  rightCol: {
     display: 'flex',
     flexDirection: 'column',
     gap: '16px',
-  },
-  fieldGroup: {
-    display: 'grid',
-    gap: '16px',
-    gridTemplateColumns: '1fr',
-    '@media (min-width: 640px)': {
-      gridTemplateColumns: 'repeat(2, 1fr)',
-    },
-    '@media (min-width: 1024px)': {
-      gridTemplateColumns: 'repeat(3, 1fr)',
-    },
   },
   card: {
-    padding: '16px',
+    backgroundColor: '#ffffff',
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: '6px',
+    boxShadow: '0 1px 2px rgba(0,0,0,.08)',
+    overflow: 'hidden',
   },
-  toolbar: {
+  cardSpan: {
+    gridColumn: '1 / -1',
+  },
+  cardHeader: {
+    padding: '14px 16px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '10px',
+  },
+  cardTitle: {
+    fontSize: '12px',
+    letterSpacing: '.6px',
+    textTransform: 'uppercase',
+    fontWeight: 900,
+    color: tokens.colorNeutralForeground1,
+  },
+  cardBody: {
+    padding: '14px 16px',
+  },
+  definitionList: {
+    display: 'grid',
+    gridTemplateColumns: '180px 1fr',
+    rowGap: '10px',
+    columnGap: '12px',
+    margin: 0,
+    '& dt': {
+      color: tokens.colorNeutralForeground3,
+      fontSize: '12px',
+      margin: 0,
+    },
+    '& dd': {
+      margin: 0,
+      fontWeight: tokens.fontWeightSemibold,
+      fontSize: '12.5px',
+      overflowWrap: 'anywhere',
+      color: tokens.colorNeutralForeground1,
+    },
+    '@media (max-width: 480px)': {
+      gridTemplateColumns: '140px 1fr',
+    },
+  },
+  note: {
+    margin: 0,
+    color: tokens.colorNeutralForeground3,
+    fontSize: '12px',
+  },
+  pre: {
+    margin: 0,
+    padding: '12px',
+    backgroundColor: tokens.colorNeutralBackground2,
+    borderRadius: tokens.borderRadiusMedium,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    overflow: 'auto',
+    maxHeight: '240px',
+    fontSize: tokens.fontSizeBase200,
+    lineHeight: tokens.lineHeightBase200,
+  },
+  timelineItem: {
+    display: 'flex',
+    gap: '10px',
+    padding: '10px 0',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    ':last-child': {
+      borderBottom: 0,
+    },
+  },
+  timelineBar: {
+    width: '3px',
+    borderRadius: '2px',
+    backgroundColor: '#0f6cbd',
+    marginTop: '2px',
+  },
+  timelineMain: {
+    flex: 1,
+    minWidth: 0,
+  },
+  timelineTop: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
     gap: '12px',
-    marginBottom: '16px',
+    fontSize: '11.5px',
+    color: tokens.colorNeutralForeground3,
+    marginBottom: '2px',
   },
-  toolbarActions: {
-    display: 'flex',
-    gap: '8px',
-    flexWrap: 'wrap',
+  timelineTitle: {
+    fontWeight: 900,
+    fontSize: '12.5px',
+    margin: '0 0 2px',
+  },
+  timelineDesc: {
+    margin: 0,
+    color: tokens.colorNeutralForeground3,
+    fontSize: '12px',
   },
 });
 
 type CommunicationPreferences = { sms: boolean; email: boolean; whatsapp: boolean };
-type Draft = z.infer<typeof patientDadosPessoaisUpdateSchema>;
+type Draft = PatientDadosPessoaisUpdate;
 
 function asStringOrNull(value: unknown): string | null {
   if (value == null) return null;
@@ -213,11 +267,81 @@ function mergeDraft(prev: Draft, patch: Partial<Draft>): Draft {
   return { ...prev, ...patch };
 }
 
-interface DadosPessoaisTabProps {
-  patientId: string;
+function formatText(value: string | null | undefined) {
+  if (value == null) return '—';
+  const trimmed = value.trim();
+  return trimmed === '' ? '—' : trimmed;
 }
 
-export function DadosPessoaisTab({ patientId }: DadosPessoaisTabProps) {
+function formatBool(value: boolean | null | undefined) {
+  if (value == null) return '—';
+  return value ? 'Sim' : 'Não';
+}
+
+function formatDateISO(value: string | null | undefined) {
+  if (!value) return '—';
+  const parts = value.split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return value;
+}
+
+function formatTimestamp(value: string | null | undefined) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toISOString().replace('T', ' ').slice(0, 16);
+}
+
+function formatCpf(value: string | null | undefined) {
+  const raw = formatText(value);
+  if (raw === '—') return raw;
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 11) {
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  }
+  return raw;
+}
+
+function formatPhone(value: string | null | undefined) {
+  const raw = formatText(value);
+  if (raw === '—') return raw;
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  return raw;
+}
+
+function formatCommunicationPreferences(value: Json) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return '—';
+  const obj = value as Record<string, unknown>;
+  const parts: string[] = [];
+  if (obj.whatsapp === true) parts.push('WhatsApp');
+  if (obj.email === true) parts.push('E-mail');
+  if (obj.sms === true) parts.push('SMS');
+  return parts.length ? parts.join(', ') : '—';
+}
+
+interface DadosPessoaisTabProps {
+  patientId: string;
+  onPatientUpdated?: (patient: PatientRow) => void;
+  onStatusChange?: (status: { isEditing: boolean; isSaving: boolean }) => void;
+}
+
+export interface DadosPessoaisTabHandle {
+  startEdit: () => void;
+  cancelEdit: () => void;
+  reload: () => void;
+  save: () => void;
+}
+
+export const DadosPessoaisTab = forwardRef<DadosPessoaisTabHandle, DadosPessoaisTabProps>(function DadosPessoaisTab(
+  { patientId, onPatientUpdated, onStatusChange },
+  ref,
+) {
   const styles = useStyles();
   const toasterId = useId('dados-pessoais-toaster');
   const { dispatchToast } = useToastController(toasterId);
@@ -239,12 +363,13 @@ export function DadosPessoaisTab({ patientId }: DadosPessoaisTabProps) {
       const loaded = await getPatientById(patientId);
       setPatient(loaded);
       setDraft(buildDraftFromPatient(loaded));
+      onPatientUpdated?.(loaded);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Falha ao carregar paciente');
     } finally {
       setIsLoading(false);
     }
-  }, [patientId]);
+  }, [onPatientUpdated, patientId]);
 
   useEffect(() => {
     void reload();
@@ -259,23 +384,23 @@ export function DadosPessoaisTab({ patientId }: DadosPessoaisTabProps) {
     }
   }, [patient?.external_ids]);
 
-  const handleStartEdit = () => {
+  const handleStartEdit = useCallback(() => {
     if (!patient) return;
     setIsEditing(true);
     setSaveError(null);
     setFieldErrors({});
     setDraft(buildDraftFromPatient(patient));
-  };
+  }, [patient]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (!patient) return;
     setIsEditing(false);
     setSaveError(null);
     setFieldErrors({});
     setDraft(buildDraftFromPatient(patient));
-  };
+  }, [patient]);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (!draft) return;
     setSaveError(null);
     setFieldErrors({});
@@ -297,6 +422,7 @@ export function DadosPessoaisTab({ patientId }: DadosPessoaisTabProps) {
       const updated = await updatePatientDadosPessoais(patientId, parsed.data);
       setPatient(updated);
       setDraft(buildDraftFromPatient(updated));
+      onPatientUpdated?.(updated);
       setIsEditing(false);
       dispatchToast(
         <Toast>
@@ -309,11 +435,30 @@ export function DadosPessoaisTab({ patientId }: DadosPessoaisTabProps) {
     } finally {
       setIsSaving(false);
     }
+  }, [dispatchToast, draft, onPatientUpdated, patientId]);
+
+  const handleDraftChange = (patch: Partial<Draft>) => {
+    setDraft((prev) => (prev ? mergeDraft(prev, patch) : prev));
   };
+
+  useEffect(() => {
+    onStatusChange?.({ isEditing, isSaving });
+  }, [isEditing, isSaving, onStatusChange]);
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      startEdit: handleStartEdit,
+      cancelEdit: handleCancel,
+      reload: () => void reload(),
+      save: () => void handleSave(),
+    }),
+    [handleCancel, handleSave, handleStartEdit, reload],
+  );
 
   if (isLoading) {
     return (
-      <div style={{ padding: '24px' }}>
+      <div className={styles.container}>
         <Spinner label="Carregando dados pessoais..." />
       </div>
     );
@@ -321,701 +466,424 @@ export function DadosPessoaisTab({ patientId }: DadosPessoaisTabProps) {
 
   if (loadError) {
     return (
-      <div style={{ padding: '24px' }}>
-        <Card className={styles.card}>
-          <CardHeader
-            header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Erro ao carregar</span>}
-            description={loadError}
-            action={
-              <Button appearance="primary" icon={<ArrowClockwiseRegular />} onClick={() => void reload()}>
-                Tentar novamente
-              </Button>
-            }
-          />
-        </Card>
+      <div className={styles.container}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Erro ao carregar</div>
+            <Button appearance="primary" icon={<ArrowClockwiseRegular />} onClick={() => void reload()}>
+              Tentar novamente
+            </Button>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.note}>{loadError}</p>
+          </div>
+        </section>
       </div>
     );
   }
 
   if (!patient || !draft) {
     return (
-      <div style={{ padding: '24px' }}>
-        <Card className={styles.card}>
-          <CardHeader
-            header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Paciente não encontrado</span>}
-            action={
-              <Button appearance="primary" icon={<ArrowClockwiseRegular />} onClick={() => void reload()}>
-                Recarregar
-              </Button>
-            }
-          />
-        </Card>
+      <div className={styles.container}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Paciente não encontrado</div>
+            <Button appearance="primary" icon={<ArrowClockwiseRegular />} onClick={() => void reload()}>
+              Recarregar
+            </Button>
+          </div>
+        </section>
       </div>
     );
   }
 
-  const getError = (field: keyof Draft) => fieldErrors[field as string];
-
   return (
     <>
       <Toaster toasterId={toasterId} />
-      <div className={styles.container}>
-        <div className={styles.photoSection}>
-          {draft.photo_path ? (
-            <Avatar
-              name={draft.full_name ?? 'Paciente'}
-              size={120}
-              aria-label="Foto do paciente"
-            />
-          ) : (
-            <div className={styles.photoPlaceholder}>
-              <PersonRegular style={{ fontSize: '64px', color: tokens.colorNeutralForeground3 }} />
-            </div>
-          )}
-          <Field
-            label="Foto (photo_path)"
-            validationState={getError('photo_path') ? 'error' : undefined}
-            validationMessage={getError('photo_path')}
-          >
-            <Input
-              value={draft.photo_path ?? ''}
-              disabled={!isEditing}
-              onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { photo_path: e.target.value }) : prev))}
-              contentBefore={<CameraRegular />}
-              placeholder="patients/<id>/photo.jpg"
-            />
-          </Field>
-          <Checkbox
-            label="Consentimento de foto"
-            checked={draft.photo_consent ?? false}
-            disabled={!isEditing}
-            onChange={(_, data) =>
-              setDraft((prev) => (prev ? mergeDraft(prev, { photo_consent: data.checked === true }) : prev))
-            }
+      {isEditing ? (
+        <div className={styles.container}>
+          <DadosPessoaisOnboardingForm
+            patient={patient}
+            draft={draft}
+            isEditing={isEditing}
+            isSaving={isSaving}
+            fieldErrors={fieldErrors}
+            saveError={saveError}
+            externalIdsText={externalIdsText}
+            onStartEdit={handleStartEdit}
+            onCancel={handleCancel}
+            onSave={() => void handleSave()}
+            onChange={handleDraftChange}
           />
         </div>
-
-        <div className={styles.formSection}>
-          <div className={styles.toolbar}>
-            <div style={{ fontWeight: tokens.fontWeightSemibold }}>Dados pessoais</div>
-            <div className={styles.toolbarActions}>
-              {!isEditing ? (
-                <Button appearance="primary" icon={<EditRegular />} onClick={handleStartEdit}>
-                  Editar
-                </Button>
-              ) : (
-                <>
-                  <Button appearance="primary" icon={<SaveRegular />} disabled={isSaving} onClick={() => void handleSave()}>
-                    Salvar
-                  </Button>
-                  <Button appearance="outline" icon={<DismissRegular />} disabled={isSaving} onClick={handleCancel}>
-                    Cancelar
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {saveError && (
-            <Card className={styles.card}>
-              <CardHeader
-                header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Falha ao salvar</span>}
-                description={saveError}
-              />
-            </Card>
-          )}
-
-          <Card className={styles.card}>
-            <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Identificação</span>} />
-            <div className={styles.fieldGroup}>
-              <Field
-                label="Nome completo"
-                required
-                validationState={getError('full_name') ? 'error' : undefined}
-                validationMessage={getError('full_name')}
-              >
-                <Input
-                  value={draft.full_name ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { full_name: e.target.value }) : prev))}
-                  contentBefore={<PersonRegular />}
-                />
-              </Field>
-              <Field label="Nome social" validationState={getError('social_name') ? 'error' : undefined} validationMessage={getError('social_name')}>
-                <Input
-                  value={draft.social_name ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { social_name: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Apelido" validationState={getError('nickname') ? 'error' : undefined} validationMessage={getError('nickname')}>
-                <Input
-                  value={draft.nickname ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { nickname: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Tratamento" validationState={getError('salutation') ? 'error' : undefined} validationMessage={getError('salutation')}>
-                <Input
-                  value={draft.salutation ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { salutation: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="CPF" validationState={getError('cpf') ? 'error' : undefined} validationMessage={getError('cpf')}>
-                <Input
-                  value={draft.cpf ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { cpf: e.target.value }) : prev))}
-                  placeholder="000.000.000-00"
-                />
-              </Field>
-              <Field label="Status do CPF" validationState={getError('cpf_status') ? 'error' : undefined} validationMessage={getError('cpf_status')}>
-                <Select
-                  value={draft.cpf_status ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { cpf_status: e.target.value as Draft['cpf_status'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {cpfStatusOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="RG" validationState={getError('rg') ? 'error' : undefined} validationMessage={getError('rg')}>
-                <Input
-                  value={draft.rg ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { rg: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Órgão emissor (RG)" validationState={getError('rg_issuer') ? 'error' : undefined} validationMessage={getError('rg_issuer')}>
-                <Input
-                  value={draft.rg_issuer ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { rg_issuer: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="UF emissor (RG)" validationState={getError('rg_issuer_state') ? 'error' : undefined} validationMessage={getError('rg_issuer_state')}>
-                <Input
-                  value={draft.rg_issuer_state ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { rg_issuer_state: e.target.value }) : prev))}
-                  placeholder="UF"
-                />
-              </Field>
-              <Field label="Data de emissão (RG)" validationState={getError('rg_issued_at') ? 'error' : undefined} validationMessage={getError('rg_issued_at')}>
-                <Input
-                  type="date"
-                  value={draft.rg_issued_at ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { rg_issued_at: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Documento nacional" validationState={getError('national_id') ? 'error' : undefined} validationMessage={getError('national_id')}>
-                <Input
-                  value={draft.national_id ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { national_id: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="CNS" validationState={getError('cns') ? 'error' : undefined} validationMessage={getError('cns')}>
-                <Input
-                  value={draft.cns ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { cns: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Data de nascimento" validationState={getError('date_of_birth') ? 'error' : undefined} validationMessage={getError('date_of_birth')}>
-                <Input
-                  type="date"
-                  value={draft.date_of_birth ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { date_of_birth: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Sexo" validationState={getError('gender') ? 'error' : undefined} validationMessage={getError('gender')}>
-                <Select
-                  value={draft.gender ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { gender: e.target.value as Draft['gender'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {genderOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Estado civil" validationState={getError('civil_status') ? 'error' : undefined} validationMessage={getError('civil_status')}>
-                <Select
-                  value={draft.civil_status ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { civil_status: e.target.value as Draft['civil_status'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {civilStatusOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Identidade de gênero" validationState={getError('gender_identity') ? 'error' : undefined} validationMessage={getError('gender_identity')}>
-                <Select
-                  value={draft.gender_identity ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { gender_identity: e.target.value as Draft['gender_identity'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {genderIdentityOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Pronomes" validationState={getError('pronouns') ? 'error' : undefined} validationMessage={getError('pronouns')}>
-                <Select
-                  value={draft.pronouns ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { pronouns: e.target.value as Draft['pronouns'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {pronounsOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-            </div>
-          </Card>
-
-          <Card className={styles.card}>
-            <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Perfil</span>} />
-            <div className={styles.fieldGroup}>
-              <Field label="Nacionalidade" validationState={getError('nationality') ? 'error' : undefined} validationMessage={getError('nationality')}>
-                <Input
-                  value={draft.nationality ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { nationality: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Idioma preferido" validationState={getError('preferred_language') ? 'error' : undefined} validationMessage={getError('preferred_language')}>
-                <Input
-                  value={draft.preferred_language ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { preferred_language: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Escolaridade" validationState={getError('education_level') ? 'error' : undefined} validationMessage={getError('education_level')}>
-                <Select
-                  value={draft.education_level ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { education_level: e.target.value as Draft['education_level'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {educationLevelOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Profissão" validationState={getError('profession') ? 'error' : undefined} validationMessage={getError('profession')}>
-                <Input
-                  value={draft.profession ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { profession: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Raça/Cor" validationState={getError('race_color') ? 'error' : undefined} validationMessage={getError('race_color')}>
-                <Select
-                  value={draft.race_color ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { race_color: e.target.value as Draft['race_color'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {raceColorOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Checkbox
-                label="PCD"
-                checked={draft.is_pcd ?? false}
-                disabled={!isEditing}
-                onChange={(_, data) =>
-                  setDraft((prev) => (prev ? mergeDraft(prev, { is_pcd: data.checked === true }) : prev))
-                }
-              />
-            </div>
-          </Card>
-
-          <Card className={styles.card}>
-            <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Naturalidade & filiação</span>} />
-            <div className={styles.fieldGroup}>
-              <Field label="Local de nascimento (texto livre)" validationState={getError('birth_place') ? 'error' : undefined} validationMessage={getError('birth_place')}>
-                <Input
-                  value={draft.birth_place ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { birth_place: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Naturalidade — Cidade" validationState={getError('naturalness_city') ? 'error' : undefined} validationMessage={getError('naturalness_city')}>
-                <Input
-                  value={draft.naturalness_city ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { naturalness_city: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Naturalidade — UF/Estado" validationState={getError('naturalness_state') ? 'error' : undefined} validationMessage={getError('naturalness_state')}>
-                <Input
-                  value={draft.naturalness_state ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { naturalness_state: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Naturalidade — País" validationState={getError('naturalness_country') ? 'error' : undefined} validationMessage={getError('naturalness_country')}>
-                <Input
-                  value={draft.naturalness_country ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { naturalness_country: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Nome da mãe" validationState={getError('mother_name') ? 'error' : undefined} validationMessage={getError('mother_name')}>
-                <Input
-                  value={draft.mother_name ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { mother_name: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Nome do pai" validationState={getError('father_name') ? 'error' : undefined} validationMessage={getError('father_name')}>
-                <Input
-                  value={draft.father_name ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { father_name: e.target.value }) : prev))}
-                />
-              </Field>
-            </div>
-          </Card>
-
-          <Card className={styles.card}>
-            <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Contato & preferências</span>} />
-            <div className={styles.fieldGroup}>
-              <Field label="Telefone principal" required validationState={getError('mobile_phone') ? 'error' : undefined} validationMessage={getError('mobile_phone')}>
-                <Input
-                  value={draft.mobile_phone ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { mobile_phone: e.target.value }) : prev))}
-                  contentBefore={<PhoneRegular />}
-                  placeholder="(00) 00000-0000"
-                />
-              </Field>
-              <Field label="Telefone secundário" validationState={getError('secondary_phone') ? 'error' : undefined} validationMessage={getError('secondary_phone')}>
-                <Input
-                  value={draft.secondary_phone ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { secondary_phone: e.target.value }) : prev))}
-                  contentBefore={<PhoneRegular />}
-                  placeholder="(00) 00000-0000"
-                />
-              </Field>
-              <Field label="Tipo telefone secundário" validationState={getError('secondary_phone_type') ? 'error' : undefined} validationMessage={getError('secondary_phone_type')}>
-                <Input
-                  value={draft.secondary_phone_type ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { secondary_phone_type: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="E-mail" validationState={getError('email') ? 'error' : undefined} validationMessage={getError('email')}>
-                <Input
-                  type="email"
-                  value={draft.email ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { email: e.target.value }) : prev))}
-                  contentBefore={<MailRegular />}
-                />
-              </Field>
-              <Checkbox
-                label="E-mail verificado"
-                checked={draft.email_verified ?? false}
-                disabled={!isEditing}
-                onChange={(_, data) =>
-                  setDraft((prev) => (prev ? mergeDraft(prev, { email_verified: data.checked === true }) : prev))
-                }
-              />
-              <Checkbox
-                label="Telefone verificado"
-                checked={draft.mobile_phone_verified ?? false}
-                disabled={!isEditing}
-                onChange={(_, data) =>
-                  setDraft((prev) => (prev ? mergeDraft(prev, { mobile_phone_verified: data.checked === true }) : prev))
-                }
-              />
-              <Field label="Preferência de contato" validationState={getError('pref_contact_method') ? 'error' : undefined} validationMessage={getError('pref_contact_method')}>
-                <Select
-                  value={draft.pref_contact_method ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { pref_contact_method: e.target.value as Draft['pref_contact_method'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {prefContactMethodOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Janela preferida de contato" validationState={getError('contact_time_preference') ? 'error' : undefined} validationMessage={getError('contact_time_preference')}>
-                <Select
-                  value={draft.contact_time_preference ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { contact_time_preference: e.target.value as Draft['contact_time_preference'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {contactTimePreferenceOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Notas de contato" validationState={getError('contact_notes') ? 'error' : undefined} validationMessage={getError('contact_notes')}>
-                <Textarea
-                  value={draft.contact_notes ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { contact_notes: e.target.value }) : prev))}
-                  rows={3}
-                />
-              </Field>
-              <Card className={styles.card}>
-                <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Preferências de comunicação</span>} />
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                  <Checkbox
-                    label="SMS"
-                    checked={draft.communication_preferences?.sms ?? true}
-                    disabled={!isEditing}
-                    onChange={(_, data) =>
-                      setDraft((prev) =>
-                        prev
-                          ? mergeDraft(prev, {
-                              communication_preferences: {
-                                sms: data.checked === true,
-                                email: prev.communication_preferences?.email ?? true,
-                                whatsapp: prev.communication_preferences?.whatsapp ?? true,
-                              },
-                            })
-                          : prev,
-                      )
-                    }
-                  />
-                  <Checkbox
-                    label="E-mail"
-                    checked={draft.communication_preferences?.email ?? true}
-                    disabled={!isEditing}
-                    onChange={(_, data) =>
-                      setDraft((prev) =>
-                        prev
-                          ? mergeDraft(prev, {
-                              communication_preferences: {
-                                sms: prev.communication_preferences?.sms ?? true,
-                                email: data.checked === true,
-                                whatsapp: prev.communication_preferences?.whatsapp ?? true,
-                              },
-                            })
-                          : prev,
-                      )
-                    }
-                  />
-                  <Checkbox
-                    label="WhatsApp"
-                    checked={draft.communication_preferences?.whatsapp ?? true}
-                    disabled={!isEditing}
-                    onChange={(_, data) =>
-                      setDraft((prev) =>
-                        prev
-                          ? mergeDraft(prev, {
-                              communication_preferences: {
-                                sms: prev.communication_preferences?.sms ?? true,
-                                email: prev.communication_preferences?.email ?? true,
-                                whatsapp: data.checked === true,
-                              },
-                            })
-                          : prev,
-                      )
-                    }
-                  />
+      ) : (
+        <div className={styles.container}>
+          <div className={styles.grid}>
+            <div className={styles.leftCol}>
+              <section className={mergeClasses(styles.card, styles.cardSpan)}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Informações do paciente</div>
                 </div>
-              </Card>
-            </div>
-          </Card>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Nome completo</dt>
+                      <dd>{formatText(patient.full_name)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Nome social</dt>
+                      <dd>{formatText(patient.social_name)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Apelido</dt>
+                      <dd>{formatText(patient.nickname)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Tratamento</dt>
+                      <dd>{formatText(patient.salutation)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Data nasc.</dt>
+                      <dd>{formatDateISO(patient.date_of_birth)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Sexo</dt>
+                      <dd>{formatText(patient.gender)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Estado civil</dt>
+                      <dd>{formatText(patient.civil_status)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Identidade de gênero</dt>
+                      <dd>{formatText(patient.gender_identity)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Pronomes</dt>
+                      <dd>{formatText(patient.pronouns)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
 
-          <Card className={styles.card}>
-            <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Documentos & verificação</span>} />
-            <div className={styles.fieldGroup}>
-              <Field label="Status validação documental" validationState={getError('doc_validation_status') ? 'error' : undefined} validationMessage={getError('doc_validation_status')}>
-                <Select
-                  value={draft.doc_validation_status ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { doc_validation_status: e.target.value as Draft['doc_validation_status'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {docValidationStatusOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Método de validação" validationState={getError('doc_validation_method') ? 'error' : undefined} validationMessage={getError('doc_validation_method')}>
-                <Input
-                  value={draft.doc_validation_method ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { doc_validation_method: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Fonte de validação" validationState={getError('doc_validation_source') ? 'error' : undefined} validationMessage={getError('doc_validation_source')}>
-                <Input
-                  value={draft.doc_validation_source ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { doc_validation_source: e.target.value }) : prev))}
-                />
-              </Field>
-              <Field label="Validado em">
-                <Input value={draft.doc_validated_at ?? ''} disabled />
-              </Field>
-              <Field label="Validado por">
-                <Input value={draft.doc_validated_by ?? ''} disabled />
-              </Field>
-            </div>
-          </Card>
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Documentos</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>CPF</dt>
+                      <dd>{formatCpf(patient.cpf)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Status CPF</dt>
+                      <dd>{formatText(patient.cpf_status)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>RG</dt>
+                      <dd>{formatText(patient.rg)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Órgão</dt>
+                      <dd>{formatText(patient.rg_issuer)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>UF</dt>
+                      <dd>{formatText(patient.rg_issuer_state)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Emissão RG</dt>
+                      <dd>{formatDateISO(patient.rg_issued_at)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>CNS</dt>
+                      <dd>{formatText(patient.cns)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Doc. nacional</dt>
+                      <dd>{formatText(patient.national_id)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
 
-          <Card className={styles.card}>
-            <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Consentimentos & marketing</span>} />
-            <div className={styles.fieldGroup}>
-              <Checkbox
-                label="Aceita SMS"
-                checked={draft.accept_sms ?? true}
-                disabled={!isEditing}
-                onChange={(_, data) =>
-                  setDraft((prev) => (prev ? mergeDraft(prev, { accept_sms: data.checked === true }) : prev))
-                }
-              />
-              <Checkbox
-                label="Aceita e-mail"
-                checked={draft.accept_email ?? true}
-                disabled={!isEditing}
-                onChange={(_, data) =>
-                  setDraft((prev) => (prev ? mergeDraft(prev, { accept_email: data.checked === true }) : prev))
-                }
-              />
-              <Checkbox
-                label="Bloquear marketing"
-                checked={draft.block_marketing ?? false}
-                disabled={!isEditing}
-                onChange={(_, data) =>
-                  setDraft((prev) => (prev ? mergeDraft(prev, { block_marketing: data.checked === true }) : prev))
-                }
-              />
-              <Field label="Status consentimento marketing" validationState={getError('marketing_consent_status') ? 'error' : undefined} validationMessage={getError('marketing_consent_status')}>
-                <Select
-                  value={draft.marketing_consent_status ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { marketing_consent_status: e.target.value as Draft['marketing_consent_status'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {marketingConsentStatusOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="Origem do consentimento" validationState={getError('marketing_consent_source') ? 'error' : undefined} validationMessage={getError('marketing_consent_source')}>
-                <Select
-                  value={draft.marketing_consent_source ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { marketing_consent_source: e.target.value as Draft['marketing_consent_source'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {marketingConsentSourceOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label="IP do consentimento" validationState={getError('marketing_consent_ip') ? 'error' : undefined} validationMessage={getError('marketing_consent_ip')}>
-                <Input value={draft.marketing_consent_ip ?? ''} disabled={!isEditing} onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { marketing_consent_ip: e.target.value }) : prev))} />
-              </Field>
-              <Field label="Histórico do consentimento" validationState={getError('marketing_consent_history') ? 'error' : undefined} validationMessage={getError('marketing_consent_history')}>
-                <Textarea
-                  value={draft.marketing_consent_history ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { marketing_consent_history: e.target.value }) : prev))}
-                  rows={3}
-                />
-              </Field>
-            </div>
-          </Card>
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Naturalidade & filiação</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Local nasc.</dt>
+                      <dd>{formatText(patient.birth_place)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Naturalidade</dt>
+                      <dd>
+                        {[patient.naturalness_city, patient.naturalness_state, patient.naturalness_country]
+                          .filter(Boolean)
+                          .join(' / ') || '—'}
+                      </dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Nacionalidade</dt>
+                      <dd>{formatText(patient.nationality)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Mãe</dt>
+                      <dd>{formatText(patient.mother_name)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Pai</dt>
+                      <dd>{formatText(patient.father_name)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
 
-          <Card className={styles.card}>
-            <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Status do cadastro</span>} />
-            <div className={styles.fieldGroup}>
-              <Field label="Etapa onboarding" validationState={getError('onboarding_step') ? 'error' : undefined} validationMessage={getError('onboarding_step')}>
-                <Input
-                  type="number"
-                  value={String(draft.onboarding_step ?? '')}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { onboarding_step: Number(e.target.value) }) : prev))}
-                  min={1}
-                />
-              </Field>
-              <Field label="Status do registro" validationState={getError('record_status') ? 'error' : undefined} validationMessage={getError('record_status')}>
-                <Select
-                  value={draft.record_status ?? ''}
-                  disabled={!isEditing}
-                  onChange={(e) => setDraft((prev) => (prev ? mergeDraft(prev, { record_status: e.target.value as Draft['record_status'] }) : prev))}
-                >
-                  <option value="">Selecione...</option>
-                  {recordStatusOptions.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Checkbox
-                label="Ativo (marco de ativação)"
-                checked={draft.is_active ?? false}
-                disabled={!isEditing}
-                onChange={(_, data) =>
-                  setDraft((prev) => (prev ? mergeDraft(prev, { is_active: data.checked === true }) : prev))
-                }
-              />
-            </div>
-          </Card>
+              <section className={mergeClasses(styles.card, styles.cardSpan)}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Perfil sócio-demográfico</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Escolaridade</dt>
+                      <dd>{formatText(patient.education_level)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Profissão</dt>
+                      <dd>{formatText(patient.profession)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Raça/cor</dt>
+                      <dd>{formatText(patient.race_color)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>PCD</dt>
+                      <dd>{formatBool(patient.is_pcd)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Idioma</dt>
+                      <dd>{formatText(patient.preferred_language)}</dd>
+                    </div>
+                  </dl>
+                  <p className={styles.note} style={{ marginTop: '12px' }}>
+                    (Campos adicionais de perfil podem ser agregados aqui sem virar vários cards pequenos.)
+                  </p>
+                </div>
+              </section>
 
-          <Card className={styles.card}>
-            <CardHeader header={<span style={{ fontWeight: tokens.fontWeightSemibold }}>Integrações/Administrativo (somente leitura)</span>} />
-            <div className={styles.fieldGroup}>
-              <Field label="Contratante primário">
-                <Input value={patient.primary_contractor_id ?? ''} disabled />
-              </Field>
-              <Field label="IDs externos">
-                <Textarea value={externalIdsText} disabled rows={4} />
-              </Field>
+              <section className={mergeClasses(styles.card, styles.cardSpan)}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Contato & preferências</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Telefone</dt>
+                      <dd>{formatPhone(patient.mobile_phone)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Tel. verificado</dt>
+                      <dd>{formatBool(patient.mobile_phone_verified)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Telefone 2</dt>
+                      <dd>{formatPhone(patient.secondary_phone)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Tipo tel. 2</dt>
+                      <dd>{formatText(patient.secondary_phone_type)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>E-mail</dt>
+                      <dd>{formatText(patient.email)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>E-mail verif.</dt>
+                      <dd>{formatBool(patient.email_verified)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Preferência</dt>
+                      <dd>{formatText(patient.pref_contact_method)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Janela contato</dt>
+                      <dd>{formatText(patient.contact_time_preference)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Notas</dt>
+                      <dd>{formatText(patient.contact_notes)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Comunicação</dt>
+                      <dd>{formatCommunicationPreferences(patient.communication_preferences)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
             </div>
-          </Card>
+
+            <aside className={styles.rightCol}>
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Status do cadastro</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList} style={{ gridTemplateColumns: '130px 1fr' }}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Ativo</dt>
+                      <dd>{formatBool(patient.is_active)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Status</dt>
+                      <dd>{formatText(patient.record_status)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Onboarding</dt>
+                      <dd>{patient.onboarding_step ?? '—'}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
+
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Validação documental</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList} style={{ gridTemplateColumns: '130px 1fr' }}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Status</dt>
+                      <dd>{formatText(patient.doc_validation_status)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Método</dt>
+                      <dd>{formatText(patient.doc_validation_method)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Fonte</dt>
+                      <dd>{formatText(patient.doc_validation_source)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Validado em</dt>
+                      <dd>{formatText(patient.doc_validated_at)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Validado por</dt>
+                      <dd>{formatText(patient.doc_validated_by)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
+
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Consentimentos</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList} style={{ gridTemplateColumns: '130px 1fr' }}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>E-mail</dt>
+                      <dd>{formatBool(patient.accept_email)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>SMS</dt>
+                      <dd>{formatBool(patient.accept_sms)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Foto</dt>
+                      <dd>{formatBool(patient.photo_consent)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Origem</dt>
+                      <dd>{formatText(patient.marketing_consent_source)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
+
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Auditoria</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList} style={{ gridTemplateColumns: '130px 1fr' }}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Criado em</dt>
+                      <dd>{formatTimestamp(patient.created_at)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Atualizado</dt>
+                      <dd>{formatTimestamp(patient.updated_at)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Por</dt>
+                      <dd>{formatText(patient.updated_by)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </section>
+
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Integrações</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <dl className={styles.definitionList} style={{ gridTemplateColumns: '130px 1fr' }}>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Contratante</dt>
+                      <dd>{formatText(patient.primary_contractor_id)}</dd>
+                    </div>
+                    <div style={{ display: 'contents' }}>
+                      <dt>Foto (path)</dt>
+                      <dd>{formatText(patient.photo_path)}</dd>
+                    </div>
+                  </dl>
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: tokens.fontWeightSemibold, marginBottom: '6px' }}>
+                      IDs externos
+                    </div>
+                    <pre className={styles.pre}>{externalIdsText}</pre>
+                  </div>
+                </div>
+              </section>
+
+              <section className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.cardTitle}>Linha do tempo (atividades)</div>
+                </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.timelineItem}>
+                    <div className={styles.timelineBar} />
+                    <div className={styles.timelineMain}>
+                      <div className={styles.timelineTop}>
+                        <span>Sistema</span>
+                        <span>Hoje</span>
+                      </div>
+                      <p className={styles.timelineTitle}>Visualização do cadastro</p>
+                      <p className={styles.timelineDesc}>Registro carregado no app.</p>
+                    </div>
+                  </div>
+                  <div className={styles.timelineItem}>
+                    <div className={styles.timelineBar} style={{ backgroundColor: '#8764b8' }} />
+                    <div className={styles.timelineMain}>
+                      <div className={styles.timelineTop}>
+                        <span>Sistema</span>
+                        <span>—</span>
+                      </div>
+                      <p className={styles.timelineTitle}>Upload de documento</p>
+                      <p className={styles.timelineDesc}>Atalho para GED (placeholder).</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </aside>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
-}
+});
