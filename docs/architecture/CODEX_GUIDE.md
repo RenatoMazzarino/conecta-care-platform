@@ -16,17 +16,19 @@ Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operac
 - **Presença**: check-in/checkout com geolocalização + biometria via API (ex.: SERPRO) + monitoramento de permanência via BLE (celular pingando beacon no domicílio).  
 - **Financeiro**: cada plantão gera faturamento; atraso pode gerar corte proporcional (ex.: 1h) com aprovação/manual review.
 
-## Padrão visual obrigatório – Fluent clássico (Opção A)
-- **Command bar**: fundo branco, título "Conecta Care · Pacientes", breadcrumb (ex.: "Pacientes > Lista > [Nome]") e ações à direita (Imprimir, Compartilhar, Salvar alterações ou ação primária da tela).  
-- **Header do paciente**: nome em destaque + badge de status e badge de alergia; metadados em linha (PAC-ID, idade, responsável, convênio); coluna lateral com complexidade, cidade/UF e última atualização.  
+## Padrão visual obrigatório – Pacientes (Fluent clássico, estilo “Dynamics”)
+- **Header global**: manter o `Header` (topbar azul com launcher + busca + ações).  
+- **Command bar (página)**: barra branca com ações no topo, no estilo Dynamics (Imprimir/Compartilhar/Salvar + Editar/Cancelar/Recarregar), com affordances claras de estado view/edit.  
+- **Record header (paciente)**: avatar + nome em destaque + subtítulo; metadados em linha à direita (status, proprietário, complexidade, convênio).  
 - **Abas**: horizontais em linha, sem pílulas: Dados pessoais, Endereço & logística, Rede de apoio, Administrativo, Financeiro, Clínico, Documentos (GED), Histórico & Auditoria.  
-- **Conteúdo**: cards em fundo branco com borda leve, sombra sutil, grid responsivo (3 colunas em desktop, quebra em telas menores).  
-- **Stack visual**: Fluent clássico + CSS/Tailwind simples. **Não usar Fluent 2 puro nem MUI.**  
-- **Referências visuais**: `src/app/pacientes/[id]/page.tsx` (detalhe) e `src/app/pacientes/page.tsx` (lista) são o padrão a ser seguido para o módulo de Pacientes.
+- **Conteúdo das abas**: layout 2/3 + 1/3 (grid `2fr 1fr`) com cards grandes: coluna esquerda para “conteúdo principal” e coluna direita para sidebar (status/consentimentos/auditoria/timeline). Responsivo: vira 1 coluna em telas menores.  
+- **Stack visual**: Fluent clássico + CSS/Tailwind simples. **Não usar MUI.**  
+- **Referências visuais**: `html/modelo_final_aparencia_pagina_do_paciente.htm` (detalhe) e `src/app/pacientes/page.tsx` (lista) são o padrão a ser seguido para o módulo de Pacientes.
 
 ## Referência visual canônica
-- Fonte: `html/comparativo-fluent.html` (Opção A – Fluent clássico).  
-- Reforço: **não** usar Fluent 2 puro nem MUI neste repositório. Ajustes visuais devem respeitar a casca (command bar + header + abas + cards) conforme o comparativo.
+- Detalhe do paciente (estilo “Dynamics”): `html/modelo_final_aparencia_pagina_do_paciente.htm`  
+- Referência anterior (comparativo): `html/comparativo-fluent.html`  
+- Reforço: evitar UI divergente (ex.: MUI). Ajustes visuais devem respeitar a casca (command bar + record header + abas + cards) conforme os HTMLs de referência.
 
 ## Glossário operacional (Escalas)
 - **Plantão**: bloco de 12h; dois plantões por dia por paciente para garantir cobertura 24/7.  
@@ -68,13 +70,20 @@ Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operac
 
 ## Arquitetura atual do repo (real)
 - **Front-end**: Next.js (App Router) em `src/app`; Fluent UI 9; Tailwind 4 importado em `globals.css`.  
-- **Layout**: `FluentProviderWrapper` com tema claro/escuro, `Header` com launcher/search/actions, `CommandBar` (versão Fluent A), `Breadcrumb`.  
-- **Páginas**: `/` (home com cards de módulos), `/pacientes` (lista em cards), `/pacientes/[id]` (detalhe com abas). Não há rotas de Escalas ou APIs.  
-- **Dados**: tipagem de paciente em `src/types/patient.ts`; sem schemas ou chamadas reais. Supabase client configurado em `src/lib/supabase/client.ts` (URL/anon key via env), ainda não usado.  
-- **Estilo global**: `globals.css` com reset básico, lock de overflow e tema via CSS vars.
+- **Layout**: `FluentProviderWrapper` com tema claro/escuro, `Header` com launcher/search/actions, `Breadcrumb`.  
+  - lista: `src/components/layout/CommandBar.tsx`
+  - detalhe do paciente: command bar + record header em `src/app/pacientes/[id]/PatientPageClient.tsx`
+- **Páginas**: `/` (home), `/pacientes` (lista), `/pacientes/[id]` (detalhe), `/login` (Supabase Auth).  
+- **Dados**:
+  - Supabase client: `src/lib/supabase/client.ts`
+  - actions: `src/features/pacientes/actions/*`
+  - schema de validação (Zod): `src/features/pacientes/schemas/aba01DadosPessoais.ts`
+  - types canônicos: `src/types/supabase.ts`
+  - tipos legados: `src/types/patient.ts` (@deprecated; evitar novos usos)
+- **Estilo global**: `globals.css` com reset básico e tema via CSS vars (sem travar o scroll vertical global).
 
 ## Como evoluir sem quebrar o padrão
-- Reusar a casca do Fluent A: command bar + header + abas + grid de cards em todas as novas telas do módulo de Pacientes e, por analogia, nas futuras telas de Escalas e módulos operacionais.  
+- Reusar a casca do módulo Pacientes: header + command bar + abas + cards em grid (incluindo sidebar quando fizer sentido) em todas as novas telas do módulo e, por analogia, nas futuras telas de Escalas e módulos operacionais.  
 - Para Escalas: criar páginas/rotas (ex.: `/escalas/pacientes`, `/escalas/profissionais`) seguindo o mesmo shell; introduzir apenas dados que já existam ou mock minimal sem inventar colunas ausentes. Aprovações de alterações devem ser previstas no fluxo (UI e audit trail).  
 - Para GED/Auditoria: expor atalhos/botões e timelines, mas não presumir schema; use placeholders claros até ter endpoints.  
 - Para Financeiro/Inventário/Clínico: manter visão-resumo (cards/abas) conectada ao paciente; evitar duplicação de cadastro.  
@@ -84,10 +93,12 @@ Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operac
 - ASCII por padrão; comentários só quando o código não for óbvio.  
 - Não reverter mudanças existentes do usuário.  
 - Testes: rodar `npm run lint` quando fizer alterações de código/estilo; validar manualmente as páginas tocadas.  
-- UX: preservar Fluent A; componentes novos devem seguir bordas retas, sombra leve, tipografia Segoe/UI system.  
+- UX: preservar o padrão visual de Pacientes (Fluent clássico / estilo “Dynamics”); componentes novos devem seguir bordas retas, sombra leve, tipografia Segoe/UI system.  
 - Segurança/dados: não inventar colunas/tabelas; alinhar DTO/validação com o que existe. Sem dados sensíveis em commit.
 
 ## Validação rápida (manual)
 - `npm run lint` para sanity check.  
-- Abrir `/pacientes` e `/pacientes/[id]` para confirmar casca Fluent A (command bar + header + abas + cards responsivos).  
-- Conferir que breadcrumbs/títulos seguem o padrão “Conecta Care · Pacientes” e que ações principais aparecem à direita na command bar.
+- Abrir `/pacientes` e `/pacientes/[id]` para confirmar casca do módulo (header + command bar + abas + cards responsivos).  
+- Conferir que:
+  - `/pacientes` mantém o título “Conecta Care · Pacientes” e ações na command bar.
+  - `/pacientes/[id]` segue o visual de `html/modelo_final_aparencia_pagina_do_paciente.htm` (command bar + record header + abas).

@@ -1,9 +1,23 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { makeStyles, tokens } from '@fluentui/react-components';
-import { Header, CommandBar } from '@/components/layout';
-import type { PatientTab, DadosPessoais, Endereco, RedeApoio, Administrativo } from '@/types/patient';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { makeStyles, tokens, Spinner } from '@fluentui/react-components';
+import {
+  ArrowClockwiseRegular,
+  DismissRegular,
+  EditRegular,
+  PrintRegular,
+  SaveRegular,
+  ShareRegular,
+} from '@fluentui/react-icons';
+import { Header } from '@/components/layout';
+import { DadosPessoaisTab, type DadosPessoaisTabHandle } from '@/components/patient/DadosPessoaisTab';
+import { getPatientById, type PatientRow } from '@/features/pacientes/actions/getPatientById';
+import { getSupabaseClient } from '@/lib/supabase/client';
+
+const isDevBypassEnabled =
+  process.env.NODE_ENV === 'development' && Boolean(process.env.NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN);
 
 const useStyles = makeStyles({
   page: {
@@ -13,210 +27,286 @@ const useStyles = makeStyles({
     backgroundColor: '#f3f2f1',
     color: tokens.colorNeutralForeground1,
   },
-  shell: {
+  container: {
     width: '100%',
     maxWidth: '1280px',
     margin: '0 auto',
-    padding: '0 16px 32px',
+    padding: '0 14px',
     boxSizing: 'border-box',
   },
-  patientHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    gap: '12px',
-    backgroundColor: '#ffffff',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    borderRadius: '4px',
-    padding: '12px 16px',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-  },
-  patientHeaderMain: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  patientName: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '18px',
-    fontWeight: tokens.fontWeightSemibold,
-  },
-  badgeStatus: {
-    fontSize: '11px',
-    padding: '2px 8px',
-    borderRadius: '999px',
-    backgroundColor: '#e4f6e4',
-    color: '#0b6a0b',
-    border: '1px solid #c0e6c0',
-  },
-  badgeAllergy: {
-    fontSize: '11px',
-    padding: '2px 8px',
-    borderRadius: '999px',
-    backgroundColor: '#fde7e9',
-    color: '#a4262c',
-    border: '1px solid #f3babf',
-  },
-  patientMeta: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '12px',
-    fontSize: '12px',
-    color: tokens.colorNeutralForeground3,
-  },
-  patientHeaderSide: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '4px',
-    fontSize: '12px',
-    color: tokens.colorNeutralForeground3,
-    alignItems: 'flex-end',
-    textAlign: 'right',
-  },
-  highlight: {
-    fontWeight: tokens.fontWeightSemibold,
-    color: '#005a9e',
-  },
-  tabs: {
-    display: 'flex',
-    gap: '4px',
-    padding: '0 16px',
+  commandBarOuter: {
     backgroundColor: '#ffffff',
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-    marginTop: '12px',
+  },
+  commandBar: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+    padding: '10px 0',
+  },
+  cmd: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '8px 10px',
+    border: '1px solid transparent',
+    backgroundColor: 'transparent',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    color: tokens.colorNeutralForeground1,
+    fontWeight: tokens.fontWeightSemibold,
+    ':hover': {
+      backgroundColor: '#f8f8f8',
+      border: '1px solid #f1f1f1',
+    },
+    ':disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.6,
+    },
+  },
+  cmdPrimary: {
+    backgroundColor: '#0f6cbd',
+    border: '1px solid #0f6cbd',
+    color: '#ffffff',
+    ':hover': {
+      backgroundColor: '#005a9e',
+      border: '1px solid #005a9e',
+    },
+    ':disabled': {
+      backgroundColor: '#0f6cbd',
+      border: '1px solid #0f6cbd',
+      opacity: 0.55,
+    },
+  },
+  cmdSep: {
+    marginLeft: 'auto',
+  },
+  recordHeader: {
+    paddingTop: '14px',
+    display: 'flex',
+    gap: '14px',
+    alignItems: 'center',
+  },
+  recordAvatar: {
+    width: '46px',
+    height: '46px',
+    borderRadius: '6px',
+    backgroundColor: '#e6f2fb',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontWeight: 800,
+    color: '#0f6cbd',
+    flexShrink: 0,
+  },
+  titleBlock: {
+    minWidth: '280px',
+  },
+  title: {
+    fontSize: '24px',
+    margin: 0,
+    lineHeight: 1.15,
+  },
+  subtitle: {
+    marginTop: '2px',
+    color: tokens.colorNeutralForeground3,
+    fontSize: '13px',
+  },
+  metaRow: {
+    marginLeft: 'auto',
+    display: 'flex',
+    gap: '26px',
+    flexWrap: 'wrap',
+    '@media (max-width: 1100px)': {
+      display: 'none',
+    },
+  },
+  meta: {
+    minWidth: '130px',
+  },
+  metaKey: {
+    color: tokens.colorNeutralForeground3,
+    fontSize: '11px',
+    letterSpacing: '.3px',
+    textTransform: 'uppercase',
+    marginBottom: '3px',
+  },
+  metaValue: {
+    fontWeight: 700,
+    fontSize: '13px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  dot: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    backgroundColor: '#107c10',
+  },
+  link: {
+    color: '#005a9e',
+    fontWeight: 800,
+  },
+  tabs: {
+    marginTop: '14px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    display: 'flex',
+    gap: '18px',
     overflowX: 'auto',
+    backgroundColor: 'transparent',
   },
   tab: {
-    border: 'none',
-    background: 'transparent',
-    fontSize: '13px',
-    padding: '10px 12px',
+    padding: '10px 2px',
     color: tokens.colorNeutralForeground3,
+    textDecoration: 'none',
+    fontWeight: 700,
+    fontSize: '13px',
     borderBottom: '2px solid transparent',
+    borderTop: 0,
+    borderLeft: 0,
+    borderRight: 0,
+    backgroundColor: 'transparent',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
   },
   tabActive: {
-    color: '#005a9e',
-    borderBottomColor: '#0078d4',
-    fontWeight: tokens.fontWeightSemibold,
+    color: tokens.colorNeutralForeground1,
+    borderBottomColor: '#0f6cbd',
   },
   main: {
-    paddingTop: '16px',
+    marginTop: '14px',
+    paddingBottom: '40px',
   },
-  cardsGrid: {
+  tabGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '12px',
+    gridTemplateColumns: '2fr 1fr',
+    gap: '16px',
     alignItems: 'start',
+    '@media (max-width: 1100px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  tabLeftCol: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '16px',
+    '@media (max-width: 1100px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  tabRightCol: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
   },
   card: {
     backgroundColor: '#ffffff',
     border: `1px solid ${tokens.colorNeutralStroke2}`,
-    borderRadius: '4px',
-    padding: '12px',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+    borderRadius: '6px',
+    boxShadow: '0 1px 2px rgba(0,0,0,.08)',
+    overflow: 'hidden',
+  },
+  cardSpan: {
+    gridColumn: '1 / -1',
+  },
+  cardHeader: {
+    padding: '14px 16px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '10px',
   },
   cardTitle: {
-    fontSize: '13px',
-    fontWeight: tokens.fontWeightSemibold,
-    marginBottom: '8px',
+    fontSize: '12px',
+    letterSpacing: '.6px',
+    textTransform: 'uppercase',
+    fontWeight: 900,
     color: tokens.colorNeutralForeground1,
+  },
+  cardBody: {
+    padding: '14px 16px',
   },
   definitionList: {
     margin: 0,
     display: 'grid',
-    gridTemplateColumns: '140px 1fr',
-    rowGap: '6px',
-    columnGap: '8px',
-    fontSize: '12px',
-    color: tokens.colorNeutralForeground3,
+    gridTemplateColumns: '180px 1fr',
+    rowGap: '10px',
+    columnGap: '12px',
     '& dt': {
-      fontWeight: tokens.fontWeightSemibold,
-      color: tokens.colorNeutralForeground2,
+      color: tokens.colorNeutralForeground3,
+      fontSize: '12px',
+      margin: 0,
     },
     '& dd': {
       margin: 0,
+      fontWeight: tokens.fontWeightSemibold,
+      fontSize: '12.5px',
+      overflowWrap: 'anywhere',
+      color: tokens.colorNeutralForeground1,
     },
-  },
-  list: {
-    listStyle: 'none',
-    padding: 0,
-    margin: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-  },
-  listItemTitle: {
-    fontWeight: tokens.fontWeightSemibold,
-    color: tokens.colorNeutralForeground1,
-    fontSize: '13px',
+    '@media (max-width: 480px)': {
+      gridTemplateColumns: '140px 1fr',
+    },
   },
   muted: {
-    color: tokens.colorNeutralForeground3,
-  },
-  pillList: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-    padding: 0,
-    margin: '8px 0 0 0',
-    listStyle: 'none',
-  },
-  pill: {
-    fontSize: '11px',
-    padding: '2px 8px',
-    borderRadius: '999px',
-    backgroundColor: '#f3f2f1',
-    color: tokens.colorNeutralForeground2,
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-  },
-  actionLink: {
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    backgroundColor: '#ffffff',
-    color: '#005a9e',
-    borderRadius: '2px',
-    fontSize: '12px',
-    padding: '8px 12px',
-    cursor: 'pointer',
-    transition: 'background-color 0.15s ease, border-color 0.15s ease',
-    marginTop: '8px',
-    ':hover': {
-      backgroundColor: tokens.colorNeutralBackground2Hover,
-      border: '1px solid #0078d4',
-    },
-    ':active': {
-      backgroundColor: tokens.colorNeutralBackground2Pressed,
-    },
-  },
-  timeline: {
-    listStyle: 'none',
-    padding: 0,
     margin: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-    fontSize: '12px',
     color: tokens.colorNeutralForeground3,
+    fontSize: '12px',
   },
 });
 
-const mockDadosPessoais: DadosPessoais = {
-  id: '1',
-  nome_completo: 'Maria da Silva Santos',
-  cpf: '123.456.789-00',
-  data_nascimento: '1955-03-15',
-  sexo: 'F',
-  estado_civil: 'viuvo',
-  rg: '12.345.678-9',
-  orgao_emissor_rg: 'SSP-SP',
-  telefone_principal: '(11) 99999-8888',
-  telefone_secundario: '(11) 3333-4444',
-  email: 'maria.silva@email.com',
-};
+type PatientTab =
+  | 'dados-pessoais'
+  | 'endereco-logistica'
+  | 'rede-apoio'
+  | 'administrativo'
+  | 'financeiro'
+  | 'clinico'
+  | 'documentos'
+  | 'historico';
+
+interface Endereco {
+  id: string;
+  paciente_id: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+  pais: string;
+  referencia?: string;
+  instrucoes_acesso?: string;
+}
+
+interface RedeApoio {
+  id: string;
+  paciente_id: string;
+  nome: string;
+  parentesco: string;
+  telefone: string;
+  email?: string;
+  is_responsavel_legal: boolean;
+  is_contato_emergencia: boolean;
+  observacoes?: string;
+}
+
+interface Administrativo {
+  id: string;
+  paciente_id: string;
+  convenio?: string;
+  numero_carteirinha?: string;
+  validade_carteirinha?: string;
+  plano?: string;
+  data_inicio_atendimento?: string;
+  status: 'ativo' | 'inativo' | 'pendente' | 'suspenso';
+  observacoes?: string;
+  created_at: string;
+  updated_at: string;
+}
 
 const mockEndereco: Endereco = {
   id: '1',
@@ -282,32 +372,100 @@ const patientTabs: { value: PatientTab; label: string }[] = [
   { value: 'historico', label: 'Histórico & Auditoria' },
 ];
 
-const calculateAge = (birthDate?: string) => {
-  if (!birthDate) return null;
-  const date = new Date(birthDate);
-  if (Number.isNaN(date.getTime())) return null;
-  const diff = Date.now() - date.getTime();
-  return Math.abs(new Date(diff).getUTCFullYear() - 1970);
-};
-
 interface PatientPageClientProps {
   patientId: string;
 }
 
 export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const styles = useStyles();
+  const router = useRouter();
+  const dadosPessoaisRef = useRef<DadosPessoaisTabHandle | null>(null);
+  const [dadosPessoaisUi, setDadosPessoaisUi] = useState({ isEditing: false, isSaving: false });
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedTab, setSelectedTab] = useState<PatientTab>('dados-pessoais');
-  const [dadosPessoais] = useState<DadosPessoais>(mockDadosPessoais);
-  const [endereco] = useState<Endereco>(mockEndereco);
-  const [redeApoio] = useState<RedeApoio[]>(mockRedeApoio);
-  const [administrativo] = useState<Administrativo>(mockAdministrativo);
+  const [patient, setPatient] = useState<PatientRow | null>(null);
+  const [patientLoading, setPatientLoading] = useState(false);
+  const [patientError, setPatientError] = useState<string | null>(null);
 
-  const idade = useMemo(() => calculateAge(dadosPessoais.data_nascimento), [dadosPessoais.data_nascimento]);
-  const breadcrumb = `Pacientes > Lista > ${dadosPessoais.nome_completo}`;
-  const responsavelLegal = redeApoio.find((item) => item.is_responsavel_legal)?.nome ?? 'Não informado';
+  const endereco = mockEndereco;
+  const redeApoio = mockRedeApoio;
+  const administrativo = mockAdministrativo;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const checkSession = async () => {
+      const supabase = getSupabaseClient();
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (cancelled) return;
+
+      if (error) {
+        console.error('[auth] getSession failed', error);
+      }
+
+      if (session || isDevBypassEnabled) {
+        setIsAuthenticated(true);
+        setAuthChecked(true);
+        return;
+      }
+
+      setIsAuthenticated(false);
+      setAuthChecked(true);
+      router.replace(`/login?next=${encodeURIComponent(`/pacientes/${patientId}`)}`);
+    };
+
+    void checkSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [patientId, router]);
+
+  useEffect(() => {
+    if (!authChecked || !isAuthenticated) return;
+    let cancelled = false;
+
+    const loadPatient = async () => {
+      setPatientLoading(true);
+      setPatientError(null);
+      try {
+        const loaded = await getPatientById(patientId);
+        if (cancelled) return;
+        setPatient(loaded);
+      } catch (error) {
+        if (cancelled) return;
+        setPatientError(error instanceof Error ? error.message : 'Falha ao carregar paciente');
+      } finally {
+        if (!cancelled) setPatientLoading(false);
+      }
+    };
+
+    void loadPatient();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [authChecked, isAuthenticated, patientId]);
+
   const cidadeUf = endereco.cidade && endereco.estado ? `${endereco.cidade}/${endereco.estado}` : endereco.cidade;
+  const responsavelLegal = redeApoio.find((item) => item.is_responsavel_legal)?.nome ?? 'Não informado';
 
-  void patientId;
+  const initials = useMemo(() => {
+    const name = patient?.full_name?.trim();
+    if (!name) return '—';
+    const parts = name.split(/\s+/).filter(Boolean);
+    const letters = parts.slice(0, 2).map((part) => part[0]?.toUpperCase());
+    return letters.join('');
+  }, [patient?.full_name]);
+
+  const statusLabel = patient ? (patient.is_active ? 'Ativo' : 'Cadastro') : '—';
+  const recordTitle = patient?.full_name ?? 'Paciente';
+  const subtitle = `Paciente${cidadeUf ? ` • ${cidadeUf}` : ''}`;
 
   const renderDefinitionList = (items: { label: string; value?: string | number | null }[]) => (
     <dl className={styles.definitionList}>
@@ -320,217 +478,265 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     </dl>
   );
 
-  const renderDadosPessoais = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Identificação</div>
-        {renderDefinitionList([
-          { label: 'Nome completo', value: dadosPessoais.nome_completo },
-          { label: 'Nome social', value: 'Não informado' },
-          { label: 'CPF', value: dadosPessoais.cpf },
-          { label: 'Data de nascimento', value: `${dadosPessoais.data_nascimento} ${idade ? `· ${idade} anos` : ''}`.trim() },
-          { label: 'Estado civil', value: dadosPessoais.estado_civil || '—' },
-          { label: 'Sexo', value: dadosPessoais.sexo },
-        ])}
-      </div>
-
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Documentos</div>
-        {renderDefinitionList([
-          { label: 'RG', value: dadosPessoais.rg },
-          { label: 'Órgão emissor', value: dadosPessoais.orgao_emissor_rg },
-          { label: 'PAC-ID', value: 'PAC-000134' },
-          { label: 'Status', value: 'Ativo' },
-        ])}
-      </div>
-
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Contatos</div>
-        {renderDefinitionList([
-          { label: 'Telefone principal', value: dadosPessoais.telefone_principal },
-          { label: 'Telefone secundário', value: dadosPessoais.telefone_secundario },
-          { label: 'E-mail', value: dadosPessoais.email },
-          { label: 'Responsável legal', value: responsavelLegal },
-        ])}
-      </div>
-    </div>
-  );
-
   const renderEnderecoLogistica = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Endereço</div>
-        {renderDefinitionList([
-          { label: 'Logradouro', value: `${endereco.logradouro}, ${endereco.numero}` },
-          { label: 'Complemento', value: endereco.complemento },
-          { label: 'Bairro', value: endereco.bairro },
-          { label: 'Cidade/UF', value: cidadeUf },
-          { label: 'CEP', value: endereco.cep },
-          { label: 'País', value: endereco.pais },
-        ])}
+    <div className={styles.tabGrid}>
+      <div className={styles.tabLeftCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Endereço</div>
+          </div>
+          <div className={styles.cardBody}>
+            {renderDefinitionList([
+              { label: 'Logradouro', value: `${endereco.logradouro}, ${endereco.numero}` },
+              { label: 'Complemento', value: endereco.complemento },
+              { label: 'Bairro', value: endereco.bairro },
+              { label: 'Cidade/UF', value: cidadeUf },
+              { label: 'CEP', value: endereco.cep },
+              { label: 'País', value: endereco.pais },
+            ])}
+          </div>
+        </section>
+
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Logística de atendimento</div>
+          </div>
+          <div className={styles.cardBody}>
+            {renderDefinitionList([
+              { label: 'Ponto de referência', value: endereco.referencia },
+              { label: 'Instruções de acesso', value: endereco.instrucoes_acesso },
+              { label: 'Condições de acesso', value: 'Entrada principal' },
+              { label: 'Local de atendimento', value: 'Residência' },
+            ])}
+          </div>
+        </section>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Logística de atendimento</div>
-        {renderDefinitionList([
-          { label: 'Ponto de referência', value: endereco.referencia },
-          { label: 'Instruções de acesso', value: endereco.instrucoes_acesso },
-          { label: 'Condições de acesso', value: 'Entrada principal · Sem escadas' },
-          { label: 'Local de atendimento', value: 'Residência · Térreo' },
-        ])}
-        <ul className={styles.pillList}>
-          <li className={styles.pill}>Sem escadas</li>
-          <li className={styles.pill}>Acesso para ambulância</li>
-        </ul>
-      </div>
+      <aside className={styles.tabRightCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Notas</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Esta aba será conectada ao banco na etapa da Aba 02 (Endereço & logística).</p>
+          </div>
+        </section>
+      </aside>
     </div>
   );
 
   const renderRedeApoio = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Responsáveis & contatos</div>
-        <ul className={styles.list}>
-          {redeApoio.map((contato) => (
-            <li key={contato.id}>
-              <div className={styles.listItemTitle}>{contato.nome}</div>
-              <div className={styles.muted}>{contato.parentesco}</div>
-              <div className={styles.muted}>{contato.telefone}</div>
-              {contato.email && <div className={styles.muted}>{contato.email}</div>}
-              <ul className={styles.pillList}>
-                {contato.is_responsavel_legal && <li className={styles.pill}>Responsável legal</li>}
-                {contato.is_contato_emergencia && <li className={styles.pill}>Contato de emergência</li>}
-                {contato.observacoes && <li className={styles.pill}>{contato.observacoes}</li>}
-              </ul>
-            </li>
-          ))}
-        </ul>
+    <div className={styles.tabGrid}>
+      <div className={styles.tabLeftCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Responsáveis & contatos</div>
+          </div>
+          <div className={styles.cardBody}>
+            {redeApoio.map((contato) => (
+              <div key={contato.id} style={{ padding: '10px 0', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}>
+                <div style={{ fontWeight: 700 }}>{contato.nome}</div>
+                <p className={styles.muted}>
+                  {contato.parentesco} · {contato.telefone}
+                  {contato.email ? ` · ${contato.email}` : ''}
+                </p>
+                {contato.observacoes && <p className={styles.muted}>{contato.observacoes}</p>}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Rede informal</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Placeholder para futura implementação da aba “Rede de apoio”.</p>
+          </div>
+        </section>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Rede informal</div>
-        <p className={styles.muted}>
-          Liste aqui familiares e vizinhos que dão suporte eventual ao paciente.
-        </p>
-        <ul className={styles.pillList}>
-          <li className={styles.pill}>Vizinha de confiança</li>
-          <li className={styles.pill}>Contato emergencial</li>
-        </ul>
-      </div>
+      <aside className={styles.tabRightCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Responsável legal</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p style={{ margin: 0, fontWeight: 700 }}>{responsavelLegal}</p>
+          </div>
+        </section>
+      </aside>
     </div>
   );
 
   const renderAdministrativo = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Contrato / Convênio</div>
-        {renderDefinitionList([
-          { label: 'Convênio', value: administrativo.convenio },
-          { label: 'Plano', value: administrativo.plano },
-          { label: 'Carteirinha', value: administrativo.numero_carteirinha },
-          { label: 'Validade', value: administrativo.validade_carteirinha },
-          { label: 'Status', value: administrativo.status },
-          { label: 'Início atendimento', value: administrativo.data_inicio_atendimento },
-        ])}
+    <div className={styles.tabGrid}>
+      <div className={styles.tabLeftCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Contrato / Convênio</div>
+          </div>
+          <div className={styles.cardBody}>
+            {renderDefinitionList([
+              { label: 'Convênio', value: administrativo.convenio },
+              { label: 'Plano', value: administrativo.plano },
+              { label: 'Carteirinha', value: administrativo.numero_carteirinha },
+              { label: 'Validade', value: administrativo.validade_carteirinha },
+              { label: 'Status', value: administrativo.status },
+              { label: 'Início atendimento', value: administrativo.data_inicio_atendimento },
+            ])}
+          </div>
+        </section>
+
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Observações administrativas</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>{administrativo.observacoes || 'Nenhuma observação registrada.'}</p>
+          </div>
+        </section>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Observações administrativas</div>
-        <p className={styles.muted}>
-          {administrativo.observacoes || 'Nenhuma observação registrada.'}
-        </p>
-        <ul className={styles.pillList}>
-          <li className={styles.pill}>Autorizações em dia</li>
-          <li className={styles.pill}>LGPD assinado</li>
-        </ul>
-      </div>
+      <aside className={styles.tabRightCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Notas</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Placeholder para futura implementação da aba “Administrativo”.</p>
+          </div>
+        </section>
+      </aside>
     </div>
   );
 
   const renderFinanceiro = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Resumo financeiro</div>
-        {renderDefinitionList([
-          { label: 'Modelo de cobrança', value: 'Convênio · Coparticipação' },
-          { label: 'Pendências', value: 'Nenhuma pendência aberta' },
-          { label: 'Última fatura', value: 'Out/2025' },
-          { label: 'Responsável financeiro', value: responsavelLegal },
-        ])}
+    <div className={styles.tabGrid}>
+      <div className={styles.tabLeftCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Resumo financeiro</div>
+          </div>
+          <div className={styles.cardBody}>
+            {renderDefinitionList([
+              { label: 'Modelo de cobrança', value: 'Convênio · Coparticipação' },
+              { label: 'Pendências', value: 'Nenhuma pendência aberta' },
+              { label: 'Última fatura', value: 'Out/2025' },
+              { label: 'Responsável financeiro', value: responsavelLegal },
+            ])}
+          </div>
+        </section>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Controles futuros</div>
-        <p className={styles.muted}>
-          Espaço reservado para visão de cobranças, glosas e acordos com o convênio.
-        </p>
-        <ul className={styles.pillList}>
-          <li className={styles.pill}>Dashboard simplificado</li>
-          <li className={styles.pill}>Integração GED faturamento</li>
-        </ul>
-      </div>
+      <aside className={styles.tabRightCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Notas</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Placeholder para futura implementação da aba “Financeiro”.</p>
+          </div>
+        </section>
+      </aside>
     </div>
   );
 
   const renderClinico = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Resumo clínico</div>
-        {renderDefinitionList([
-          { label: 'Diagnósticos', value: 'Hipertensão · Diabetes' },
-          { label: 'Riscos', value: 'Quedas · Lesão de pele' },
-          { label: 'Medicações', value: 'Em uso · Revisar posologia mensal' },
-          { label: 'Dispositivos', value: 'Sem dispositivos invasivos' },
-          { label: 'Alergias', value: 'Dipirona' },
-        ])}
+    <div className={styles.tabGrid}>
+      <div className={styles.tabLeftCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Resumo clínico</div>
+          </div>
+          <div className={styles.cardBody}>
+            {renderDefinitionList([
+              { label: 'Diagnósticos', value: 'Hipertensão · Diabetes' },
+              { label: 'Riscos', value: 'Quedas · Lesão de pele' },
+              { label: 'Medicações', value: 'Em uso · Revisar posologia mensal' },
+              { label: 'Dispositivos', value: 'Sem dispositivos invasivos' },
+              { label: 'Alergias', value: 'Dipirona' },
+            ])}
+          </div>
+        </section>
       </div>
 
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Equipe e próximas ações</div>
-        <p className={styles.muted}>
-          Painel rápido para equipe assistencial acompanhar pendências clínicas.
-        </p>
-        <ul className={styles.pillList}>
-          <li className={styles.pill}>Avaliação enfermagem</li>
-          <li className={styles.pill}>Revisão de prescrição</li>
-          <li className={styles.pill}>Checklist de dispositivos</li>
-        </ul>
-      </div>
+      <aside className={styles.tabRightCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Notas</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Placeholder para futura implementação da aba “Clínico”.</p>
+          </div>
+        </section>
+      </aside>
     </div>
   );
 
   const renderDocumentos = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Documentos (GED)</div>
-        <p className={styles.muted}>
-          Atalho para o painel de GED: contratos, termos e laudos do paciente.
-        </p>
-        <button className={styles.actionLink} type="button">
-          Abrir GED
-        </button>
+    <div className={styles.tabGrid}>
+      <div className={styles.tabLeftCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Documentos (GED)</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Placeholder para futura implementação de GED.</p>
+          </div>
+        </section>
       </div>
+
+      <aside className={styles.tabRightCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Notas</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Aba “Documentos” será integrada ao Storage + catálogo GED.</p>
+          </div>
+        </section>
+      </aside>
     </div>
   );
 
   const renderHistorico = () => (
-    <div className={styles.cardsGrid}>
-      <div className={styles.card}>
-        <div className={styles.cardTitle}>Histórico & auditoria</div>
-        <ul className={styles.timeline}>
-          <li>29/11/2025 14:32 · Dados administrativos atualizados</li>
-          <li>12/11/2025 09:15 · Atualização de endereço e logística</li>
-          <li>02/11/2025 17:40 · Inclusão de responsável legal</li>
-          <li>20/10/2025 08:05 · Paciente criado no sistema</li>
-        </ul>
+    <div className={styles.tabGrid}>
+      <div className={styles.tabLeftCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Histórico & auditoria</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Placeholder para futura implementação de auditoria/linha do tempo real.</p>
+          </div>
+        </section>
       </div>
+
+      <aside className={styles.tabRightCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Notas</div>
+          </div>
+          <div className={styles.cardBody}>
+            <p className={styles.muted}>Aba “Histórico & Auditoria” exibirá eventos de alteração e acessos.</p>
+          </div>
+        </section>
+      </aside>
     </div>
   );
 
   const renderTabContent = () => {
     switch (selectedTab) {
       case 'dados-pessoais':
-        return renderDadosPessoais();
+        return (
+          <DadosPessoaisTab
+            ref={dadosPessoaisRef}
+            patientId={patientId}
+            onPatientUpdated={setPatient}
+            onStatusChange={setDadosPessoaisUi}
+          />
+        );
       case 'endereco-logistica':
         return renderEnderecoLogistica();
       case 'rede-apoio':
@@ -550,45 +756,113 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
   };
 
+  const isDadosPessoaisTabSelected = selectedTab === 'dados-pessoais';
+
   const handleSave = () => {
-    // Futuras integrações: persistir dados no backend
+    if (!isDadosPessoaisTabSelected) return;
+    dadosPessoaisRef.current?.save();
   };
+
+  const handleEdit = () => {
+    if (!isDadosPessoaisTabSelected) return;
+    if (dadosPessoaisUi.isEditing) {
+      dadosPessoaisRef.current?.cancelEdit();
+      return;
+    }
+    dadosPessoaisRef.current?.startEdit();
+  };
+
+  const handleReload = () => {
+    if (isDadosPessoaisTabSelected) {
+      dadosPessoaisRef.current?.reload();
+      return;
+    }
+  };
+
+  if (!authChecked || !isAuthenticated) {
+    return (
+      <div style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <Spinner size="medium" />
+        <div>Redirecionando para login...</div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
       <Header />
-      <div className={styles.shell}>
-        <CommandBar
-          title="Conecta Care · Pacientes"
-          breadcrumb={breadcrumb}
-          onPrint={() => undefined}
-          onShare={() => undefined}
-          onPrimaryAction={handleSave}
-          primaryActionLabel="Salvar alterações"
-        />
+      <div className={styles.commandBarOuter}>
+        <div className={styles.container}>
+          <div className={styles.commandBar}>
+            <button className={styles.cmd} type="button">
+              <PrintRegular />
+              Imprimir
+            </button>
+            <button className={styles.cmd} type="button">
+              <ShareRegular />
+              Compartilhar
+            </button>
+            <button
+              className={`${styles.cmd} ${styles.cmdPrimary}`}
+              type="button"
+              onClick={handleSave}
+              disabled={!isDadosPessoaisTabSelected || !dadosPessoaisUi.isEditing || dadosPessoaisUi.isSaving}
+            >
+              <SaveRegular />
+              Salvar alterações
+            </button>
 
-        <section className={styles.patientHeader}>
-          <div className={styles.patientHeaderMain}>
-            <div className={styles.patientName}>
-              {dadosPessoais.nome_completo}
-              <span className={styles.badgeStatus}>Ativo · Home Care 24h</span>
-              <span className={styles.badgeAllergy}>Alergia: Dipirona</span>
-            </div>
-            <div className={styles.patientMeta}>
-              <span>PAC-000134</span>
-              <span>{idade ? `${idade} anos` : 'Idade não informada'}</span>
-              <span>Responsável: {responsavelLegal}</span>
-              <span>Convênio: {administrativo.convenio || 'Não informado'} · {administrativo.plano || 'Plano'}</span>
-            </div>
+            <span className={styles.cmdSep} />
+
+            <button className={styles.cmd} type="button" onClick={handleEdit} disabled={!isDadosPessoaisTabSelected}>
+              {dadosPessoaisUi.isEditing ? <DismissRegular /> : <EditRegular />}
+              {dadosPessoaisUi.isEditing ? 'Cancelar' : 'Editar'}
+            </button>
+            <button className={styles.cmd} type="button" onClick={handleReload} disabled={!isDadosPessoaisTabSelected}>
+              <ArrowClockwiseRegular />
+              Recarregar
+            </button>
           </div>
-          <div className={styles.patientHeaderSide}>
-            <span className={styles.highlight}>Complexidade alta</span>
-            <span>{cidadeUf || 'Cidade não informada'}</span>
-            <span>Última atualização: 29/11/2025 14:32</span>
+        </div>
+      </div>
+
+      <div className={styles.container}>
+        <section className={styles.recordHeader}>
+          <div className={styles.recordAvatar}>{initials}</div>
+
+          <div className={styles.titleBlock}>
+            <h1 className={styles.title}>{patientLoading ? 'Carregando...' : recordTitle}</h1>
+            <div className={styles.subtitle}>{subtitle}</div>
+          </div>
+
+          <div className={styles.metaRow}>
+            <div className={styles.meta}>
+              <div className={styles.metaKey}>Status</div>
+              <div className={styles.metaValue}>
+                <span className={styles.dot} />
+                {statusLabel}
+              </div>
+            </div>
+            <div className={styles.meta}>
+              <div className={styles.metaKey}>Proprietário</div>
+              <div className={styles.metaValue}>
+                <span className={styles.link}>—</span>
+              </div>
+            </div>
+            <div className={styles.meta}>
+              <div className={styles.metaKey}>Complexidade</div>
+              <div className={styles.metaValue} style={{ color: '#a4262c' }}>
+                Alta
+              </div>
+            </div>
+            <div className={styles.meta}>
+              <div className={styles.metaKey}>Convênio</div>
+              <div className={styles.metaValue}>{administrativo.convenio || '—'}</div>
+            </div>
           </div>
         </section>
 
-        <div className={styles.tabs}>
+        <nav className={styles.tabs}>
           {patientTabs.map((tab) => (
             <button
               key={tab.value}
@@ -599,10 +873,21 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
               {tab.label}
             </button>
           ))}
-        </div>
+        </nav>
 
         <main className={styles.main}>
-          {renderTabContent()}
+          {patientError ? (
+            <section className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardTitle}>Erro ao carregar paciente</div>
+              </div>
+              <div className={styles.cardBody}>
+                <p className={styles.muted}>{patientError}</p>
+              </div>
+            </section>
+          ) : (
+            renderTabContent()
+          )}
         </main>
       </div>
     </div>
