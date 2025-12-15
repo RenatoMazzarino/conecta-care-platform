@@ -1,20 +1,42 @@
 # Revisão do PR: Feat/pacientes-aba01-dados-pessoais
 
+## Status da revisão
+✅ **Aprovado para merge (sem blockers)**  
+- CI passou e preview (Vercel) está ok conforme a própria PR.
+
 ## Resumo
 - Contrato da aba está na versão **0.4 (Aprovado)** e serve como referência principal de cobertura/estrutura.
-- Migrations aplicam o alinhamento completo do `public.patients` ao legado, adicionando campos de marketing/consentimento/perfil, índices e checks (incluindo `tenant_id` + soft delete) — vide pacote de migrations `20251213xxxx` + `202512142004_auth_tenant_from_jwt.sql`.
+- Migrations alinham `public.patients` ao legado, adicionando campos de perfil/consentimento/marketing + índices + checks, incluindo **multi-tenant (`tenant_id`)** e **soft delete (`deleted_at`)**.
 - Types do Supabase foram regenerados (`src/types/supabase.ts`) após as migrations.
-- Implementação ponta-a-ponta da Aba 01 (Dados Pessoais) sem mocks: actions (`getPatientById`/`updatePatientDadosPessoais`), validação Zod (`aba01DadosPessoais`), UI (cards/grid + formulário) e guarda de autenticação/tenant na página do paciente.
-- Correção das regex de validação de data/e-mail para impedir falsos positivos de erro na edição.
+- Implementação ponta-a-ponta da **Aba 01 (Dados Pessoais)** sem mocks: actions (`getPatientById`/`updatePatientDadosPessoais`), validação/normalização Zod (`aba01DadosPessoais`), UI (view em grid/cards + edit em formulário) e **guard de autenticação/tenant** no detalhe do paciente.
+- Correção de regex escapadas que causavam falso erro de “Data inválida”/“E-mail inválido” ao salvar edições.
 
 ## Evidências
-- Contrato: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md` (versão 0.4, status Aprovado, atualizado em 2025-12-13).
-- Migrations: `supabase/migrations/202512130452_base.sql`, `202512130453_pacientes_aba01_dados_pessoais.sql`, `202512130704_pacientes_aba01_dados_pessoais_extend_legado.sql`, `202512131716_pacientes_aba01_align_final.sql`, `202512141854_pacientes_email_check_relax.sql`, `202512142004_auth_tenant_from_jwt.sql`.
-- Types: `src/types/supabase.ts` traz os campos novos (`marketing_*`, `photo_consent*`, `communication_preferences`, `record_status`, `onboarding_step`, `tenant_id`, soft delete etc.) em `public.patients`.
-- UI/Actions: `src/app/pacientes/[id]/PatientPageClient.tsx` com guard de auth/tenant + shell Dynamics; `src/components/patient/DadosPessoaisTab.tsx` para view/edit; actions em `src/features/pacientes/actions/` e schema Zod em `src/features/pacientes/schemas/aba01DadosPessoais.ts`.
+- Contrato: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md` (v0.4, Aprovado).
+- Migrations:
+  - `supabase/migrations/202512130452_base.sql`
+  - `supabase/migrations/202512130453_pacientes_aba01_dados_pessoais.sql`
+  - `supabase/migrations/202512130704_pacientes_aba01_dados_pessoais_extend_legado.sql`
+  - `supabase/migrations/202512131716_pacientes_aba01_align_final.sql`
+  - `supabase/migrations/202512141854_pacientes_email_check_relax.sql`
+  - `supabase/migrations/202512142004_auth_tenant_from_jwt.sql`
+- Types: `src/types/supabase.ts` contém os novos campos (marketing/consentimento/onboarding/tenant/soft delete etc.).
+- UI/Actions:
+  - `src/app/pacientes/[id]/PatientPageClient.tsx` (shell “Dynamics” + guard auth/tenant)
+  - `src/components/patient/DadosPessoaisTab.tsx` (view/edit)
+  - `src/features/pacientes/actions/*`
+  - `src/features/pacientes/schemas/aba01DadosPessoais.ts`
 
-## Observações e pendências
-- PR declara ter executado `npm run lint`, `npm run typecheck`, `npm run build` e testes manuais básicos de login/edição.
-- RLS multi-tenant habilitado com função `app_private.current_tenant_id()`; há bypass dev-only via token público (documentado).
+## Observações e pendências (não bloqueantes)
 - Remoção de mocks concluída apenas para Aba 01; demais abas ainda usam `src/types/patient.ts` (fora do escopo).
-- Atenção ao comportamento de `record_status`/`is_active` e aos seeds multi-tenant; validar em runtime se aplicável.
+- Multi-tenant/RLS depende de `app_private.current_tenant_id()` e JWT contendo `tenant_id` (inclui fallback via `app_metadata.tenant_id`).
+- Existe bypass **DEV ONLY** via token público (opt-in) documentado nos runbooks; deve ser ignorado em produção.
+- Validar em runtime a semântica de `record_status`/`is_active` e seeds multi-tenant, conforme evolução do módulo.
+
+## Checklist de validação (executado/esperado)
+- `npm run lint`, `npm run typecheck`, `npm run build` ✅ (conforme PR + CI)
+- Manual:
+  - abrir `/pacientes/<uuid>` sem login → redirect para `/login?next=...`
+  - login → carrega sem “tenant_id ausente”
+  - editar e salvar → não acusar falso “Data inválida”/“E-mail inválido”
+  - e-mail inválido → bloquear com mensagem adequada
