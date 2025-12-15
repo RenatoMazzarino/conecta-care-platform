@@ -14,17 +14,19 @@
   - `docs/repo_antigo/schema_current.sql`
   - `db/snapshots/`
   - `docs/contracts/_templates/CONTRACT_TEMPLATE.md`
+  - `html/modelo_final_aparencia_pagina_do_paciente.htm` (referência visual da página do paciente)
   - `src/app/pacientes/[id]/page.tsx`
-  - `src/app/pacientes/[id]/PatientPageClient.tsx` (UI atual ainda usa mocks)
-  - `src/components/patient/DadosPessoaisTab.tsx` (layout alvo da Aba 01)
-  - `src/types/patient.ts` (tipos provisórios; serão substituídos por types gerados)
+  - `src/app/pacientes/[id]/PatientPageClient.tsx` (shell da página: command bar + record header + abas)
+  - `src/components/patient/DadosPessoaisTab.tsx` (Aba 01: view/edit + validações)
+  - `src/types/patient.ts` (@deprecated: tipos provisórios/legado; evitar novos usos)
 
 ## 1) Objetivo da Aba
 - Capturar e manter dados civis e de contato do paciente (identificação + contato), com validações e normalização de dados (ex.: CPF e telefones), garantindo isolamento multi-tenant via `tenant_id` + RLS.
 - Perfis típicos: atendimento/recepção (cadastro), coordenação/enfermagem (consulta), administrativo (correções).
 
 ## 2) Estrutura de UI (Cards e Campos)
-- Layout alvo: `src/components/patient/DadosPessoaisTab.tsx`.
+- Layout alvo (Aba 01): `src/components/patient/DadosPessoaisTab.tsx`.
+- Shell da página do paciente (estilo “Dynamics”): `src/app/pacientes/[id]/PatientPageClient.tsx` (referência visual em `html/modelo_final_aparencia_pagina_do_paciente.htm`).
 - Cards/seções:
   - **Foto do paciente (seção lateral)**: exibe avatar a partir de `photo_path` (path do Storage; URL assinada só na exibição).
   - **Identificação**: dados civis do paciente.
