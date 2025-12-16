@@ -65,7 +65,7 @@ Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operac
 ## Procedimento oficial de sincronização Repo x Banco
 1. Comparar payloads/DTOs do front com snapshot do banco (Supabase); se houver pasta de snapshots (ex.: `db/snapshots`), usar como referência.  
 2. Encontrou erro de coluna/check constraint inexistente: pausar a feature, registrar em `docs/architecture/OPEN_TODO.md` e alinhar DTO/payload ao schema real antes de pensar em migration.  
-3. Não inventar colunas/tabelas. Se schema não disponível, abrir dúvida em `docs/architecture/CODEX_QUESTIONS.md` e usar mock explícito.  
+3. Não inventar colunas/tabelas. Se schema não disponível, abrir dúvida em `CODEX_QUESTIONS.md` e usar mock explícito.  
 4. Só propor migrations após o alinhamento; mantenha validações e consumo fiéis ao que existe no banco.
 
 ## Arquitetura atual do repo (real)
