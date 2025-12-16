@@ -1,5 +1,15 @@
 # Troubleshooting — Aba 01 (Pacientes · Dados Pessoais)
 
+> **AVISO: DOCUMENTO HISTÓRICO**
+> Este arquivo é um log de troubleshooting do desenvolvimento inicial da Aba 01 de Pacientes. As soluções aqui descritas foram aplicadas e integradas ao código, mas este documento pode não refletir as práticas mais atuais.
+>
+> Para guias canônicos e processos atuais, consulte:
+> - **[ONBOARDING.md](./ONBOARDING.md)**: Guia de início rápido para novos desenvolvedores.
+> - **[auth-tenancy.md](./auth-tenancy.md)**: Guia oficial para autenticação e multi-tenancy.
+> - **[migrations-workflow.md](./migrations-workflow.md)**: Fluxo de trabalho para alterações no banco de dados.
+
+---
+
 Este documento registra os **erros encontrados** durante o desenvolvimento/integração da Aba 01 (Dados Pessoais) e **o que foi feito para corrigir**, para facilitar manutenção e futuras validações.
 
 > Importante: este log é focado em **dev local** (Windows + Supabase local) e em erros reais vistos no navegador/console.
