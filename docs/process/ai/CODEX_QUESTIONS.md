@@ -1,25 +1,66 @@
-# CODEX_QUESTIONS
+# Perguntas de Arquitetura e Negócio
 
-Perguntas essenciais (máx. 15) para evitar decisões erradas.
+Este documento centraliza as perguntas críticas cujo desconhecimento pode levar a decisões de implementação erradas. Ele é um guia para o time e para assistentes de IA.
 
-## Escalas
-1) Quais status oficiais de plantão (Scheduled/Confirmed/InProgress/Completed/Missed/Cancelled) e onde ficam registros de aprovação?  
-2) Fluxo de troca de plantão: quem pode solicitar, quem aprova e quais eventos precisam ser auditados?  
-3) Check-in/out: qual API de biometria (SERPRO) e geolocalização/BLE será usada e qual payload mínimo precisamos guardar (geo, biometria, BLE, device, horário)?  
-4) Há regras de tolerância/rounding para cálculo de horas (atraso/adiantamento) que impactam faturamento/pagamento?
+## Como Propor Novas Perguntas
 
-## Auditoria
-5) Existe endpoint centralizado de auditoria ou precisamos criar (por paciente/tenant)? Quais campos mínimos (actor, role, origem, IP, geo, payload)?  
-6) Eventos de Escalas e GED ficam em trilha única ou particionada por domínio?  
-7) Políticas de retenção/anonimização (LGPD) afetam histórico/auditoria? Qual período?
+Para adicionar uma nova pergunta, ela deve atender aos seguintes critérios:
+1.  **Ser Crítica**: A falta da resposta deve ter o potencial de gerar retrabalho significativo ou desalinhamento técnico.
+2.  **Não Ser Óbvia**: A resposta não deve ser facilmente encontrada em uma leitura rápida dos contratos ou da arquitetura principal.
+3.  **Ser Específica**: A pergunta deve ser clara e direcionada a um problema real.
 
-## Segurança / Multi-tenant
-8) Como identificar o tenant/empresa atual no front (token, subdomínio, header) e qual isolamento precisamos refletir na UI?  
-9) Quais papéis oficiais (empresa, família, profissional, médico/fisio/nutri, supervisor, gerente) e que ações cada um pode fazer em Pacientes/Escalas?
+Adicione a pergunta na seção "Perguntas Abertas" e, se possível, sugira quem poderia respondê-la.
 
-## Dados / Schema
-10) Qual o schema real de Paciente no Supabase (campos obrigatórios, status, alergias, responsável legal, PAC-ID gerado onde)?  
-11) Convenções de IDs (PAC-000123, ESC-000123): como são geradas, exibidas e editáveis?  
-12) GED: onde os documentos estão (bucket Supabase, S3, outro)? Como versionar e vincular a paciente/escala/financeiro?  
-13) Clínico/Financeiro/Inventário: quais datasets já existem em outros sistemas que devemos espelhar versus criar do zero?  
-14) Há endpoint unificado para Histórico do paciente que aceite eventos de GED, Escalas e Administrativo?
+---
+
+## Perguntas Abertas (Ativas)
+
+Estas são as perguntas que ainda precisam de uma definição clara.
+
+### Escalas
+1.  Quais são os status oficiais de um plantão (ex: `Scheduled`, `Confirmed`, `InProgress`, `Completed`, `Missed`, `Cancelled`) e onde os registros de aprovação devem ser armazenados?
+2.  Qual é o fluxo de troca de plantão: quem pode solicitar, quem aprova e quais eventos de auditoria são mandatórios?
+3.  Check-in/out: Qual API de biometria (ex: SERPRO) e geolocalização/BLE será usada? Qual o payload mínimo que precisamos armazenar (geo, biometria, device, horário)?
+4.  Existem regras de tolerância ou arredondamento para o cálculo de horas (atraso/adiantamento) que impactam o faturamento e o pagamento dos profissionais?
+
+### Auditoria
+5.  As políticas de retenção e anonimização de dados (LGPD) afetam o histórico de auditoria? Qual é o período de retenção definido?
+
+### Segurança / Multi-tenant
+6.  Quais são os papéis (Roles) oficiais do sistema (ex: admin da empresa, familiar, profissional, supervisor) e quais ações cada um pode executar nos módulos de Pacientes e Escalas?
+
+### Dados / Schema
+7.  Convenções de IDs legíveis (ex: `PAC-000123`, `ESC-000123`): como e onde são gerados? São apenas para exibição ou armazenados no banco?
+8.  GED: Onde os documentos serão armazenados (bucket Supabase, S3, etc.)? Como serão versionados e vinculados a outras entidades (paciente, escala, financeiro)?
+9.  Clínico/Financeiro/Inventário: Quais datasets de sistemas externos existentes devemos espelhar versus criar do zero?
+
+---
+
+## Perguntas Respondidas
+
+Estas perguntas já foram cobertas pela documentação existente.
+
+1.  **Endpoint centralizado de auditoria e campos mínimos?**
+    -   **Status**: RESPONDIDA (Parcialmente)
+    -   **Resposta**: O princípio da "Auditabilidade Completa" está definido, e a necessidade de rastrear `created_by` e `updated_by` é um requisito. A visão de longo prazo menciona um módulo de Auditoria. No entanto, o schema exato e a centralização do endpoint ainda estão em aberto.
+    -   **Fonte**: `docs/architecture/SYSTEM_ARCHITECTURE.md` (Seção 1. Princípios Arquiteturais)
+
+2.  **Eventos de Escalas e GED ficam em trilha única?**
+    -   **Status**: RESPONDIDA (Parcialmente)
+    -   **Resposta**: A visão de "Ecossistema Integrado" e "Visão 360" sugere que os dados serão centralizados em torno do paciente, mas a implementação específica (tabela única vs. particionada) não está definida.
+    -   **Fonte**: `docs/architecture/SYSTEM_ARCHITECTURE.md` (Seção 3. Visão de Longo Prazo)
+
+3.  **Como identificar o tenant e isolar a UI?**
+    -   **Status**: RESPONDIDA
+    -   **Resposta**: O `tenant_id` é extraído do JWT do usuário autenticado. As políticas de RLS no banco de dados garantem o isolamento dos dados.
+    -   **Fonte**: `docs/runbooks/auth-tenancy.md`
+
+4.  **Qual o schema real de Paciente no Supabase?**
+    -   **Status**: RESPONDIDA
+    -   **Resposta**: O schema completo da tabela `public.patients` para a Aba 01, incluindo colunas, tipos, constraints e validações, está detalhado no contrato.
+    -   **Fonte**: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`
+
+5.  **Há endpoint unificado para Histórico do paciente?**
+    -   **Status**: RESPONDIDA (Parcialmente)
+    -   **Resposta**: A arquitetura prevê um "Ecossistema Integrado" e a UI de referência (`modelo_final...htm`) mostra uma aba de "Histórico & Auditoria", indicando a intenção de unificar. A implementação detalhada, no entanto, não foi definida.
+    -   **Fonte**: `docs/architecture/SYSTEM_ARCHITECTURE.md` e `html/modelo_final_aparencia_pagina_do_paciente.htm`
