@@ -1,105 +1,71 @@
-# Relatório de Auditoria da Documentação — Conecta Care
+# Relatório de Auditoria da Documentação
 
-- **Data da Auditoria:** 2025-12-15
-- **Auditor:** Assistente de Manutenção Gemini
-- **Objetivo:** Mapear o estado atual da pasta `docs/`, identificar conflitos, duplicidades e lacunas para guiar a reorganização.
-
----
-
-## 1. Árvore de Arquivos Analisados
-
-A auditoria cobriu os seguintes 20 arquivos relevantes dentro da pasta `docs/`:
-
-```
-docs/
-├── code-review.md
-├── README.md
-├── architecture/
-│   ├── AI_TOOLING.md
-│   ├── ARCHITECTURE_REAL.md
-│   ├── CODEX_GUIDE.md
-│   ├── CODEX_QUESTIONS.md
-│   ├── OPEN_TODO.md
-│   └── REPO_MAP.md
-├── contracts/
-│   ├── _templates/
-│   │   └── CONTRACT_TEMPLATE.md
-│   └── pacientes/
-│       ├── ABA01_DADOS_PESSOAIS.md
-│       └── README.md
-├── repo_antigo/
-│   └── schema_current.sql
-├── reviews/
-│   └── PR_FEAT_PACIENTES_ABA01.md
-└── runbooks/
-    ├── auth-tenancy.md
-    ├── branch-protection.md
-    ├── env.md
-    ├── local-dev-supabase.md
-    ├── migrations-workflow.md
-    ├── pacientes-aba01-troubleshooting.md
-    └── review-workflow.md
-```
-
----
-
-## 2. Auditoria Detalhada por Arquivo
+## 1. Mapeamento da Documentação
 
 | Caminho | Objetivo | Fonte da Verdade? | Status | Conflitos/Duplicidades |
 | :--- | :--- | :--- | :--- | :--- |
-| `docs/README.md` | Descreve a estrutura da pasta `docs` e o fluxo de trabalho oficial "Contrato → DB". | **SIM** | ATUAL | N/A |
-| `docs/code-review.md` | Registra observações de um code review específico que já foram resolvidas. | NÃO | OBSOLETO | O conteúdo é histórico; `pacientes-aba01-troubleshooting.md` cobre tópicos similares. |
-| `docs/process/ai/AI_TOOLING.md` | Define os papéis das diferentes IAs usadas no projeto. | **SIM** (para o processo) | ATUAL | `CODEX_GUIDE.md` |
-| `docs/architecture/ARCHITECTURE_REAL.md` | Descreve a arquitetura real e implementada da aplicação. | **SIM** (para o que existe) | ATUAL | `REPO_MAP.md`, `CODEX_GUIDE.md` |
-| `docs/process/ai/CODEX_GUIDE.md` | Guia de instruções para a IA, detalhando a visão completa do produto e padrões. | DEPENDE | PARCIAL | `ARCHITECTURE_REAL.md`, `AI_TOOLING.md`. Duplica a descrição da arquitetura e o processo. |
-| `docs/process/ai/CODEX_QUESTIONS.md` | Lista de perguntas de negócio/arquitetura para guiar o desenvolvimento. | NÃO | OBSOLETO | Várias perguntas são respondidas em `ABA01_DADOS_PESSOAIS.md`. |
-| `docs/architecture/OPEN_TODO.md` | Lista de pendências técnicas prioritizadas do projeto. | **SIM** | ATUAL | N/A |
-| `docs/architecture/REPO_MAP.md` | Mapeia responsabilidades por pasta e o que existe vs. placeholders. | **SIM** (para o estado atual) | ATUAL | `ARCHITECTURE_REAL.md` (descrevem o mesmo estado de formas diferentes). |
-| `docs/contracts/_templates/CONTRACT_TEMPLATE.md` | Template para criação de novos contratos de aba. | **SIM** (para o processo) | ATUAL | N/A |
-| `docs/contracts/pacientes/README.md` | Índice dos contratos do módulo Pacientes, ligando-os às migrations. | **SIM** | ATUAL | N/A |
-| `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md` | **Contrato canônico** para a funcionalidade da Aba 01 de Dados Pessoais. | **SIM** (mestre) | ATUAL | N/A |
-| `docs/repo_antigo/schema_current.sql` | Snapshot do schema do banco de dados legado para referência histórica. | NÃO (histórico) | OBSOLETO | `docs/README.md` clarifica seu propósito, mas há risco de ser usado como referência atual. |
-| `docs/reviews/PR_FEAT_PACIENTES_ABA01.md` | Exemplo de um registro de revisão de PR. | NÃO (histórico) | ATUAL (como exemplo) | `review-workflow.md` define o processo que este arquivo exemplifica. |
-| `docs/runbooks/auth-tenancy.md` | Guia para configurar e testar o multi-tenancy com Supabase localmente. | **SIM** (para o processo) | ATUAL | N/A |
-| `docs/runbooks/branch-protection.md` | Guia para configurar proteções de branch no GitHub. | **SIM** (para o processo) | ATUAL | N/A |
-| `docs/runbooks/env.md` | Explica a finalidade das variáveis de ambiente do projeto. | **SIM** (para o processo) | ATUAL | N/A |
-| `docs/runbooks/local-dev-supabase.md` | Comandos básicos para gerenciar o ambiente Supabase local. | **SIM** (para o processo) | ATUAL | N/A |
-| `docs/runbooks/migrations-workflow.md` | Descreve o fluxo obrigatório para criar e aplicar migrations no Supabase. | **SIM** (para o processo) | ATUAL | `docs/README.md` |
-| `docs/runbooks/pacientes-aba01-troubleshooting.md`| Base de conhecimento com erros encontrados e suas soluções. | **SIM** (para o histórico) | ATUAL | N/A |
-| `docs/runbooks/review-workflow.md` | Define a estratégia de branches, commits e fluxo de Pull Request. | **SIM** (para o processo) | ATUAL | `PR_FEAT_PACIENTES_ABA01.md` |
+| `docs/README.md` | Ponto de entrada central para a documentação, explicando o fluxo "contract-driven". | **SIM** | ATUAL | Nenhum. |
+| `docs/MODULE_STATUS.md` | Tabela de alto nível sobre o status de cada módulo da plataforma. | **SIM** | ATUAL | Nenhum. |
+| `docs/code-review.md` | Registro de decisões e correções feitas durante revisões de código. | NÃO | PARCIAL | O conteúdo é pontual e pode se tornar obsoleto. Melhor seria integrar aos PRs ou ADRs. |
+| `docs/architecture/SYSTEM_ARCHITECTURE.md` | Descreve os princípios, estado atual e visão de longo prazo da arquitetura. | **SIM** | ATUAL | `ARCHITECTURE_REAL.md` e `REPO_MAP.md` são subconjuntos deste. |
+| `docs/architecture/ARCHITECTURE_REAL.md` | Detalha a implementação técnica *existente* no repositório. | DEPENDE | PARCIAL | **Duplicidade/Risco de Conflito:** Descreve o mesmo que `SYSTEM_ARCHITECTURE.md` e `REPO_MAP.md`, mas com um foco diferente. Pode ficar dessincronizado. |
+| `docs/architecture/REPO_MAP.md` | Mapeia a estrutura de pastas e arquivos do projeto. | DEPENDE | PARCIAL | **Duplicidade/Risco de Conflito:** Redundante com `SYSTEM_ARCHITECTURE.md`. A estrutura do código é a fonte da verdade. |
+| `docs/architecture/OPEN_TODO.md` | Backlog técnico e de débitos. | **SIM** | ATUAL | Nenhum. |
+| `docs/contracts/pacientes/README.md` | Índice de contratos para o módulo de Pacientes. | **SIM** | ATUAL | Nenhum. |
+| `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md` | Contrato canônico para a aba "Dados Pessoais" do paciente. | **SIM** | ATUAL | Nenhum. |
+| `docs/contracts/_templates/CONTRACT_TEMPLATE.md` | Template para criação de novos contratos de abas. | **SIM** | ATUAL | Nenhum. |
+| `docs/runbooks/auth-tenancy.md` | Guia para configurar autenticação e multi-tenancy no ambiente local. | **SIM** | ATUAL | Nenhum. |
+| `docs/runbooks/migrations-workflow.md` | Descreve o fluxo de trabalho para criar e aplicar migrações de banco de dados. | **SIM** | ATUAL | Nenhum. |
+| `docs/runbooks/*.md` (outros) | Guias operacionais para tarefas específicas (env, review, etc.). | **SIM** | ATUAL | Nenhum. |
+| `docs/reviews/PR_FEAT_PACIENTES_ABA01.md` | Relatório de revisão de um PR específico. | NÃO | OBSOLETO | O conteúdo é um snapshot. A fonte da verdade é o próprio PR no Git. |
+| `docs/reviews/DOCS_RESTRUCTURE_SUMMARY.md` | Resumo de uma reestruturação da documentação. | NÃO | OBSOLETO | O estado atual da pasta `docs/` é a fonte da verdade. |
+| `docs/research/PROJECT_IMMERSION_REPORT.md` | Relatório gerado pela IA para demonstrar entendimento do projeto. | NÃO | ATUAL | É um documento de onboarding, não uma fonte da verdade do projeto. |
+| `html/modelo_final_aparencia_pagina_do_paciente.htm` | Protótipo HTML estático que serve como referência visual para a UI. | **SIM** | ATUAL | Nenhum. |
 
----
+## 2. Análise de Duplicidades, Contradições e Gaps
 
-## 3. Análise Consolidada
+### Duplicidades e Conflitos
 
-### Duplicidades de Conteúdo
+1.  **Arquitetura Descrita em Múltiplos Lugares**:
+    *   **Conflito**: A arquitetura e o estado atual do projeto estão descritos em `docs/architecture/SYSTEM_ARCHITECTURE.md`, `docs/architecture/ARCHITECTURE_REAL.md`, e `docs/architecture/REPO_MAP.md`.
+    *   **Risco**: Manter três documentos sincronizados é propenso a erros. `SYSTEM_ARCHITECTURE.md` parece ser o documento canônico, enquanto os outros dois são subconjuntos que podem (e provavelmente irão) ficar desatualizados.
+    *   **Citação**: `SYSTEM_ARCHITECTURE.md` afirma: "Para um mapa detalhado de arquivos e pastas, consulte o REPO_MAP.md". Isso cria uma dependência desnecessária.
 
-- **Descrição da Arquitetura**: O estado atual da arquitetura é descrito em três lugares diferentes, com focos ligeiramente distintos:
-  - `docs/architecture/ARCHITECTURE_REAL.md` (visão técnica)
-  - `docs/architecture/REPO_MAP.md` (visão por pastas)
-  - `docs/process/ai/CODEX_GUIDE.md` (visão para a IA)
-  *Embora não sejam 100% idênticos, um desenvolvedor precisa ler os três para ter a visão completa, o que indica uma oportunidade de consolidação.*
-
-- **Processo de Desenvolvimento**: O fluxo de trabalho é mencionado em múltiplos locais.
-  - `docs/README.md`
-  - `docs/runbooks/migrations-workflow.md`
-  - `docs/process/ai/CODEX_GUIDE.md`
-  *O conteúdo é consistente, mas poderia ser centralizado em um guia principal e referenciado nos demais.*
+2.  **Registros de Revisão vs. Histórico do Git**:
+    *   **Duplicidade**: Arquivos como `docs/reviews/PR_FEAT_PACIENTES_ABA01.md` e `docs/code-review.md` duplicam informações que já existem no histórico de commits e nos Pull Requests do GitHub.
+    *   **Risco**: Esses arquivos se tornam obsoletos rapidamente e não são a fonte da verdade. O Git é a fonte da verdade para o histórico de código.
 
 ### Contradições
 
-- **Perguntas vs. Respostas**: O arquivo `docs/process/ai/CODEX_QUESTIONS.md` lista perguntas que já foram detalhadamente respondidas no contrato `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`.
-  - **Trecho conflitante**: `CODEX_QUESTIONS.md` pergunta: *"Qual o schema real de Paciente no Supabase?"*. O contrato da Aba 01 define este schema em mais de 100 linhas de tabela. Isso torna o arquivo de perguntas obsoleto e potencialmente enganoso.
-
-- **Visão Estratégica vs. Realidade Implementada**: Há uma grande diferença entre a visão do produto e o estado atual.
-  - **Visão**: `CODEX_GUIDE.md` posiciona o módulo de **Escalas como o "core operacional"**.
-  - **Realidade**: `REPO_MAP.md` afirma sobre Escalas: **"Nenhuma rota/componente/serviço implementado"**.
-  *Isso não é um erro, mas uma lacuna estratégica que precisa ser bem comunicada para evitar que desenvolvedores façam suposições erradas sobre a base de código existente.*
+*   Nenhuma contradição direta foi encontrada nos documentos canônicos (contratos, runbooks principais). As regras de governança são consistentes. O principal risco vem da duplicidade de documentos de arquitetura, que podem vir a contradizer um ao outro no futuro.
 
 ### Gaps (Lacunas)
 
-- **Testes Automatizados**: A ausência de uma estratégia ou implementação de testes automatizados é a lacuna técnica mais crítica, confirmada em `ARCHITECTURE_REAL.md` e `OPEN_TODO.md`.
+1.  **Falta de um ADR (Architectural Decision Record)**:
+    *   **Gap**: O projeto possui um `OPEN_TODO.md` e um `SYSTEM_ARCHITECTURE.md`, mas não há um local formal para registrar *por que* certas decisões de arquitetura foram tomadas (ADRs). Documentos como `code-review.md` tentam preencher essa lacuna de forma informal.
+    *   **Impacto**: Novas pessoas no time podem não entender o racional por trás de escolhas tecnológicas, levando a questionamentos ou refatorações desnecessárias.
 
-- **Contratos para Módulos Futuros**: O processo de desenvolvimento orientado a contratos não foi aplicado aos módulos futuros (Escalas, Financeiro, etc.), que existem apenas como conceitos na documentação de visão (`CODEX_GUIDE.md`).
+2.  **Documentação de Componentes de UI**:
+    *   **Gap**: Existe uma referência visual (`.htm`), mas não há uma documentação formal sobre os componentes React/Fluent UI, suas props e como devem ser reutilizados.
+    *   **Impacto**: Desenvolvedores podem recriar componentes existentes ou usá-los de forma inconsistente.
 
-- **Guia de Onboarding Consolidado**: Falta um documento único que sirva como ponto de partida para um novo desenvolvedor, guiando-o desde a configuração do ambiente até a primeira contribuição, conectando os vários runbooks existentes.
+3.  **Runbook de Onboarding para Novos Desenvolvedores**:
+    *   **Gap**: Embora existam runbooks para tarefas específicas, falta um guia consolidado de "primeiros passos" que junte tudo: como clonar, instalar, rodar o Supabase local, criar um usuário de teste, e entender o fluxo de trabalho. O `PROJECT_IMMERSION_REPORT.md` serve como uma visão geral, mas não um guia prático.
+
+## 3. Recomendações (Ações Sugeridas)
+
+1.  **Centralizar a Documentação de Arquitetura**:
+    *   **Ação**: Unificar `ARCHITECTURE_REAL.md` e `REPO_MAP.md` dentro de `SYSTEM_ARCHITECTURE.md`. Manter um único documento como fonte da verdade para a arquitetura.
+    *   **Benefício**: Reduz a sobrecarga de manutenção e elimina o risco de contradições.
+
+2.  **Adotar um Formato de ADR**:
+    *   **Ação**: Criar uma nova pasta `docs/architecture/decisions` e começar a usar um template simples de ADR para registrar decisões importantes.
+    *   **Benefício**: Cria um histórico claro e imutável do racional técnico do projeto.
+
+3.  **Mover Registros de Revisão para o Git**:
+    *   **Ação**: Descontinuar o uso de arquivos em `docs/reviews` para registrar o conteúdo de PRs. Manter essa informação nos próprios PRs do GitHub.
+    *   **Benefício**: Utiliza a ferramenta certa para o trabalho e garante que a informação esteja sempre no contexto correto.
+
+4.  **Criar um "Onboarding Runbook"**:
+    *   **Ação**: Criar um novo arquivo `docs/runbooks/onboarding.md` que guie um novo desenvolvedor do `git clone` até ter o ambiente rodando.
+    *   **Benefício**: Acelera a integração de novos membros no time.
