@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0df1332-f272-4824-835c-b86cf81407fd" name="Changes" comment="Changes">
-      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
-    </list>
+    <list default="true" id="e0df1332-f272-4824-835c-b86cf81407fd" name="Changes" comment="docs: consolidate architecture documentation  &#10;&#10;- Merged content from REPO_MAP.md and ARCHITECTURE_REAL.md into SYSTEM_ARCHITECTURE.md.  &#10;- Removed deprecated files (REPO_MAP.md, ARCHITECTURE_REAL.md).  &#10;- Streamlined references to unified architecture documentation for clarity and maintenance." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -27,17 +25,17 @@
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {}
 }</component>
-  <component name="GitHubPullRequestState">{
-  &quot;prStates&quot;: [
+  <component name="GitHubPullRequestState"><![CDATA[{
+  "prStates": [
     {
-      &quot;id&quot;: {
-        &quot;id&quot;: &quot;PR_kwDOQgoMuM65P7bc&quot;,
-        &quot;number&quot;: 5
+      "id": {
+        "id": "PR_kwDOQgoMuM65P7bc",
+        "number": 5
       },
-      &quot;lastSeen&quot;: 1765925654252
+      "lastSeen": 1765927368611
     }
   ]
-}</component>
+}]]></component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/RenatoMazzarino/conecta-care-platform.git&quot;,
@@ -181,7 +179,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765923159577</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="docs: consolidate architecture documentation  &#10;&#10;- Merged content from REPO_MAP.md and ARCHITECTURE_REAL.md into SYSTEM_ARCHITECTURE.md.  &#10;- Removed deprecated files (REPO_MAP.md, ARCHITECTURE_REAL.md).  &#10;- Streamlined references to unified architecture documentation for clarity and maintenance.">
+      <option name="closed" value="true" />
+      <created>1765927350249</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1765927350250</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -205,7 +211,8 @@
     <MESSAGE value="docs: consolidate architecture documentation and remove deprecated files&#10;&#10;- Merged relevant content from REPO_MAP.md and ARCHITECTURE_REAL.md into SYSTEM_ARCHITECTURE.md as the new canonical source.&#10;- Removed redundant files: REPO_MAP.md and ARCHITECTURE_REAL.md.&#10;- Simplified folder structure documentation for improved readability and accessibility." />
     <MESSAGE value="docs: expand critical questions and add onboarding guide&#10;&#10;- Renamed CODEX_QUESTIONS.md to &quot;Perguntas de Arquitetura e Negócio&quot; with improved structure and detailed guidelines for proposing, tracking, and resolving questions.&#10;- Added new sections covering key unanswered questions about Escalas, Auditoria, Segurança, and Schema.&#10;- Introduced an ONBOARDING.md guide detailing project setup, governance, and anti-patterns to streamline new developer integration." />
     <MESSAGE value="docs: add quality assurance and historical reference documentation&#10;&#10;- Introduced `docs/reviews/README.md` to outline the purpose of quality assurance artifacts like PR reviews, audits, and restructuring summaries.&#10;- Added `docs/repo_antigo/README.md` to provide clear guidelines on the use of legacy repository files for historical reference only.&#10;- Updated `docs/runbooks/pacientes-aba01-troubleshooting.md` with a disclaimer to clarify its historical context and include links to current canonical guides." />
-    <option name="LAST_COMMIT_MESSAGE" value="docs: add quality assurance and historical reference documentation&#10;&#10;- Introduced `docs/reviews/README.md` to outline the purpose of quality assurance artifacts like PR reviews, audits, and restructuring summaries.&#10;- Added `docs/repo_antigo/README.md` to provide clear guidelines on the use of legacy repository files for historical reference only.&#10;- Updated `docs/runbooks/pacientes-aba01-troubleshooting.md` with a disclaimer to clarify its historical context and include links to current canonical guides." />
+    <MESSAGE value="docs: consolidate architecture documentation  &#10;&#10;- Merged content from REPO_MAP.md and ARCHITECTURE_REAL.md into SYSTEM_ARCHITECTURE.md.  &#10;- Removed deprecated files (REPO_MAP.md, ARCHITECTURE_REAL.md).  &#10;- Streamlined references to unified architecture documentation for clarity and maintenance." />
+    <option name="LAST_COMMIT_MESSAGE" value="docs: consolidate architecture documentation  &#10;&#10;- Merged content from REPO_MAP.md and ARCHITECTURE_REAL.md into SYSTEM_ARCHITECTURE.md.  &#10;- Removed deprecated files (REPO_MAP.md, ARCHITECTURE_REAL.md).  &#10;- Streamlined references to unified architecture documentation for clarity and maintenance." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
