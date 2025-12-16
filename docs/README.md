@@ -1,37 +1,24 @@
-# Documentação (`/docs`)
+# Documentação Conecta Care Platform
 
-Esta pasta é a **fonte canônica** de documentação do projeto (processo, contratos de abas e referências técnicas).
+Esta documentação serve como a fonte central de verdade para o desenvolvimento, arquitetura e operação da plataforma Conecta Care.
 
-## Estrutura
-- `docs/repo_antigo/`: referência técnica do banco antigo (snapshot) para consulta.
-  - `docs/repo_antigo/schema_current.sql`: snapshot do schema do banco antigo.
-  - `docs/repo_antigo/snapshots/`: dumps históricos adicionais (quando existirem).
-- `docs/architecture/`: visão do repositório e decisões de arquitetura.
-  - `docs/architecture/AI_TOOLING.md`: esteira de ferramentas de IA e papéis.
-  - `docs/architecture/decisions/`: ADRs curtos (opcional).
-  - `docs/architecture/database/`: notas gerais do banco (padrões, convenções, decisões).
-- `docs/contracts/`: **contratos canônicos** por módulo/aba (o que a UI precisa e como isso vira schema, types e ações).
-  - `docs/contracts/_templates/`: templates de contrato para copiar.
-  - `docs/contracts/pacientes/`: contratos do módulo de Pacientes, **uma aba = um contrato**.
-  - Índice do módulo Pacientes: `docs/contracts/pacientes/README.md`
-- `docs/runbooks/`: guias operacionais (Supabase local, workflow de migrations, geração de types, etc.).
-  - `docs/runbooks/review-workflow.md`: fluxo de branches/PR e checks mínimos.
-  - `docs/runbooks/branch-protection.md`: como ativar branch protection e required status checks.
+## Visão Rápida
 
-## Snapshots (antigo vs novo)
-- **Banco antigo (referência histórica):** `docs/repo_antigo/`
-- **Banco novo (ao longo do tempo):** `db/snapshots/`
-- Regra: não misturar dumps/snapshots do banco novo dentro de `docs/repo_antigo/`.
+O objetivo da Conecta Care é fornecer uma plataforma SaaS robusta e intuitiva para gestão de pacientes, prontuários, agendamentos e operações de home care. A arquitetura é baseada em Next.js no frontend, Supabase para o backend e banco de dados (PostgreSQL), e segue um modelo de desenvolvimento "contract-driven".
 
-## Fluxo oficial de trabalho
-Ordem obrigatória: **Contrato (MD) → Migrations → Types → UI → Actions**.
+A regra de ouro do fluxo de trabalho é:
 
-1) **Contrato (MD)**: escrever/atualizar o contrato canônico em `docs/contracts/<modulo>/...`.
-2) **Migrations**: criar migrations SQL e aplicar no Supabase local.
-3) **Types**: regenerar e versionar os tipos TypeScript a partir do schema local.
-4) **UI**: implementar a aba usando dados reais (sem inventar campos).
-5) **Actions**: implementar queries/mutations e validar RLS/policies.
+**Contrato → Migrations → Types → Actions → UI**
 
-## Regra de ouro (obrigatória)
-Não criar/alterar **tabela/coluna/constraint “na mão”** (ou por conveniência) sem **contrato aprovado**.
-Se o contrato não existir ou não estiver aprovado, o próximo passo é **criar/atualizar o contrato** — não a migration.
+Toda nova funcionalidade ou alteração significativa deve começar com um **Contrato** formalizado, que define o escopo e a "fonte da verdade". A partir dele, derivam-se as alterações no banco de dados, os tipos no código, as lógicas de negócio e, por fim, a interface do usuário.
+
+**Política de Atualização:** Qualquer Pull Request que altere o comportamento de uma funcionalidade *deve* atualizar a documentação correspondente (contratos, runbooks, arquitetura) no mesmo PR. Documentação desatualizada é considerada um bug.
+
+## Pontos de Entrada
+
+- **[Arquitetura](./architecture/):** Descreve a arquitetura atual do sistema, decisões tomadas e o mapa do repositório.
+- **[Contratos](./contracts/):** A fonte da verdade para cada módulo e funcionalidade. Nada é construído sem um contrato aprovado.
+- **[Runbooks](./runbooks/):** Guias operacionais para tarefas comuns, como setup do ambiente local, troubleshooting e workflows de migração.
+- **[Processos](./process/):** Descreve nossos processos de trabalho, incluindo o uso de ferramentas de IA para otimizar o desenvolvimento.
+- **[Reviews](./reviews/):** Armazena auditorias, relatórios de revisão de PRs e outros artefatos de garantia de qualidade.
+- **[Status dos Módulos](./MODULE_STATUS.md):** Tabela com o status atual de cada módulo da plataforma.
