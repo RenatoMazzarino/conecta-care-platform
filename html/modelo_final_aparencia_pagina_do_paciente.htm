@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Conecta Care • Paciente • Dados pessoais (ref Dynamics)</title>
+  <style>
+    :root{
+      --bg: #f3f2f1;
+      --card: #ffffff;
+      --text: #323130;
+      --muted: #605e5c;
+      --border: #edebe9;
+      --brand: #0f6cbd;
+      --brand2: #005a9e;
+      --shadow: 0 1px 2px rgba(0,0,0,.08);
+      --radius: 6px;
+      --gap: 16px;
+      --font: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", "Oxygen", "Ubuntu", sans-serif;
+    }
+
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* Top app bar (bem leve; no seu app já existe algo parecido) */
+    .topbar{
+      height: 52px;
+      background: #0b2e4f;
+      color: #fff;
+      display:flex;
+      align-items:center;
+      padding: 0 18px;
+      font-weight: 600;
+      letter-spacing: .2px;
+    }
+
+    /* Command bar (Dynamics style) */
+    .commandbar{
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      padding: 10px 14px;
+    }
+    .cmd{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 600;
+    }
+    .cmd:hover{ background: #f8f8f8; border-color: #f1f1f1; }
+    .cmd.primary{
+      background: var(--brand);
+      color:#fff;
+      border-color: var(--brand);
+    }
+    .cmd.primary:hover{ background: var(--brand2); border-color: var(--brand2); }
+    .cmd.sep{ margin-left:auto; }
+
+    /* Record header (nome + “chips”/metas) */
+    .recordHeader{
+      max-width: 1280px;
+      margin: 14px auto 0;
+      padding: 0 14px;
+      display:flex;
+      gap: 14px;
+      align-items:center;
+    }
+    .avatar{
+      width: 46px; height: 46px;
+      border-radius: 6px;
+      background: #e6f2fb;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 800;
+      color: var(--brand);
+    }
+    .titleBlock{ min-width: 280px; }
+    .titleBlock h1{
+      font-size: 24px;
+      margin: 0;
+      line-height: 1.15;
+    }
+    .subtitle{
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .metaRow{
+      margin-left:auto;
+      display:flex;
+      gap: 26px;
+      flex-wrap: wrap;
+    }
+    .meta{
+      min-width: 130px;
+    }
+    .meta .k{
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+    .meta .v{
+      font-weight: 700;
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+    .dot{
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #107c10;
+    }
+    .link{ color: var(--brand2); font-weight: 800; }
+
+    /* Tabs (Dynamics style) */
+    .tabs{
+      max-width: 1280px;
+      margin: 14px auto 0;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      gap: 18px;
+      background: transparent;
+    }
+    .tab{
+      padding: 10px 2px;
+      color: var(--muted);
+      text-decoration:none;
+      font-weight: 700;
+      font-size: 13px;
+      border-bottom: 2px solid transparent;
+    }
+    .tab.active{
+      color: var(--text);
+      border-bottom-color: var(--brand);
+    }
+
+    /* Main area */
+    .page{
+      max-width: 1280px;
+      margin: 14px auto 40px;
+      padding: 0 14px;
+    }
+
+    /* The key change: “Dynamics layout” = 2/3 + 1/3 (ou 3 colunas) com cards GRANDES */
+    .grid{
+      display:grid;
+      grid-template-columns: 2fr 1fr;
+      gap: var(--gap);
+      align-items:start;
+    }
+
+    .leftCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr; /* 2 cards lado a lado, mas GRANDES */
+      gap: var(--gap);
+    }
+    .rightCol{
+      display:flex;
+      flex-direction: column;
+      gap: var(--gap);
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .cardHeader{
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .cardTitle{
+      font-size: 12px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      font-weight: 900;
+      color: var(--text);
+    }
+    .cardBody{ padding: 14px 16px; }
+
+    /* definition list like Dynamics (label/value) */
+    .dl{
+      display:grid;
+      grid-template-columns: 180px 1fr;
+      row-gap: 10px;
+      column-gap: 12px;
+      margin:0;
+    }
+    .dt{
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .dd{
+      margin:0;
+      font-weight: 700;
+      font-size: 12.5px;
+    }
+
+    .note{
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    /* Timeline */
+    .timelineItem{
+      display:flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f4f4f4;
+    }
+    .timelineItem:last-child{ border-bottom: 0; }
+    .bar{
+      width: 3px;
+      background: var(--brand);
+      border-radius: 2px;
+      margin-top: 2px;
+    }
+    .tMain{ flex: 1; }
+    .tTop{
+      display:flex;
+      justify-content:space-between;
+      gap: 12px;
+      font-size: 11.5px;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .tTitle{ font-weight: 900; font-size: 12.5px; margin: 0 0 2px; }
+    .tDesc{ margin:0; color: var(--muted); font-size: 12px; }
+
+    /* Responsivo */
+    @media (max-width: 1100px){
+      .grid{ grid-template-columns: 1fr; }
+      .leftCol{ grid-template-columns: 1fr; }
+      .metaRow{ display:none; } /* só pra simplificar o demo */
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">Conecta Care</div>
+
+  <div class="commandbar">
+    <button class="cmd">Imprimir</button>
+    <button class="cmd">Compartilhar</button>
+    <button class="cmd primary">Salvar alterações</button>
+    <span class="cmd sep"></span>
+    <button class="cmd">Editar</button>
+    <button class="cmd">Recarregar</button>
+  </div>
+
+  <section class="recordHeader">
+    <div class="avatar">LS</div>
+
+    <div class="titleBlock">
+      <h1>Lucas Mauricio Souza</h1>
+      <div class="subtitle">Paciente • Home Care 24h • São Paulo/SP</div>
+    </div>
+
+    <div class="metaRow">
+      <div class="meta">
+        <div class="k">Status</div>
+        <div class="v"><span class="dot"></span>Ativo</div>
+      </div>
+      <div class="meta">
+        <div class="k">Proprietário</div>
+        <div class="v"><span class="link">Renato Mazzarino</span></div>
+      </div>
+      <div class="meta">
+        <div class="k">Complexidade</div>
+        <div class="v" style="color:#a4262c;">Alta</div>
+      </div>
+      <div class="meta">
+        <div class="k">Convênio</div>
+        <div class="v">Unimed</div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <a class="tab active" href="#">Dados pessoais</a>
+    <a class="tab" href="#">Endereço & logística</a>
+    <a class="tab" href="#">Rede de apoio</a>
+    <a class="tab" href="#">Administrativo</a>
+    <a class="tab" href="#">Financeiro</a>
+    <a class="tab" href="#">Clínico</a>
+    <a class="tab" href="#">Documentos (GED)</a>
+    <a class="tab" href="#">Histórico & Auditoria</a>
+  </nav>
+
+  <main class="page">
+    <div class="grid">
+      <!-- LEFT: “conteúdo principal” com cards grandes e coerentes -->
+      <div class="leftCol">
+
+        <section class="card" style="grid-column: 1 / -1;">
+          <div class="cardHeader">
+            <div class="cardTitle">Informações do paciente</div>
+          </div>
+          <div class="cardBody">
+            <dl class="dl">
+              <div class="dt">Nome completo</div><dd class="dd">Lucas Mauricio Souza</dd>
+              <div class="dt">Nome social</div><dd class="dd">—</dd>
+              <div class="dt">Apelido</div><dd class="dd">Lucas</dd>
+              <div class="dt">Tratamento</div><dd class="dd">Sr.</dd>
+              <div class="dt">Data nasc.</div><dd class="dd">12/04/1992</dd>
+              <div class="dt">Sexo</div><dd class="dd">Masculino</dd>
+              <div class="dt">Estado civil</div><dd class="dd">Solteiro</dd>
+            </dl>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardHeader">
+            <div class="cardTitle">Documentos</div>
+          </div>
+          <div class="cardBody">
+            <dl class="dl">
+              <div class="dt">CPF</div><dd class="dd">123.456.789-01</dd>
+              <div class="dt">RG</div><dd class="dd">44.556.677-7</dd>
+              <div class="dt">Órgão</div><dd class="dd">SSP-SP</dd>
+              <div class="dt">UF</div><dd class="dd">SP</dd>
+              <div class="dt">CNS</div><dd class="dd">123456789012345</dd>
+            </dl>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardHeader">
+            <div class="cardTitle">Naturalidade & filiação</div>
+          </div>
+          <div class="cardBody">
+            <dl class="dl">
+              <div class="dt">Local nasc.</div><dd class="dd">Hospital Municipal, SP</dd>
+              <div class="dt">Naturalidade</div><dd class="dd">São Paulo - SP</dd>
+              <div class="dt">Nacionalidade</div><dd class="dd">Brasileira</dd>
+              <div class="dt">Mãe</div><dd class="dd">Sandra Maria Souza</dd>
+              <div class="dt">Pai</div><dd class="dd">Mauricio Souza</dd>
+            </dl>
+          </div>
+        </section>
+
+        <section class="card" style="grid-column: 1 / -1;">
+          <div class="cardHeader">
+            <div class="cardTitle">Perfil sócio-demográfico</div>
+          </div>
+          <div class="cardBody">
+            <dl class="dl">
+              <div class="dt">Escolaridade</div><dd class="dd">Superior completo</dd>
+              <div class="dt">Profissão</div><dd class="dd">Enfermeiro</dd>
+              <div class="dt">Raça/cor</div><dd class="dd">Branca</dd>
+              <div class="dt">PCD</div><dd class="dd">Não</dd>
+              <div class="dt">Idioma</div><dd class="dd">Português</dd>
+            </dl>
+            <p class="note" style="margin:12px 0 0;">(Aqui entra o resto do “perfil” sem virar 10 cards pequenos.)</p>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT: sidebar “Dynamics” (consentimentos/auditoria/timeline) -->
+      <aside class="rightCol">
+
+        <section class="card">
+          <div class="cardHeader">
+            <div class="cardTitle">Consentimentos</div>
+          </div>
+          <div class="cardBody">
+            <dl class="dl" style="grid-template-columns: 130px 1fr;">
+              <div class="dt">LGPD</div><dd class="dd" style="color:#107c10;">Aceito</dd>
+              <div class="dt">Imagem</div><dd class="dd">Autorizado</dd>
+              <div class="dt">Origem</div><dd class="dd">Assinatura digital</dd>
+            </dl>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardHeader">
+            <div class="cardTitle">Auditoria</div>
+          </div>
+          <div class="cardBody">
+            <dl class="dl" style="grid-template-columns: 130px 1fr;">
+              <div class="dt">Criado em</div><dd class="dd">01/01/2024</dd>
+              <div class="dt">Por</div><dd class="dd">Admin</dd>
+              <div class="dt">Atualizado</div><dd class="dd">29/11/2025</dd>
+              <div class="dt">Por</div><dd class="dd">Renato</dd>
+            </dl>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardHeader">
+            <div class="cardTitle">Linha do tempo (atividades)</div>
+          </div>
+          <div class="cardBody">
+            <div class="timelineItem">
+              <div class="bar"></div>
+              <div class="tMain">
+                <div class="tTop"><span>Renato</span><span>Hoje, 10:30</span></div>
+                <p class="tTitle">Alteração de status</p>
+                <p class="tDesc">Paciente marcado como “Ativo”.</p>
+              </div>
+            </div>
+            <div class="timelineItem">
+              <div class="bar" style="background:#8764b8;"></div>
+              <div class="tMain">
+                <div class="tTop"><span>Sistema</span><span>10/12/2024</span></div>
+                <p class="tTitle">Upload de documento</p>
+                <p class="tDesc">RG digitalizado anexado ao GED.</p>
+              </div>
+            </div>
+            <div class="timelineItem">
+              <div class="bar" style="background:#d13438;"></div>
+              <div class="tMain">
+                <div class="tTop"><span>Sistema</span><span>01/01/2024</span></div>
+                <p class="tTitle">Registro criado</p>
+                <p class="tDesc">Importação via API legado.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </aside>
+    </div>
+  </main>
+</body>
+</html>

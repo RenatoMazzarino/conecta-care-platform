@@ -1,3 +1,6 @@
+/**
+ * @deprecated Tipos provisórios (UI antiga/mocks). Preferir tipos gerados em `src/types/supabase.ts`.
+ */
 export interface DadosPessoais {
   id: string;
   nome_completo: string;

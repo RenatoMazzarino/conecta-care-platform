@@ -15,7 +15,8 @@
 
 ## Onde ficam os arquivos importantes
 - Migrations SQL: `supabase/migrations/`
-- Seeds (se usados no futuro): `supabase/seed.sql`
+- Seeds (dev local): `supabase/seed.sql`
+  - Observação: o seed é executado automaticamente em `supabase db reset` quando `db.seed.enabled=true` em `supabase/config.toml`.
 
 ## Tipos TypeScript (gerados a partir do schema local)
 - Arquivo canônico (único) de types gerados: `src/types/supabase.ts`
