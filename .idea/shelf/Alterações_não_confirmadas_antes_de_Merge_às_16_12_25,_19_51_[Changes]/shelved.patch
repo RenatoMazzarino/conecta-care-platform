@@ -1,0 +1,14 @@
+Index: .idea/sqldialects.xml
+===================================================================
+diff --git a/.idea/sqldialects.xml b/.idea/sqldialects.xml
+deleted file mode 100644
+--- a/.idea/sqldialects.xml	(revision bf930b4f2b7790ba3d660a87ac7cc58d1c3f72a6)
++++ /dev/null	(revision bf930b4f2b7790ba3d660a87ac7cc58d1c3f72a6)
+@@ -1,6 +0,0 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+-<project version="4">
+-  <component name="SqlDialectMappings">
+-    <file url="file://$PROJECT_DIR$/.idea/queries/Query.sql" dialect="PostgreSQL" />
+-  </component>
+-</project>
+\ No newline at end of file
