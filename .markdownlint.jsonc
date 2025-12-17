@@ -1,0 +1,6 @@
+{
+  // Markdown lint rules for docs consistency
+  // Start conservative: only detect duplicate headings to avoid noisy failures.
+  "default": false,
+  "MD024": { "siblings_only": true }
+}
