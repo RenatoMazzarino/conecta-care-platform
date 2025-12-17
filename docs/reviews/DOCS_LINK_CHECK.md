@@ -1,6 +1,6 @@
 ﻿# Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-17 17:26:47
+Data: 2025-12-17 17:31:41
 
 ## Links Quebrados
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] link: "../architecture/decisions/ADR-004-ui-dynamics.md" → resolved: "C:\Users\renat\OneDrive\Documentos\GitHub\conecta-care-platform\docs\reviews\..\architecture\decisions\ADR-004-ui-dynamics.md"
@@ -49,14 +49,21 @@ Data: 2025-12-17 17:26:47
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../README.md" → OK
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../runbooks/ONBOARDING.md" → OK
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../MODULE_STATUS.md" → OK
+- [docs\runbooks\auditoria-endpoint.md] → "../architecture/SYSTEM_ARCHITECTURE.md" → OK
+- [docs\runbooks\auditoria-endpoint.md] → "../architecture/OPEN_TODO.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./env.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./local-dev-supabase.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./auth-tenancy.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./migrations-workflow.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./branch-protection.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./review-workflow.md" → OK
+- [docs\runbooks\ONBOARDING.md] → "./auditoria-endpoint.md" → OK
+- [docs\runbooks\ONBOARDING.md] → "./storage-photos-aba01.md" → OK
 - [docs\runbooks\pacientes-aba01-troubleshooting.md] → "../contracts/pacientes/ABA01_DADOS_PESSOAIS.md" → OK
 - [docs\runbooks\pacientes-aba01-troubleshooting.md] → "../architecture/SYSTEM_ARCHITECTURE.md" → OK
 - [docs\runbooks\pacientes-aba01-troubleshooting.md] → "./auth-tenancy.md" → OK
 - [docs\runbooks\pacientes-aba01-troubleshooting.md] → "./migrations-workflow.md" → OK
 - [docs\runbooks\pacientes-aba01-troubleshooting.md] → "./env.md" → OK
+- [docs\runbooks\storage-photos-aba01.md] → "../contracts/pacientes/ABA01_DADOS_PESSOAIS.md" → OK
+- [docs\runbooks\storage-photos-aba01.md] → "../architecture/SYSTEM_ARCHITECTURE.md" → OK
+- [docs\runbooks\storage-photos-aba01.md] → "../architecture/OPEN_TODO.md" → OK
