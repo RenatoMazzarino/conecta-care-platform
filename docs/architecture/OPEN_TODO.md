@@ -13,12 +13,20 @@ Backlog técnico priorizado (máximo 15 itens), separado por criticidade. Manter
 - **UI Escalas (paciente/profissional)** — DoD: telas na casca do módulo (Pacientes / estilo “Dynamics”) com command bar + header contextual + abas + cards, ações de aprovação/ocorrências (mock inicial permitido).  
 - **Abas Financeiro/Clínico/Documentos/Histórico dinâmicas** — DoD: conteúdo vindo de fonte real ou mock explícito mapeado; sem dados fictícios.  
 - **Modelo mínimo de GED** — DoD: metadados + vínculos com paciente/entidades operacionais descritos e compatíveis com auditoria.  
- - **Pipeline de lint no CI** — DoD: `npm run lint` rodando no CI com status gate.  
- - **Índices/contratos por módulo/aba** — DoD: índices por módulo com ABAs e contratos aprovados; gaps explícitos.  
- - **Runbooks (lacunas)** — DoD: runbooks mínimos para Storage de fotos em ABA01 e endpoint unificado de Auditoria; ONBOARDING linkando para eles.  
- - **Scripts npm (verify)** — DoD: script `verify` agregando lint, typecheck, build e docs:links; documentado no README/runbooks.  
- - **README/CONTRIBUTING (governança)** — DoD: política de docs no mesmo PR, convenção de commits e link-check obrigatório documentados.  
- - **Proteção de branch** — DoD: checks obrigatórios habilitados (CI + Docs Link Check) nas regras de proteção da `main`.
+- **Pipeline de lint no CI** — DoD: `npm run lint` rodando no CI com status gate.  
+- **Índices/contratos por módulo/aba** — DoD: índices por módulo com ABAs e contratos aprovados; gaps explícitos.  
+- **Runbooks (lacunas)** — DoD: runbooks mínimos para Storage de fotos em ABA01 e endpoint unificado de Auditoria; ONBOARDING linkando para eles.  
+- **Scripts npm (verify)** — DoD: script `verify` agregando lint, typecheck, build e docs:links; documentado no README/runbooks.  
+- **README/CONTRIBUTING (governança)** — DoD: política de docs no mesmo PR, convenção de commits e link-check obrigatório documentados.  
+- **Proteção de branch** — DoD: checks obrigatórios habilitados (CI + Docs Link Check) nas regras de proteção da `main`.
+
+### Gaps de contratos (P1)
+- Pacientes — ABAs 02–08 sem contrato aprovado.  
+  DoD: contratos por ABA aprovados e versionados; evidência viva: `docs/contracts/pacientes/INDEX.md`.
+- Escalas — ausência de índice/contratos formais.  
+  DoD: `docs/contracts/escalas/INDEX.md` + contratos base (visões por paciente e por profissional); evidências: `docs/MODULE_STATUS.md`, `docs/process/ai/CODEX_GUIDE.md` (shell visual), `docs/architecture/SYSTEM_ARCHITECTURE.md`.
+- Financeiro — em contrato (sem documentos canônicos).  
+  DoD: índice + contrato inicial alinhado ao fluxo de Escalas; evidência: `docs/MODULE_STATUS.md`.
 
 ## P2 (Melhorias / qualidade)
 - **Home alinhada ao estado real** — DoD: módulos inexistentes marcados como “em breve” ou apontando para novas rotas de Escalas.  
