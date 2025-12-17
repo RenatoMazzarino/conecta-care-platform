@@ -4,17 +4,31 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0df1332-f272-4824-835c-b86cf81407fd" name="Changes" comment="chore: integrate Supabase library and update configurations&#10;&#10;- Added `supabase` dependency in `package.json` and `package-lock.json`.  &#10;- Adjusted `supabase/config.toml` and `.idea/dataSources.xml` with updated connection settings (ports).  &#10;- Refactored Supabase client initialization to include enhanced token management and development guards.  &#10;- Fixed `/login` page to handle asynchronous `searchParams` for improved compatibility." />
+    <list default="true" id="e0df1332-f272-4824-835c-b86cf81407fd" name="Changes" comment="chore: update `.idea/workspace.xml` with updated Supabase integration details">
+      <changelist_data name="RenatoMazzarino" email="renatomazzarinocorp@gmail.com" automatic="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/architecture/OPEN_TODO.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/architecture/OPEN_TODO.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/process/ai/CODEX_GUIDE.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/process/ai/CODEX_GUIDE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/process/ai/CODEX_QUESTIONS.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/process/ai/CODEX_QUESTIONS.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/reviews/DOCS_AUDIT_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/reviews/DOCS_AUDIT_REPORT.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/reviews/DOCS_LINK_CHECK.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/reviews/DOCS_LINK_CHECK.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/reviews/DOCS_RESTRUCTURE_SUMMARY.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/reviews/DOCS_RESTRUCTURE_SUMMARY.md" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="171" />
+    <option name="cachedIndexableFilesCount" value="176" />
     <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="Git.Settings">
+    <option name="PREVIOUS_COMMIT_AUTHORS">
+      <list>
+        <option value="RenatoMazzarino &lt;renatomazzarinocorp@gmail.com&gt;" />
+      </list>
+    </option>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
         <entry key="$PROJECT_DIR$" value="feat/pacientes-aba01-dados-pessoais" />
@@ -25,17 +39,17 @@
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {}
 }</component>
-  <component name="GitHubPullRequestState"><![CDATA[{
-  "prStates": [
+  <component name="GitHubPullRequestState">{
+  &quot;prStates&quot;: [
     {
-      "id": {
-        "id": "PR_kwDOQgoMuM65P7bc",
-        "number": 5
+      &quot;id&quot;: {
+        &quot;id&quot;: &quot;PR_kwDOQgoMuM65P7bc&quot;,
+        &quot;number&quot;: 5
       },
-      "lastSeen": 1765927368611
+      &quot;lastSeen&quot;: 1765927368611
     }
   ]
-}]]></component>
+}</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/RenatoMazzarino/conecta-care-platform.git&quot;,
@@ -47,7 +61,7 @@
   &quot;isMigrated&quot;: true
 }</component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="CurrentFile" />
+    <option name="selectedTabId" value="ProjectErrors" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
@@ -69,7 +83,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "com.google.cloudcode.ide_session_index": "20251216_0013",
+    "com.google.cloudcode.ide_session_index": "20251217_0000",
     "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
@@ -83,7 +97,8 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "database.data.views",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
     "to.speed.mode.migration.done": "true",
     "ts.external.directory.path": "C:\\Users\\renat\\OneDrive\\Documentos\\GitHub\\conecta-care-platform\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
@@ -138,6 +153,7 @@
       <workItem from="1765920638099" duration="621000" />
       <workItem from="1765921290110" duration="2008000" />
       <workItem from="1765923321991" duration="2396000" />
+      <workItem from="1765997633251" duration="1181000" />
     </task>
     <task id="LOCAL-00001" summary="docs: streamline DOCS_AUDIT_REPORT to remove redundancies and outdated entries&#10;&#10;- Consolidated detailed file audit into a high-level documentation mapping.&#10;- Removed obsolete sections and unnecessary data structures.&#10;- Identified duplicate content and recommended unified architecture documentation.&#10;- Updated future action plans with emphasis on ADR adoption and new onboarding runbook creation.&#10;- Introduced a PROJECT_IMMERSION_REPORT to assist with developer onboarding and project understanding.">
       <option name="closed" value="true" />
@@ -211,7 +227,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765932277817</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="chore: update `.idea/workspace.xml` with updated Supabase integration details">
+      <option name="closed" value="true" />
+      <created>1765932639490</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1765932639490</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -239,7 +263,8 @@
     <MESSAGE value="chore: add .idea database configuration files for PostgreSQL connection" />
     <MESSAGE value="chore: update `.idea/workspace.xml` to reflect PostgreSQL configuration changes" />
     <MESSAGE value="chore: integrate Supabase library and update configurations&#10;&#10;- Added `supabase` dependency in `package.json` and `package-lock.json`.  &#10;- Adjusted `supabase/config.toml` and `.idea/dataSources.xml` with updated connection settings (ports).  &#10;- Refactored Supabase client initialization to include enhanced token management and development guards.  &#10;- Fixed `/login` page to handle asynchronous `searchParams` for improved compatibility." />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: integrate Supabase library and update configurations&#10;&#10;- Added `supabase` dependency in `package.json` and `package-lock.json`.  &#10;- Adjusted `supabase/config.toml` and `.idea/dataSources.xml` with updated connection settings (ports).  &#10;- Refactored Supabase client initialization to include enhanced token management and development guards.  &#10;- Fixed `/login` page to handle asynchronous `searchParams` for improved compatibility." />
+    <MESSAGE value="chore: update `.idea/workspace.xml` with updated Supabase integration details" />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: update `.idea/workspace.xml` with updated Supabase integration details" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
