@@ -171,7 +171,7 @@ Subitens e linha-a-linha:
 
 ## P2/P3 — Visão geral (mantido do plano original)
 
-- 10) HTML protótipos (P2): alinhar protótipos com contratos e rotular como “não canônico”.
+- 10) HTML protótipos (P2): alinhar protótipos com contratos e rotular como “não canônico”. — CONCLUÍDO (README em `html/` criado com avisos e links canônicos)
 - 11) Migrações e rastreabilidade (P2): fluxo Contrato→Migration→Types→Actions→UI com rastreabilidade (links de evidência).
 - 12) Código vs contratos (P2): auditoria de aderência; abrir issues para desvios.
 - 13) STYLE_GUIDE de documentação (P2): guias de título, links, seções, status.
@@ -197,6 +197,7 @@ Subitens e linha-a-linha:
 - Hub de documentação: [`docs/README.md`](../README.md)
 - Onboarding: [`docs/runbooks/ONBOARDING.md`](../runbooks/ONBOARDING.md)
 - Status de módulos: [`docs/MODULE_STATUS.md`](../MODULE_STATUS.md)
+- Protótipos HTML (não canônicos): [`html/README.md`](../../html/README.md)
 
 ---
 
@@ -210,6 +211,7 @@ Subitens e linha-a-linha:
 - 2025-12-17: P1.8 — tentativa de adicionar script local `docs:links` adiada por incompatibilidade com lint/parsing; mantido job de CI como verificação canônica; placeholder adicionado e plano atualizado.
 - 2025-12-17: P1.9 — atualizados CONTRIBUTING.md (governança, convenção de commits, link-check) e READMEs (raiz/docs) com menção ao gate de links do CI.
 - 2025-12-17: P1.5 — gaps de contratos adicionados ao `OPEN_TODO.md` com DoD e evidências (INDEX de Pacientes, MODULE_STATUS, CODEX_GUIDE, SYSTEM_ARCHITECTURE).
+- 2025-12-17: P2.10 — criado `html/README.md` rotulando protótipos como “não canônico” e apontando para fontes canônicas.
 
 ---
 
