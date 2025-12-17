@@ -2,6 +2,10 @@
 
 Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operacional completa; o módulo de Escalas é o núcleo da operação, e Pacientes é a âncora de dados que alimenta Escalas, Financeiro, Inventário, Clínico, GED e Auditoria.
 
+Nota importante sobre sobreposição de conteúdo:
+- Este guia é sobre processo/execução com IA. A arquitetura canônica do sistema (princípios, estado atual e visão) está em: `docs/architecture/SYSTEM_ARCHITECTURE.md`.
+- Não duplique nem atualize detalhes arquiteturais aqui. Quando precisar, referencie as seções do documento canônico.
+
 ## O que é a Conecta Care (visão 360)
 - **Escalas é o core operacional**: cobertura contínua, presença, rastreabilidade e faturamento partem do módulo de escalas.  
 - **Pacientes é a base de dados**: cadastro único que alimenta Escalas e demais módulos, sem duplicação.  
@@ -69,18 +73,9 @@ Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operac
 4. Só propor migrations após o alinhamento; mantenha validações e consumo fiéis ao que existe no banco.
 
 ## Arquitetura atual do repo (real)
-- **Front-end**: Next.js (App Router) em `src/app`; Fluent UI 9; Tailwind 4 importado em `globals.css`.  
-- **Layout**: `FluentProviderWrapper` com tema claro/escuro, `Header` com launcher/search/actions, `Breadcrumb`.  
-  - lista: `src/components/layout/CommandBar.tsx`
-  - detalhe do paciente: command bar + record header em `src/app/pacientes/[id]/PatientPageClient.tsx`
-- **Páginas**: `/` (home), `/pacientes` (lista), `/pacientes/[id]` (detalhe), `/login` (Supabase Auth).  
-- **Dados**:
-  - Supabase client: `src/lib/supabase/client.ts`
-  - actions: `src/features/pacientes/actions/*`
-  - schema de validação (Zod): `src/features/pacientes/schemas/aba01DadosPessoais.ts`
-  - types canônicos: `src/types/supabase.ts`
-  - tipos legados: `src/types/patient.ts` (@deprecated; evitar novos usos)
-- **Estilo global**: `globals.css` com reset básico e tema via CSS vars (sem travar o scroll vertical global).
+Para o estado atual detalhado da implementação (rotas, componentes, estilo, dados, integrações) consulte a seção "2. Estado Atual (Implementação Real)" do documento canônico de arquitetura:
+
+- `docs/architecture/SYSTEM_ARCHITECTURE.md`
 
 ## Como evoluir sem quebrar o padrão
 - Reusar a casca do módulo Pacientes: header + command bar + abas + cards em grid (incluindo sidebar quando fizer sentido) em todas as novas telas do módulo e, por analogia, nas futuras telas de Escalas e módulos operacionais.  
@@ -102,3 +97,8 @@ Fonte de verdade para IA e automações. O Conecta Care é uma plataforma operac
 - Conferir que:
   - `/pacientes` mantém o título “Conecta Care · Pacientes” e ações na command bar.
   - `/pacientes/[id]` segue o visual de `html/modelo_final_aparencia_pagina_do_paciente.htm` (command bar + record header + abas).
+
+---
+
+## Notas arquivadas / consolidada
+- A seção "Arquitetura atual do repo (real)" antes detalhava itens específicos (rotas, componentes, estilos, dados). Esse conteúdo foi consolidado no documento canônico: `docs/architecture/SYSTEM_ARCHITECTURE.md`.

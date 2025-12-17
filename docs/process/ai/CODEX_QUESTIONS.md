@@ -1,66 +1,63 @@
 # Perguntas de Arquitetura e Negócio
 
-Este documento centraliza as perguntas críticas cujo desconhecimento pode levar a decisões de implementação erradas. Ele é um guia para o time e para assistentes de IA.
-
-## Como Propor Novas Perguntas
-
-Para adicionar uma nova pergunta, ela deve atender aos seguintes critérios:
-1.  **Ser Crítica**: A falta da resposta deve ter o potencial de gerar retrabalho significativo ou desalinhamento técnico.
-2.  **Não Ser Óbvia**: A resposta não deve ser facilmente encontrada em uma leitura rápida dos contratos ou da arquitetura principal.
-3.  **Ser Específica**: A pergunta deve ser clara e direcionada a um problema real.
-
-Adicione a pergunta na seção "Perguntas Abertas" e, se possível, sugira quem poderia respondê-la.
+Este documento centraliza as perguntas críticas cujo desconhecimento pode levar a decisões erradas. Ele é um guia para o time e para assistentes de IA.
 
 ---
 
-## Perguntas Abertas (Ativas)
+## Perguntas Abertas (ativas)
 
-Estas são as perguntas que ainda precisam de uma definição clara.
+Estas perguntas permanecem sem decisão final. Cada item está marcado como [ABERTA] e, quando útil, contém links para contexto ou backlog relacionado.
 
 ### Escalas
-1.  Quais são os status oficiais de um plantão (ex: `Scheduled`, `Confirmed`, `InProgress`, `Completed`, `Missed`, `Cancelled`) e onde os registros de aprovação devem ser armazenados?
-2.  Qual é o fluxo de troca de plantão: quem pode solicitar, quem aprova e quais eventos de auditoria são mandatórios?
-3.  Check-in/out: Qual API de biometria (ex: SERPRO) e geolocalização/BLE será usada? Qual o payload mínimo que precisamos armazenar (geo, biometria, device, horário)?
-4.  Existem regras de tolerância ou arredondamento para o cálculo de horas (atraso/adiantamento) que impactam o faturamento e o pagamento dos profissionais?
+1. [ABERTA] Quais são os status oficiais de um plantão (ex.: `Scheduled`, `Confirmed`, `InProgress`, `Completed`, `Missed`, `Cancelled`) e onde os registros de aprovação devem ser armazenados?
+   - Contexto: visão geral em ../../architecture/SYSTEM_ARCHITECTURE.md (Seção 3) e padrões no guia de processo em ./CODEX_GUIDE.md; definição final pendente de contrato/ADR.
+2. [ABERTA] Qual é o fluxo de troca de plantão: quem pode solicitar, quem aprova e quais eventos de auditoria são mandatórios?
+   - Contexto: padrões de eventos em ./CODEX_GUIDE.md (Taxonomia de eventos); especificação final pendente.
+3. [ABERTA] Check-in/out: qual API de biometria (ex.: SERPRO) e geolocalização/BLE será usada? Qual o payload mínimo a armazenar (geo, biometria, device, horário)?
+   - Contexto: requisitos gerais em ./CODEX_GUIDE.md; implementação/schemas pendentes.
+4. [ABERTA] Existem regras de tolerância/arredondamento para cálculo de horas (atraso/adiantamento) que impactam faturamento e pagamento dos profissionais?
+   - Contexto: dependerá de decisão operacional/financeira; sem contrato.
 
 ### Auditoria
-5.  As políticas de retenção e anonimização de dados (LGPD) afetam o histórico de auditoria? Qual é o período de retenção definido?
+5. [ABERTA] Endpoint centralizado de auditoria e campos mínimos (actor, role, origem, geo/IP, payload): haverá serviço unificado? Quais tabelas/partições?
+   - Contexto: princípio “Auditabilidade Completa” em ../../architecture/SYSTEM_ARCHITECTURE.md (Seção 1); itens de backlog relacionados em ../../architecture/OPEN_TODO.md (P0: “Auditoria granular (core)” e “Serviço Auditoria/Histórico”).
+6. [ABERTA] As políticas de retenção e anonimização de dados (LGPD) afetam o histórico de auditoria? Qual período de retenção será adotado e como anonimizar sob pedido?
+   - Contexto: requer política/ADR; não definido.
+7. [ABERTA] Há endpoint unificado para “Histórico do Paciente” que consolide Escalas, GED e administrativos? Qual o contrato de payload/consulta?
+   - Contexto: intenção indicada pela visão 360 (../../architecture/SYSTEM_ARCHITECTURE.md Seção 3) e pelo protótipo ../../../html/modelo_final_aparencia_pagina_do_paciente.htm; execução pendente (ver ../../architecture/OPEN_TODO.md P0 “Serviço Auditoria/Histórico”).
 
 ### Segurança / Multi-tenant
-6.  Quais são os papéis (Roles) oficiais do sistema (ex: admin da empresa, familiar, profissional, supervisor) e quais ações cada um pode executar nos módulos de Pacientes e Escalas?
+8. [ABERTA] Quais são os papéis (roles) oficiais do sistema (ex.: admin da empresa, familiar, profissional, supervisor) e quais ações cada um pode executar nos módulos de Pacientes e Escalas?
+   - Contexto: isolamento por tenant está definido (../../runbooks/auth-tenancy.md), mas a matriz de autorização por papel está em aberto.
 
 ### Dados / Schema
-7.  Convenções de IDs legíveis (ex: `PAC-000123`, `ESC-000123`): como e onde são gerados? São apenas para exibição ou armazenados no banco?
-8.  GED: Onde os documentos serão armazenados (bucket Supabase, S3, etc.)? Como serão versionados e vinculados a outras entidades (paciente, escala, financeiro)?
-9.  Clínico/Financeiro/Inventário: Quais datasets de sistemas externos existentes devemos espelhar versus criar do zero?
+9. [ABERTA] Convenções de IDs legíveis (ex.: `PAC-000123`, `ESC-000123`): como/onde são gerados? São somente exibição ou persistidos no banco (e com unicidade por tenant)?
+10. [ABERTA] GED: onde os documentos serão armazenados (bucket Supabase, S3, etc.)? Como serão versionados e vinculados a entidades (paciente, escala, financeiro)?
+11. [ABERTA] Clínico/Financeiro/Inventário: quais datasets de sistemas externos existentes devemos espelhar versus criar do zero? Há prioridades/escopo mínimo?
 
 ---
 
-## Perguntas Respondidas
+## Perguntas Respondidas (com links)
 
-Estas perguntas já foram cobertas pela documentação existente.
+Estas perguntas foram cobertas por documentos canônicos (contratos, runbooks ou arquitetura). Marcação: [RESPONDIDA].
 
-1.  **Endpoint centralizado de auditoria e campos mínimos?**
-    -   **Status**: RESPONDIDA (Parcialmente)
-    -   **Resposta**: O princípio da "Auditabilidade Completa" está definido, e a necessidade de rastrear `created_by` e `updated_by` é um requisito. A visão de longo prazo menciona um módulo de Auditoria. No entanto, o schema exato e a centralização do endpoint ainda estão em aberto.
-    -   **Fonte**: `docs/architecture/SYSTEM_ARCHITECTURE.md` (Seção 1. Princípios Arquiteturais)
+1. [RESPONDIDA] Como identificar o tenant e isolar a UI?
+   - Resposta: o `tenant_id` vem do JWT do Supabase Auth; RLS no banco garante isolamento por tenant. Em produção, usar `app_metadata.tenant_id`; em dev há bypass opcional. Detalhes no runbook.
+   - Fontes: ../../runbooks/auth-tenancy.md; ../../architecture/SYSTEM_ARCHITECTURE.md (Princípios).
+2. [RESPONDIDA] Qual é o schema real de Paciente no Supabase (Aba 01)?
+   - Resposta: especificado no contrato aprovado da Aba 01 (colunas, tipos, checks, RLS, DoD) e refletido nas migrations indexadas.
+   - Fontes: ../../contracts/pacientes/ABA01_DADOS_PESSOAIS.md; ../../contracts/pacientes/README.md.
 
-2.  **Eventos de Escalas e GED ficam em trilha única?**
-    -   **Status**: RESPONDIDA (Parcialmente)
-    -   **Resposta**: A visão de "Ecossistema Integrado" e "Visão 360" sugere que os dados serão centralizados em torno do paciente, mas a implementação específica (tabela única vs. particionada) não está definida.
-    -   **Fonte**: `docs/architecture/SYSTEM_ARCHITECTURE.md` (Seção 3. Visão de Longo Prazo)
+---
 
-3.  **Como identificar o tenant e isolar a UI?**
-    -   **Status**: RESPONDIDA
-    -   **Resposta**: O `tenant_id` é extraído do JWT do usuário autenticado. As políticas de RLS no banco de dados garantem o isolamento dos dados.
-    -   **Fonte**: `docs/runbooks/auth-tenancy.md`
+## Como propor novas perguntas
 
-4.  **Qual o schema real de Paciente no Supabase?**
-    -   **Status**: RESPONDIDA
-    -   **Resposta**: O schema completo da tabela `public.patients` para a Aba 01, incluindo colunas, tipos, constraints e validações, está detalhado no contrato.
-    -   **Fonte**: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`
+Critérios mínimos (todas as condições abaixo):
+- Ser crítica: a falta da resposta pode causar retrabalho significativo/alinhamento quebrado.
+- Não ser óbvia: a resposta não está evidente nos contratos, runbooks ou arquitetura canônica após leitura rápida.
+- Ser específica: descreva claramente o problema/decisão esperada e o contexto onde será aplicada.
 
-5.  **Há endpoint unificado para Histórico do paciente?**
-    -   **Status**: RESPONDIDA (Parcialmente)
-    -   **Resposta**: A arquitetura prevê um "Ecossistema Integrado" e a UI de referência (`modelo_final...htm`) mostra uma aba de "Histórico & Auditoria", indicando a intenção de unificar. A implementação detalhada, no entanto, não foi definida.
-    -   **Fonte**: `docs/architecture/SYSTEM_ARCHITECTURE.md` e `html/modelo_final_aparencia_pagina_do_paciente.htm`
+Padrão de submissão:
+- Adicione sob “Perguntas Abertas (ativas)” com o marcador [ABERTA].
+- Inclua links de contexto (contrato, runbook, arquitetura, PR/issue) quando existirem.
+- Se a pergunta for completamente respondida posteriormente, mova para “Perguntas Respondidas (com links)” marcando [RESPONDIDA] e cite as fontes.
