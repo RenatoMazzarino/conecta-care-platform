@@ -1,5 +1,14 @@
 # Troubleshooting — Aba 01 (Pacientes · Dados Pessoais)
 
+> Aviso de histórico e canonicidade
+>
+> - Este arquivo é um **log histórico útil** de problemas reais encontrados em dev local e como foram resolvidos. Ele serve para acelerar diagnósticos, mas **não é fonte canônica de decisões**.
+> - Em caso de dúvida ou conflito, **prevalecem**: Contratos, Runbooks canônicos e o documento de Arquitetura.
+> - Referências canônicas: 
+>   - Contrato da Aba 01: [../contracts/pacientes/ABA01_DADOS_PESSOAIS.md](../contracts/pacientes/ABA01_DADOS_PESSOAIS.md)
+>   - Arquitetura (canônico): [../architecture/SYSTEM_ARCHITECTURE.md](../architecture/SYSTEM_ARCHITECTURE.md)
+>   - Runbooks: [auth-tenancy.md](./auth-tenancy.md), [migrations-workflow.md](./migrations-workflow.md), [env.md](./env.md)
+
 Este documento registra os **erros encontrados** durante o desenvolvimento/integração da Aba 01 (Dados Pessoais) e **o que foi feito para corrigir**, para facilitar manutenção e futuras validações.
 
 > Importante: este log é focado em **dev local** (Windows + Supabase local) e em erros reais vistos no navegador/console.
