@@ -29,7 +29,7 @@ if ($broken.Count -eq 0) {
   $lines.Add('## Links Quebrados') | Out-Null
   foreach ($b in $broken) {
     $relPath = $b.File.Replace($root + [IO.Path]::DirectorySeparatorChar, '')
-    $lines.Add('- ['+$relPath+'] link: "' + $b.Link + '" → resolved: "' + $b.Resolved + '"') | Out-Null
+    $lines.Add('- ['+$relPath+'] link: "' + $b.Link + '" -> resolved: "' + $b.Resolved + '"') | Out-Null
   }
 }
 $lines.Add('') | Out-Null
@@ -37,7 +37,7 @@ $lines.Add('## Amostra de Links Verificados') | Out-Null
 $sample = $results | Select-Object -First 200
 foreach ($r in $sample) {
   $relPath = $r.File.Replace($root + [IO.Path]::DirectorySeparatorChar, '')
-  $lines.Add('- ['+$relPath+'] → "' + $r.Link + '" → ' + ($(if($r.Exists){'OK'} else {'BROKEN'}))) | Out-Null
+  $lines.Add('- ['+$relPath+'] -> "' + $r.Link + '" -> ' + ($(if($r.Exists){'OK'} else {'BROKEN'}))) | Out-Null
 }
 $reportDir = Join-Path $docsRoot 'reviews'
 if (-not (Test-Path $reportDir)) { New-Item -ItemType Directory -Path $reportDir | Out-Null }
