@@ -7,7 +7,7 @@ project_id = "conecta-care-platform"
 [api]
 enabled = true
 # Port to use for the API URL.
-port = 45421
+port = 54321
 # Schemas to expose in your API. Tables, views and stored procedures in this schema will get API
 # endpoints. `public` and `graphql_public` schemas are included by default.
 schemas = ["public", "graphql_public"]

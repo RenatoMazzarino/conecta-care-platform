@@ -1,9 +1,11 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient, type SupabaseClientOptions } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabaseDevAccessToken = process.env.NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN;
+// Aceita tanto NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN quanto NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN
+const supabaseDevAccessToken =
+  process.env.NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN || process.env.NEXT_PUBLIC_SUPABASE_ACCESS_TOKEN;
 const isDevelopment = process.env.NODE_ENV === 'development';
 
 let didWarnDevTokenInProd = false;
@@ -25,37 +27,45 @@ export function getSupabaseClient(): SupabaseClient<Database> {
     );
   }
 
-  client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-    global: {
-      fetch: (input, init) => {
-        if (!supabaseDevAccessToken) return fetch(input, init);
+  const options: SupabaseClientOptions<'public'> = {};
 
-        if (!isDevelopment) {
-          if (!didWarnDevTokenInProd) {
-            didWarnDevTokenInProd = true;
-            console.warn(
-              '[supabase] NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN is set but NODE_ENV is not development. Ignoring it.',
-            );
-          }
-          return fetch(input, init);
-        }
+  // Só injetamos o fetch customizado se realmente precisarmos usar o token de dev.
+  if (supabaseDevAccessToken && isDevelopment) {
+    options.global = {
+      fetch: (input, init) => {
+        // Captura o fetch nativo do ambiente (navegador ou Node)
+        // Usamos 'globalThis' para ser compatível com ambos
+        const nativeFetch = globalThis.fetch;
 
         const requestUrl =
           typeof input === 'string' ? input : 'url' in input ? input.url : String(input);
+        
+        // Se não for uma chamada REST, passa direto
         if (!requestUrl.includes('/rest/v1')) {
-          return fetch(input, init);
+          return nativeFetch(input, init);
         }
 
         const headers = new Headers(init?.headers);
         const currentAuth = headers.get('Authorization');
+        
+        // Se já tem auth específica (ex: usuário logado), respeita ela
         if (currentAuth && currentAuth !== `Bearer ${supabaseAnonKey}`) {
-          return fetch(input, init);
+          return nativeFetch(input, init);
         }
+
+        // Injeta o token de dev
         headers.set('Authorization', `Bearer ${supabaseDevAccessToken}`);
 
-        return fetch(input, { ...init, headers });
+        return nativeFetch(input, { ...init, headers });
       },
-    },
-  });
+    };
+  } else if (supabaseDevAccessToken && !isDevelopment && !didWarnDevTokenInProd) {
+    didWarnDevTokenInProd = true;
+    console.warn(
+      '[supabase] NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN is set but NODE_ENV is not development. Ignoring it.',
+    );
+  }
+
+  client = createClient<Database>(supabaseUrl, supabaseAnonKey, options);
   return client;
 }
