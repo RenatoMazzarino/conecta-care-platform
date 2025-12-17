@@ -14,6 +14,8 @@ Toda nova funcionalidade ou alteração significativa deve começar com um **Con
 
 **Política de Atualização:** Qualquer Pull Request que altere o comportamento de uma funcionalidade *deve* atualizar a documentação correspondente (contratos, runbooks, arquitetura) no mesmo PR. Documentação desatualizada é considerada um bug.
 
+**Validação automática (CI):** PRs falham se houver links relativos quebrados em `docs/` (job “Docs Link Check”).
+
 ## Pontos de Entrada
 
 - **[Arquitetura](./architecture/):** Descreve a arquitetura atual do sistema, decisões tomadas e o mapa do repositório.

@@ -20,6 +20,9 @@ Plataforma Conecta Care para gestão de home care: cadastro e prontuário de pac
 - `bash scripts/typecheck.sh` (tsc --noEmit)
 - `bash scripts/test.sh` (quando houver testes)
 
+### CI
+- O pipeline executa verificação automática de links relativos na documentação (`docs/`) via job “Docs Link Check”. PRs falham caso haja links quebrados.
+
 ## Codex (campo "Script de configuração")
 - `bash scripts/setup.sh`
 
