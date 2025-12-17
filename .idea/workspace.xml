@@ -4,15 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e0df1332-f272-4824-835c-b86cf81407fd" name="Changes" comment="chore: update `.idea/workspace.xml` to reflect PostgreSQL configuration changes">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/login/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib/supabase/client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/supabase/client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/supabase/config.toml" beforeDir="false" afterPath="$PROJECT_DIR$/supabase/config.toml" afterDir="false" />
-    </list>
+    <list default="true" id="e0df1332-f272-4824-835c-b86cf81407fd" name="Changes" comment="chore: integrate Supabase library and update configurations&#10;&#10;- Added `supabase` dependency in `package.json` and `package-lock.json`.  &#10;- Adjusted `supabase/config.toml` and `.idea/dataSources.xml` with updated connection settings (ports).  &#10;- Refactored Supabase client initialization to include enhanced token management and development guards.  &#10;- Fixed `/login` page to handle asynchronous `searchParams` for improved compatibility." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -211,7 +203,15 @@
       <option name="project" value="LOCAL" />
       <updated>1765927942256</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="chore: integrate Supabase library and update configurations&#10;&#10;- Added `supabase` dependency in `package.json` and `package-lock.json`.  &#10;- Adjusted `supabase/config.toml` and `.idea/dataSources.xml` with updated connection settings (ports).  &#10;- Refactored Supabase client initialization to include enhanced token management and development guards.  &#10;- Fixed `/login` page to handle asynchronous `searchParams` for improved compatibility.">
+      <option name="closed" value="true" />
+      <created>1765932277817</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1765932277817</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -238,7 +238,8 @@
     <MESSAGE value="docs: consolidate architecture documentation  &#10;&#10;- Merged content from REPO_MAP.md and ARCHITECTURE_REAL.md into SYSTEM_ARCHITECTURE.md.  &#10;- Removed deprecated files (REPO_MAP.md, ARCHITECTURE_REAL.md).  &#10;- Streamlined references to unified architecture documentation for clarity and maintenance." />
     <MESSAGE value="chore: add .idea database configuration files for PostgreSQL connection" />
     <MESSAGE value="chore: update `.idea/workspace.xml` to reflect PostgreSQL configuration changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="chore: update `.idea/workspace.xml` to reflect PostgreSQL configuration changes" />
+    <MESSAGE value="chore: integrate Supabase library and update configurations&#10;&#10;- Added `supabase` dependency in `package.json` and `package-lock.json`.  &#10;- Adjusted `supabase/config.toml` and `.idea/dataSources.xml` with updated connection settings (ports).  &#10;- Refactored Supabase client initialization to include enhanced token management and development guards.  &#10;- Fixed `/login` page to handle asynchronous `searchParams` for improved compatibility." />
+    <option name="LAST_COMMIT_MESSAGE" value="chore: integrate Supabase library and update configurations&#10;&#10;- Added `supabase` dependency in `package.json` and `package-lock.json`.  &#10;- Adjusted `supabase/config.toml` and `.idea/dataSources.xml` with updated connection settings (ports).  &#10;- Refactored Supabase client initialization to include enhanced token management and development guards.  &#10;- Fixed `/login` page to handle asynchronous `searchParams` for improved compatibility." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
