@@ -1,13 +1,16 @@
 ﻿# Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-17 17:25:10
+Data: 2025-12-17 17:26:47
 
 ## Links Quebrados
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] link: "../architecture/decisions/ADR-004-ui-dynamics.md" → resolved: "C:\Users\renat\OneDrive\Documentos\GitHub\conecta-care-platform\docs\reviews\..\architecture\decisions\ADR-004-ui-dynamics.md"
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] link: "../architecture/decisions/ADR-006-email-policy.md" → resolved: "C:\Users\renat\OneDrive\Documentos\GitHub\conecta-care-platform\docs\reviews\..\architecture\decisions\ADR-006-email-policy.md"
 
 ## Amostra de Links Verificados
-- [docs\MODULE_STATUS.md] → "./contracts/pacientes/README.md" → OK
+- [docs\MODULE_STATUS.md] → "./contracts/pacientes/INDEX.md" → OK
+- [docs\MODULE_STATUS.md] → "./runbooks/ONBOARDING.md" → OK
+- [docs\MODULE_STATUS.md] → "./runbooks/migrations-workflow.md" → OK
+- [docs\MODULE_STATUS.md] → "./runbooks/auth-tenancy.md" → OK
 - [docs\README.md] → "./architecture/" → OK
 - [docs\README.md] → "./architecture/decisions/" → OK
 - [docs\README.md] → "./contracts/" → OK
@@ -18,6 +21,7 @@ Data: 2025-12-17 17:25:10
 - [docs\architecture\ARCHITECTURE_REAL.md] → "./SYSTEM_ARCHITECTURE.md" → OK
 - [docs\architecture\REPO_MAP.md] → "./SYSTEM_ARCHITECTURE.md" → OK
 - [docs\architecture\SYSTEM_ARCHITECTURE.md] → "./OPEN_TODO.md" → OK
+- [docs\contracts\pacientes\INDEX.md] → "./ABA01_DADOS_PESSOAIS.md" → OK
 - [docs\process\ai\README.md] → "./gemini.md" → OK
 - [docs\process\ai\README.md] → "./CODEX_QUESTIONS.md" → OK
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/SECRETS_ROTATION.md" → OK
