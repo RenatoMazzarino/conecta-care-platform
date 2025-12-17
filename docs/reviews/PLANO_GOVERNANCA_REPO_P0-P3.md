@@ -91,7 +91,7 @@ Subitens e linha-a-linha:
   - [x] ADR-004: UI padrão Dynamics — [`ADR-004-ui-dynamics.md`](../architecture/decisions/ADR-004-ui-dynamics.md)
   - [x] ADR-005: Tenancy via `app_metadata` no JWT — [`ADR-005-tenancy-app-metadata-jwt.md`](../architecture/decisions/ADR-005-tenancy-app-metadata-jwt.md)
   - [x] ADR-006: Política de e-mail no DB (check simples; validação forte no app) — [`ADR-006-email-policy.md`](../architecture/decisions/ADR-006-email-policy.md)
-- [ ] Incluir apontador para ADRs no hub `docs/README.md` (se ainda não presente) — A VERIFICAR/FAZER em P1.
+- [x] Incluir apontador para ADRs no hub `docs/README.md` — CONCLUÍDO em P1 (item 4). Link adicionado para `./architecture/decisions/`.
 
 Entregas P0 ligadas a este item:
 - Pasta e ADRs: [`docs/architecture/decisions/`](../architecture/decisions/)
@@ -203,6 +203,7 @@ Subitens e linha-a-linha:
 ## Histórico de atualizações deste plano
 
 - 2025-12-17: criação inicial do plano unificado; P0 marcado como concluído; inclusão de branch `chore/repo-governance-docs-p0-p3` e referência ao PR #6 (Draft) como guarda-chuva; detalhamento de P1 planejado.
+- 2025-12-17: P1.4 (Consolidação) — adicionado link explícito para ADRs no hub `docs/README.md`; subitem marcado como concluído.
 
 ---
 

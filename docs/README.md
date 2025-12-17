@@ -17,6 +17,7 @@ Toda nova funcionalidade ou alteração significativa deve começar com um **Con
 ## Pontos de Entrada
 
 - **[Arquitetura](./architecture/):** Descreve a arquitetura atual do sistema, decisões tomadas e o mapa do repositório.
+- **[Decisões Arquiteturais (ADRs)](./architecture/decisions/):** Registro canônico das decisões de arquitetura (histórico e status de cada decisão).
 - **[Contratos](./contracts/):** A fonte da verdade para cada módulo e funcionalidade. Nada é construído sem um contrato aprovado.
 - **[Runbooks](./runbooks/):** Guias operacionais para tarefas comuns, como setup do ambiente local, troubleshooting e workflows de migração.
 - **[Processos](./process/):** Descreve nossos processos de trabalho, incluindo o uso de ferramentas de IA para otimizar o desenvolvimento.
