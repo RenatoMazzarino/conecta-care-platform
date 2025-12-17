@@ -19,6 +19,19 @@ Antes de marcar PR como “Ready for review”, rode:
 - npm run lint
 - npm run typecheck
 - npm run build (quando aplicável)
+- (CI) Docs Link Check: o PR falhará se houver links relativos quebrados em `docs/` (job automático)
+
+## Governança de documentação
+- Toda mudança de comportamento deve atualizar a documentação correspondente no mesmo PR (Contratos, Runbooks, Arquitetura, Onboarding). PRs com docs desatualizadas podem ser bloqueados.
+- Evite duplicação de conteúdo: a arquitetura canônica está em `docs/architecture/SYSTEM_ARCHITECTURE.md`; decisões em `docs/architecture/decisions/`.
+- Para dúvidas de arquitetura/processo use `docs/process/ai/CODEX_QUESTIONS.md` (seguindo o formato) e depois mova para “Respondidas” quando houver cobertura canônica.
+
+## Convenção de commits
+- Use prefixos: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `ci:`.
+- Commits devem ser atômicos e descritivos; evite “misc changes”.
+
+## Proteção de branch
+- Habilite “Require status checks to pass” para `main` e marque os jobs `CI` e `Docs Link Check` como obrigatórios (ver `docs/runbooks/branch-protection.md`).
 
 ## Secrets (.env)
 - Nunca commitar arquivos `.env` ou `.env.*`.
