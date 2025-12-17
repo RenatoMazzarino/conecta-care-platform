@@ -123,7 +123,7 @@ Objetivo: cobertura clara de contratos por módulo e por aba, com status.
 Subitens e linha-a-linha:
 - [x] Expandir [`docs/MODULE_STATUS.md`](../MODULE_STATUS.md) com colunas: Módulo, Abas, Contratos, Runbooks, Status, Evidência (PR/migration). — CONCLUÍDO
 - [x] Criar/atualizar índices por módulo (ex.: `docs/contracts/pacientes/INDEX.md`) listando ABAs e contratos relevantes. — CONCLUÍDO para Pacientes
-- [ ] Relacionar gaps de contratos no [`OPEN_TODO.md`](../architecture/OPEN_TODO.md) com prioridade P1 e link de evidência. — EM ABERTO
+- [x] Relacionar gaps de contratos no [`OPEN_TODO.md`](../architecture/OPEN_TODO.md) com prioridade P1 e link de evidência. — CONCLUÍDO (seção "Gaps de contratos (P1)")
 
 Critérios de aceite:
 - Todo módulo visível no produto tem pelo menos um índice e referência de contrato ou gap explícito.
@@ -164,8 +164,8 @@ Subitens e linha-a-linha:
 Objetivo: governança clara para contribuidores.
 
 Subitens e linha-a-linha:
-- [ ] Atualizar `CONTRIBUTING.md` com: política de docs no mesmo PR, convenção de commits, exigência de link-check.
-- [ ] Garantir que `README.md` (raiz) e `docs/README.md` sejam hubs consistentes com links para ADRs, architecture, runbooks, contracts e reviews.
+- [x] Atualizar `CONTRIBUTING.md` com: política de docs no mesmo PR, convenção de commits, exigência de link-check. — CONCLUÍDO
+- [x] Garantir que `README.md` (raiz) e `docs/README.md` mencionem o gate de links do CI e apontem para hubs canônicos. — CONCLUÍDO
 
 ---
 
@@ -208,6 +208,8 @@ Subitens e linha-a-linha:
 - 2025-12-17: P1.6 — `OPEN_TODO.md` alinhado com P0 concluído e P1 atualizado; adicionadas evidências; pendente abrir issues para alguns itens.
 - 2025-12-17: P1.7 — adicionados runbooks (auditoria endpoint; storage fotos ABA01) e referenciados no ONBOARDING; link-check atualizado.
 - 2025-12-17: P1.8 — tentativa de adicionar script local `docs:links` adiada por incompatibilidade com lint/parsing; mantido job de CI como verificação canônica; placeholder adicionado e plano atualizado.
+- 2025-12-17: P1.9 — atualizados CONTRIBUTING.md (governança, convenção de commits, link-check) e READMEs (raiz/docs) com menção ao gate de links do CI.
+- 2025-12-17: P1.5 — gaps de contratos adicionados ao `OPEN_TODO.md` com DoD e evidências (INDEX de Pacientes, MODULE_STATUS, CODEX_GUIDE, SYSTEM_ARCHITECTURE).
 
 ---
 
