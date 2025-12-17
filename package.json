@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run lint && npm run typecheck && npm run build"
+    "docs:links": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/docs-link-check.ps1",
+    "verify": "npm run lint && npm run typecheck && npm run build && npm run docs:links"
   },
   "dependencies": {
     "@fluentui/react-components": "^9.72.7",
