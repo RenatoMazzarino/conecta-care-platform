@@ -65,3 +65,8 @@ Para submeter suas alterações:
 -   ❌ **Deletar dados fisicamente**: Use sempre `deleted_at` para entidades de negócio.
 -   ❌ **Usar mocks fora do escopo**: Se a funcionalidade já tem backend (como a Aba 01 de Pacientes), use os dados reais do Supabase. Mocks são apenas para prototipagem inicial ou testes.
 -   ❌ **Deixar a documentação para depois**: Documentação desatualizada é considerada um bug e bloqueará seu PR.
+
+## 7. Runbooks específicos (referência)
+
+-   Auditoria — endpoint unificado (esqueleto): [docs/runbooks/auditoria-endpoint.md](./auditoria-endpoint.md)
+-   Storage de fotos (ABA01) — políticas/RLS e fluxo de upload (esqueleto): [docs/runbooks/storage-photos-aba01.md](./storage-photos-aba01.md)
