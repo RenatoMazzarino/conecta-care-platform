@@ -70,3 +70,5 @@ Para submeter suas alterações:
 
 -   Auditoria — endpoint unificado (esqueleto): [docs/runbooks/auditoria-endpoint.md](./auditoria-endpoint.md)
 -   Storage de fotos (ABA01) — políticas/RLS e fluxo de upload (esqueleto): [docs/runbooks/storage-photos-aba01.md](./storage-photos-aba01.md)
+-   Segurança — resposta a incidentes (esqueleto): [docs/runbooks/security-incident-response.md](./security-incident-response.md)
+-   Segurança — backups, acessos e rotação (esqueleto): [docs/runbooks/security-backups-access-rotation.md](./security-backups-access-rotation.md)
