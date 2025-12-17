@@ -100,7 +100,7 @@ Entregas P0 ligadas a este item:
 
 ## P1 — Detalhamento planejado
 
-Nota: P1 ainda não executado. Abaixo, o plano linha-a-linha para cada item P1.
+Nota: P1 em andamento. Abaixo, o plano linha-a-linha para cada item P1, com marcações de progresso.
 
 ### 4) Consolidação de documentação (P1)
 Objetivo: reduzir redundância, consolidar fontes canônicas e arquivar cópias históricas.
@@ -121,9 +121,9 @@ Critérios de aceite:
 Objetivo: cobertura clara de contratos por módulo e por aba, com status.
 
 Subitens e linha-a-linha:
-- [ ] Expandir [`docs/MODULE_STATUS.md`](../MODULE_STATUS.md) com colunas: Módulo, Abas, Contratos, Runbooks, Status, Evidência (PR/migration).
-- [ ] Criar/atualizar índices por módulo (ex.: `docs/contracts/pacientes/INDEX.md`) listando ABAs e contratos relevantes.
-- [ ] Relacionar gaps de contratos no [`OPEN_TODO.md`](../architecture/OPEN_TODO.md) com prioridade P1 e link de evidência.
+- [x] Expandir [`docs/MODULE_STATUS.md`](../MODULE_STATUS.md) com colunas: Módulo, Abas, Contratos, Runbooks, Status, Evidência (PR/migration). — CONCLUÍDO
+- [x] Criar/atualizar índices por módulo (ex.: `docs/contracts/pacientes/INDEX.md`) listando ABAs e contratos relevantes. — CONCLUÍDO para Pacientes
+- [ ] Relacionar gaps de contratos no [`OPEN_TODO.md`](../architecture/OPEN_TODO.md) com prioridade P1 e link de evidência. — EM ABERTO
 
 Critérios de aceite:
 - Todo módulo visível no produto tem pelo menos um índice e referência de contrato ou gap explícito.
@@ -134,9 +134,9 @@ Critérios de aceite:
 Objetivo: `OPEN_TODO.md` como backlog real (P0/P1/P2) com evidências de done.
 
 Subitens e linha-a-linha:
-- [ ] Revisar e alinhar prioridades (P0/P1/P2), garantindo itens concluídos em “Concluídos (com evidência)”.
-- [ ] Para cada item, incluir link de evidência (PR, commit, migration, contrato, runbook).
-- [ ] Opcional: abrir Issues no GitHub para itens P1 e linkar do `OPEN_TODO.md` (sincronização leve).
+- [x] Revisar e alinhar prioridades (P0/P1/P2), garantindo itens concluídos em “Concluídos (com evidência)”. — CONCLUÍDO (incluídas entregas P0: ADRs 001–006, Docs Link Check, Segredos/rotação)
+- [x] Para cada item concluído, incluir link de evidência (PR, commit, migration, contrato, runbook). — CONCLUÍDO (links para pastas/PR #6)
+- [ ] Opcional: abrir Issues no GitHub para itens P1 e linkar do `OPEN_TODO.md` (sincronização leve). — EM ABERTO
 
 ---
 
@@ -144,9 +144,9 @@ Subitens e linha-a-linha:
 Objetivo: eliminar lacunas operacionais e alinhar com canônicos.
 
 Subitens e linha-a-linha:
-- [ ] Identificar runbooks faltantes (exemplos do diagnóstico anterior: políticas de Storage para fotos em ABA01; endpoint unificado de Auditoria).
-- [ ] Criar esqueleto mínimo dos runbooks faltantes com links canônicos.
-- [ ] Validar que `docs/runbooks/ONBOARDING.md` aponta para os novos runbooks quando aplicável.
+- [x] Identificar runbooks faltantes (exemplos do diagnóstico anterior: políticas de Storage para fotos em ABA01; endpoint unificado de Auditoria).
+- [x] Criar esqueleto mínimo dos runbooks faltantes com links canônicos. — Criados: [`runbooks/auditoria-endpoint.md`](../runbooks/auditoria-endpoint.md) e [`runbooks/storage-photos-aba01.md`](../runbooks/storage-photos-aba01.md)
+- [x] Validar que `docs/runbooks/ONBOARDING.md` aponta para os novos runbooks quando aplicável. — Linkados na seção "Runbooks específicos"
 
 ---
 
@@ -154,7 +154,7 @@ Subitens e linha-a-linha:
 Objetivo: padronizar comandos e facilitar verificação local.
 
 Subitens e linha-a-linha:
-- [ ] Garantir script `verify` agregando: `lint`, `typecheck`, `build` e `docs:links`.
+- [ ] Garantir script `verify` agregando: `lint`, `typecheck`, `build` e `docs:links`. — PARCIAL/ADIADO: verificador local `docs:links` adiado por incompatibilidade com parser/lint; manter validação via CI (Docs Link Check). Reavaliar implementação compatível.
 - [ ] Documentar scripts no `README.md` e em `docs/runbooks/`.
 - [ ] Validar execução em CI e local.
 
@@ -204,6 +204,10 @@ Subitens e linha-a-linha:
 
 - 2025-12-17: criação inicial do plano unificado; P0 marcado como concluído; inclusão de branch `chore/repo-governance-docs-p0-p3` e referência ao PR #6 (Draft) como guarda-chuva; detalhamento de P1 planejado.
 - 2025-12-17: P1.4 (Consolidação) — adicionado link explícito para ADRs no hub `docs/README.md`; subitem marcado como concluído.
+- 2025-12-17: P1.5 (parcial) — criado `contracts/pacientes/INDEX.md` e expandido `MODULE_STATUS.md`; link-check atualizado.
+- 2025-12-17: P1.6 — `OPEN_TODO.md` alinhado com P0 concluído e P1 atualizado; adicionadas evidências; pendente abrir issues para alguns itens.
+- 2025-12-17: P1.7 — adicionados runbooks (auditoria endpoint; storage fotos ABA01) e referenciados no ONBOARDING; link-check atualizado.
+- 2025-12-17: P1.8 — tentativa de adicionar script local `docs:links` adiada por incompatibilidade com lint/parsing; mantido job de CI como verificação canônica; placeholder adicionado e plano atualizado.
 
 ---
 
