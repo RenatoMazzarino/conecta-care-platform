@@ -1,6 +1,6 @@
 ﻿# Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-17 17:31:41
+Data: 2025-12-17 17:41:07
 
 ## Links Quebrados
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] link: "../architecture/decisions/ADR-004-ui-dynamics.md" → resolved: "C:\Users\renat\OneDrive\Documentos\GitHub\conecta-care-platform\docs\reviews\..\architecture\decisions\ADR-004-ui-dynamics.md"
@@ -40,6 +40,8 @@ Data: 2025-12-17 17:31:41
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/DOCS_LINK_CHECK.md" → OK
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../MODULE_STATUS.md" → OK
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/OPEN_TODO.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../runbooks/auditoria-endpoint.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../runbooks/storage-photos-aba01.md" → OK
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../.github/workflows/ci.yml" → OK
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/DOCS_LINK_CHECK.md" → OK
 - [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/SECRETS_ROTATION.md" → OK
