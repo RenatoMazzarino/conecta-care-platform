@@ -1,12 +1,15 @@
 ﻿# Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-17 16:18:13
+Data: 2025-12-17 17:25:10
 
-**Nenhum link relativo quebrado encontrado.**
+## Links Quebrados
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] link: "../architecture/decisions/ADR-004-ui-dynamics.md" → resolved: "C:\Users\renat\OneDrive\Documentos\GitHub\conecta-care-platform\docs\reviews\..\architecture\decisions\ADR-004-ui-dynamics.md"
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] link: "../architecture/decisions/ADR-006-email-policy.md" → resolved: "C:\Users\renat\OneDrive\Documentos\GitHub\conecta-care-platform\docs\reviews\..\architecture\decisions\ADR-006-email-policy.md"
 
 ## Amostra de Links Verificados
 - [docs\MODULE_STATUS.md] → "./contracts/pacientes/README.md" → OK
 - [docs\README.md] → "./architecture/" → OK
+- [docs\README.md] → "./architecture/decisions/" → OK
 - [docs\README.md] → "./contracts/" → OK
 - [docs\README.md] → "./runbooks/" → OK
 - [docs\README.md] → "./process/" → OK
@@ -17,6 +20,31 @@ Data: 2025-12-17 16:18:13
 - [docs\architecture\SYSTEM_ARCHITECTURE.md] → "./OPEN_TODO.md" → OK
 - [docs\process\ai\README.md] → "./gemini.md" → OK
 - [docs\process\ai\README.md] → "./CODEX_QUESTIONS.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/SECRETS_ROTATION.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/SECRETS_ROTATION.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../.github/workflows/ci.yml" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../runbooks/branch-protection.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../.github/workflows/ci.yml" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/DOCS_LINK_CHECK.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/decisions/ADR-001-contract-driven-development.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/decisions/ADR-002-multi-tenant-rls.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/decisions/ADR-003-soft-delete.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/decisions/ADR-004-ui-dynamics.md" → BROKEN
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/decisions/ADR-005-tenancy-app-metadata-jwt.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/decisions/ADR-006-email-policy.md" → BROKEN
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/decisions/" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/DOCS_LINK_CHECK.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../MODULE_STATUS.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/OPEN_TODO.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../.github/workflows/ci.yml" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/DOCS_LINK_CHECK.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../reviews/SECRETS_ROTATION.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/decisions/" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/SYSTEM_ARCHITECTURE.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../architecture/OPEN_TODO.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../README.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../runbooks/ONBOARDING.md" → OK
+- [docs\reviews\PLANO_GOVERNANCA_REPO_P0-P3.md] → "../MODULE_STATUS.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./env.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./local-dev-supabase.md" → OK
 - [docs\runbooks\ONBOARDING.md] → "./auth-tenancy.md" → OK

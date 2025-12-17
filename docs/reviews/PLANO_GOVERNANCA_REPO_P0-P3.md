@@ -106,10 +106,10 @@ Nota: P1 ainda não executado. Abaixo, o plano linha-a-linha para cada item P1.
 Objetivo: reduzir redundância, consolidar fontes canônicas e arquivar cópias históricas.
 
 Subitens e linha-a-linha:
-- [ ] Revisar todos os “satélites” e garantir apontamento para docs canônicos (ex.: `SYSTEM_ARCHITECTURE.md`).
-- [ ] Marcar e mover conteúdo histórico para seções “Arquivado/Histórico” sem apagar fatos (manter links).
-- [ ] Centralizar políticas/processos em `docs/process/` e evitar duplicação em `runbooks/` e `architecture/`.
-- [ ] Reexecutar link-check e atualizar [`DOCS_LINK_CHECK.md`](../reviews/DOCS_LINK_CHECK.md).
+- [x] Revisar todos os “satélites” e garantir apontamento para docs canônicos (ex.: `SYSTEM_ARCHITECTURE.md`). Status: verificado — `ARCHITECTURE_REAL.md` e `REPO_MAP.md` já são satélites mínimos; `CODEX_GUIDE.md` contém aviso de canonicidade e seção de notas arquivadas.
+- [x] Marcar e mover conteúdo histórico para seções “Arquivado/Histórico” sem apagar fatos (manter links). Status: verificado — conteúdo já consolidado/arquivado anteriormente; sem novas mudanças nesta etapa.
+- [x] Centralizar políticas/processos em `docs/process/` e evitar duplicação em `runbooks/` e `architecture/`. Status: verificado — sem duplicações novas após revisão.
+- [x] Reexecutar link-check e atualizar [`DOCS_LINK_CHECK.md`](../reviews/DOCS_LINK_CHECK.md). Status: executado — sem links relativos quebrados; relatório atualizado.
 
 Critérios de aceite:
 - Nenhuma seção com duplicação pesada do conteúdo canônico.
