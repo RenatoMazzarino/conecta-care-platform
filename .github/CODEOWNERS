@@ -1,0 +1,10 @@
+# CODEOWNERS — define responsáveis por revisão/aprovação por área
+# Ajuste os owners conforme a realidade do time/projeto.
+
+# Dono padrão para todo o repositório (substitua pelo(s) owner(s) correto(s))
+* @RenatoMazzarino
+
+# Exemplos de granularidade (descomente/edite quando houver owners específicos)
+# /docs/ @RenatoMazzarino
+# /src/features/pacientes/ @RenatoMazzarino
+# /supabase/migrations/ @RenatoMazzarino
