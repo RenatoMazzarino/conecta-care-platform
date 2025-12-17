@@ -32,6 +32,12 @@ Descreva objetivamente o que este PR entrega.
 - [ ] npm run build (se aplicável)
 - [ ] Teste manual (descrever)
 
+## Checklist de Documentação e Rastreabilidade
+- [ ] Documentação atualizada neste PR (Contratos, Runbooks, Arquitetura, Onboarding quando aplicável)
+- [ ] CI “Docs Link Check” sem links relativos quebrados em `docs/`
+- [ ] (Se houver migrations) Cabeçalho padrão preenchido com: CONTRATO / PR / EVIDÊNCIA / DESCRIÇÃO
+- [ ] (Se houver migrations) Índice do módulo/contrato atualizado com “Migrations relacionadas”
+
 ## Prints / Evidências
 (cole imagens, gifs ou descreva como validar)
 
