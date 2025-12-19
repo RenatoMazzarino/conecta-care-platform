@@ -27,4 +27,5 @@ Este checklist documenta o que deve ser configurado manualmente no GitHub para a
 ## Como preencher
 
 1) Siga o runbook em `docs/runbooks/branch-protection.md`.
-2) Após configurar, atualize o status para “OK” e adicione a evidência (print ou descrição do PR de teste).
+2) Observação: os checks só aparecem no dropdown depois de rodarem pelo menos 1x em PR ou push na branch alvo.
+3) Após configurar, atualize o status para “OK” e adicione a evidência (print ou descrição do PR de teste).
