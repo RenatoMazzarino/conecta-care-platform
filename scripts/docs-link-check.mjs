@@ -99,7 +99,7 @@ const main = async () => {
         const anchor = link.slice(1);
         if (!anchor) continue;
         const anchors = await getAnchorsForFile(file);
-        const exists = anchors.has(anchor);
+        const exists = anchors.has(normalizeAnchor(anchor));
         const record = {
           file,
           link,
@@ -140,7 +140,7 @@ const main = async () => {
           reason = 'anchor-on-non-md';
         } else {
           const anchors = await getAnchorsForFile(resolvedPath);
-          const normalized = hashPart.trim();
+          const normalized = normalizeAnchor(hashPart);
           anchorOk = anchors.has(normalized);
           if (!anchorOk) reason = 'missing-anchor';
         }
