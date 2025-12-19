@@ -1,6 +1,7 @@
-Arquivo histórico (não canônico).
+# Snapshots Históricos (não canônicos)
 
 Use esta pasta apenas para snapshots legados com finalidade de referência.
 Para decisões atuais, consulte:
+
 - ../../architecture/SYSTEM_ARCHITECTURE.md
 - ../../contracts/

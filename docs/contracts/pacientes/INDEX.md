@@ -1,5 +1,7 @@
 # Índice de Contratos — Módulo Pacientes
 
+Status: ATUAL — módulo com contrato aprovado para ABA01.
+
 Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apontador canônico para os contratos do módulo e deve ser atualizado conforme novos contratos forem aprovados.
 
 ## ABAs e Contratos
@@ -16,5 +18,10 @@ Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apont
 | ABA08 — Histórico & Auditoria | A definir | — |
 
 Notas:
+
 - Os nomes das ABAs seguem o padrão visual de navegação documentado em `docs/process/ai/CODEX_GUIDE.md` e a arquitetura canônica em `docs/architecture/SYSTEM_ARCHITECTURE.md`.
 - Quando um contrato for aprovado para uma ABA, substitua “A definir” por “Em contrato/Implementado” e adicione o link do documento correspondente.
+
+## Evidências
+
+- Contrato ABA01 aprovado: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`.

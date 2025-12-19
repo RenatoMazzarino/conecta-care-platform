@@ -117,7 +117,7 @@ Legenda “Fonte da verdade?”: SIM (canônico para o tema), NÃO (snapshot/pro
 ### 3.2 Contradições
 
 - Política de segredos vs. estado do repositório (incidente):
-  - Política: docs/runbooks/env.md, linhas 29–31: “Nunca commitar .env … .gitignore já cobre .env* e só permite *.example”.
+  - Política: docs/runbooks/env.md, linhas 29–31: “Nunca commitar .env … .gitignore já cobre .env*e só permite*.example”.
   - Evidência no repo: existem arquivos versionados `.env.local` e `.env.local.local` na raiz do projeto (ex.: C:\Users\renat\OneDrive\…\conecta-care-platform\.env.local.local). O arquivo contém chaves reais (ex.: comentários nas linhas 5–6: “Chave de serviço (usada apenas no backend/scripts…)”). Isso contradiz a política documentada.
 
 Observação: Não foram encontradas contradições entre os documentos canônicos (contratos/runbooks/arquitetura). O principal risco são documentos obsoletos/duplicados que futuramente podem divergir entre si.

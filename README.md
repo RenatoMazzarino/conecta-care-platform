@@ -2,7 +2,7 @@
 Plataforma Conecta Care para gestão de home care: cadastro e prontuário de pacientes, escalas, inventário, financeiro e integrações. Layout inspirado em produtos Microsoft, banco de dados em português e regras empresariais fortes (RLS, multi-tenant e auditoria completa).
 
 ## Requisitos
-- Node.js >= 20.9.0 (Next.js 16).
+- Node.js 24.x.
 
 ## Setup rápido
 1) Crie seu arquivo local de env:
@@ -14,14 +14,16 @@ Plataforma Conecta Care para gestão de home care: cadastro e prontuário de pac
    - `npm run dev`
 
 ## Verificações
-- `npm run verify` (lint + typecheck + build)
+- `npm run verify` (lint + typecheck + build + docs:links + docs:lint)
 - `npm run typecheck` (tsc --noEmit)
+- `npm run docs:links` (verifica links relativos em `docs/`)
+- `npm run docs:lint` (markdownlint em `docs/`)
 - `bash scripts/verify.sh` (lint + typecheck + build)
 - `bash scripts/typecheck.sh` (tsc --noEmit)
 - `bash scripts/test.sh` (quando houver testes)
 
 ### CI
-- O pipeline executa verificação automática de links relativos na documentação (`docs/`) via job “Docs Link Check”. PRs falham caso haja links quebrados.
+- O pipeline executa verificação automática de links relativos e lint em `docs/`, além de secret scanning. PRs falham em violações.
 
 ## Codex (campo "Script de configuração")
 - `bash scripts/setup.sh`

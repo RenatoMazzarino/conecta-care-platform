@@ -2,6 +2,9 @@
   "name": "conecta-care-platform",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "dev:clean": "next dev --disable-source-maps",
@@ -9,8 +12,9 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "docs:links": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/docs-link-check.ps1",
-    "verify": "npm run lint && npm run typecheck && npm run build && npm run docs:links"
+    "docs:links": "node scripts/docs-link-check.mjs",
+    "docs:lint": "markdownlint-cli2 --config .markdownlint-cli2.jsonc \"docs/**/*.md\"",
+    "verify": "npm run lint && npm run typecheck && npm run build && npm run docs:links && npm run docs:lint"
   },
   "dependencies": {
     "@fluentui/react-components": "^9.72.7",
@@ -29,6 +33,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "^16.0.10",
+    "markdownlint-cli2": "^0.20.0",
     "supabase": "^2.67.1",
     "tailwindcss": "^4",
     "typescript": "^5"

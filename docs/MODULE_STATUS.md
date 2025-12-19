@@ -3,6 +3,7 @@
 Este documento rastreia o status de implementação de cada módulo principal da Conecta Care Platform.
 
 Colunas:
+
 - Status: Implementado / Em contrato / Em desenvolvimento / Não iniciado
 - Abas: principais áreas de navegação (quando aplicável)
 - Contratos: índice/contratos por módulo/aba
@@ -12,13 +13,13 @@ Colunas:
 | Módulo | Status | Abas | Contratos | Runbooks | Evidência |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | Pacientes | Implementado | Dados Pessoais; Endereço & Logística; Rede de Apoio; Administrativo; Financeiro; Clínico; Documentos (GED); Histórico & Auditoria | [Índice de Contratos (Pacientes)](./contracts/pacientes/INDEX.md) | [ONBOARDING](./runbooks/ONBOARDING.md); [migrations-workflow](./runbooks/migrations-workflow.md); [auth-tenancy](./runbooks/auth-tenancy.md) | — |
-| Prontuários | Em desenvolvimento | — | — | — | — |
-| Agendamentos | Não iniciado | — | — | — | — |
-| Escalas | Não iniciado | Visão por Paciente; Visão por Profissional | — | — | — |
-| Financeiro | Em contrato | — | — | — | — |
-| Home Care Ops | Não iniciado | — | — | — | — |
-| Inventário | Não iniciado | — | — | — | — |
-| Configurações | Em desenvolvimento | — | — | — | — |
+| Prontuários | Em desenvolvimento | — | [Índice de Contratos (Prontuários)](./contracts/prontuarios/INDEX.md) | — | — |
+| Agendamentos | Não iniciado | — | [Índice de Contratos (Agendamentos)](./contracts/agendamentos/INDEX.md) | — | — |
+| Escalas | Não iniciado | Visão por Paciente; Visão por Profissional | [Índice de Contratos (Escalas)](./contracts/escalas/INDEX.md) | — | — |
+| Financeiro | Em contrato | — | [Índice de Contratos (Financeiro)](./contracts/financeiro/INDEX.md) | — | — |
+| Home Care Ops | Não iniciado | — | [Índice de Contratos (Home Care Ops)](./contracts/home-care-ops/INDEX.md) | — | — |
+| Inventário | Não iniciado | — | [Índice de Contratos (Inventário)](./contracts/inventario/INDEX.md) | — | — |
+| Configurações | Em desenvolvimento | — | [Índice de Contratos (Configurações)](./contracts/configuracoes/INDEX.md) | — | — |
 
 ## Roadmap por módulo (P2)
 
