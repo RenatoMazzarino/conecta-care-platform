@@ -16,7 +16,7 @@ Data: 2025-12-17
 
 - [x] `docs/process/ai/` — pasta de processo/IA consolidada
   - `docs/process/ai/README.md` explica claramente que é processo de trabalho com IA (não arquitetura do sistema).
-  - Arquivos presentes e validados no destino: 
+  - Arquivos presentes e validados no destino:
     - `docs/process/ai/CODEX_GUIDE.md`
     - `docs/process/ai/AI_TOOLING.md`
     - `docs/process/ai/CODEX_QUESTIONS.md`
