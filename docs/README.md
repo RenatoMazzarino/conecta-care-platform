@@ -6,9 +6,9 @@ Esta documentação serve como a fonte central de verdade para o desenvolvimento
 
 O objetivo da Conecta Care é fornecer uma plataforma SaaS robusta e intuitiva para gestão de pacientes, prontuários, agendamentos e operações de home care. A arquitetura é baseada em Next.js no frontend, Supabase para o backend e banco de dados (PostgreSQL), e segue um modelo de desenvolvimento "contract-driven".
 
-A regra de ouro do fluxo de trabalho é:
+### Fluxo canônico
 
-**Contrato → Migrations → Types → Actions → UI**
+Contrato → Migrations → Types → Actions → UI
 
 Toda nova funcionalidade ou alteração significativa deve começar com um **Contrato** formalizado, que define o escopo e a "fonte da verdade". A partir dele, derivam-se as alterações no banco de dados, os tipos no código, as lógicas de negócio e, por fim, a interface do usuário.
 
@@ -20,7 +20,7 @@ Toda nova funcionalidade ou alteração significativa deve começar com um **Con
 
 - **[Arquitetura](./architecture/):** Descreve a arquitetura atual do sistema, decisões tomadas e o mapa do repositório.
 - **[Decisões Arquiteturais (ADRs)](./architecture/decisions/):** Registro canônico das decisões de arquitetura (histórico e status de cada decisão).
-- **[Contratos](./contracts/):** A fonte da verdade para cada módulo e funcionalidade. Nada é construído sem um contrato aprovado.
+- **[Contratos](./contracts/):** A fonte da verdade para cada módulo e funcionalidade. Nada é construído sem um contrato aprovado. Índices por módulo em [`docs/contracts/README.md`](./contracts/README.md).
 - **[Runbooks](./runbooks/):** Guias operacionais para tarefas comuns, como setup do ambiente local, troubleshooting e workflows de migração.
 - **[Processos](./process/):** Descreve nossos processos de trabalho, incluindo o uso de ferramentas de IA para otimizar o desenvolvimento.
 - **[Reviews](./reviews/):** Armazena auditorias, relatórios de revisão de PRs e outros artefatos de garantia de qualidade.
