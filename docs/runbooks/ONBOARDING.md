@@ -13,7 +13,7 @@ Antes de escrever qualquer código, entenda os pilares que sustentam a plataform
 
 ## 2. Pré-requisitos e Setup Local
 
-Para rodar o projeto, você precisará do Node.js (>= 20.9.0) e Docker (para o Supabase local).
+Para rodar o projeto, você precisará do Node.js (>= 24.0.0) e Docker (para o Supabase local).
 
 1. **Configuração de Variáveis de Ambiente**:
     - Siga o guia em **[docs/runbooks/env.md](./env.md)** para criar seu arquivo `.env.local`.

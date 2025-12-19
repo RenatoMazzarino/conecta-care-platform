@@ -77,7 +77,7 @@ Legenda “Qualidade”: OK = pronto para produção; Precisa elevar = falta gat
 1) CI hardening
 
 - [ ] Adicionar `concurrency` (cancelar execuções antigas do mesmo PR).
-- [ ] Fixar Node 20.x documentado e manter cache npm.
+- [ ] Fixar Node 24.x documentado e manter cache npm.
 - [ ] Padronizar nomes dos jobs: “CI”, “Docs Link Check”, “Docs Markdown Lint”, “Secrets Scan”.
 - [ ] Upload de artefatos para link-check, markdownlint e secrets.
 - [ ] Atualizar `docs/runbooks/branch-protection.md` com nomes exatos e checklist + `docs/reviews/BRANCH_PROTECTION_CHECKLIST.md`.
