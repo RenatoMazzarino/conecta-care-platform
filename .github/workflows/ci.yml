@@ -100,10 +100,15 @@ jobs:
         run: |
           set +e
           mkdir -p docs/reviews
-          echo "# DOCS_MARKDOWN_LINT" > docs/reviews/DOCS_MARKDOWN_LINT.md
-          echo "" >> docs/reviews/DOCS_MARKDOWN_LINT.md
-          npm run docs:lint >> docs/reviews/DOCS_MARKDOWN_LINT.md
-          EXIT_CODE=$?
+          tmpfile=$(mktemp)
+          npm run docs:lint | tee "$tmpfile"
+          EXIT_CODE=${PIPESTATUS[0]}
+          {
+            echo "# DOCS_MARKDOWN_LINT"
+            echo
+            cat "$tmpfile"
+          } > docs/reviews/DOCS_MARKDOWN_LINT.md
+          rm -f "$tmpfile"
           set -e
           exit $EXIT_CODE
 
