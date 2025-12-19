@@ -1,0 +1,17 @@
+{
+  // Markdownlint CLI2 configuration aligned with existing markdownlint settings
+  "globs": [
+    "docs/**/*.md"
+  ],
+  "ignores": [
+    "docs/reviews/DOCS_MARKDOWN_LINT.md",
+    "docs/reviews/DOCS_LINK_CHECK.md"
+  ],
+  "config": {
+    "default": true,
+    "MD013": false,
+    "MD033": false,
+    "MD024": { "siblings_only": true },
+    "MD026": false
+  }
+}

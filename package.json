@@ -10,7 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "docs:links": "node scripts/docs-link-check.mjs",
-    "docs:lint": "markdownlint-cli2 \"docs/**/*.md\"",
+    "docs:lint": "markdownlint-cli2 --config .markdownlint-cli2.jsonc",
     "verify": "npm run lint && npm run typecheck && npm run build && npm run docs:links && npm run docs:lint"
   },
   "dependencies": {
