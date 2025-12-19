@@ -6,11 +6,19 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20.11.1"
+
 permissions:
   contents: read
 
 jobs:
   ci:
+    name: CI
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -19,8 +27,9 @@ jobs:
       - name: Use Node.js (LTS)
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -44,57 +53,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Use Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: package-lock.json
+
       - name: Run link checker (Markdown in docs/)
-        shell: pwsh
-        run: |
-          $root = (Get-Location).Path
-          $docsRoot = Join-Path $root 'docs'
-          $mdFiles = Get-ChildItem -Path $docsRoot -Recurse -Filter *.md
-          $results = New-Object System.Collections.Generic.List[object]
-          $broken = New-Object System.Collections.Generic.List[object]
-          foreach ($file in $mdFiles) {
-            $content = Get-Content -Raw -LiteralPath $file.FullName
-            $regex = '\]\((?!https?:|mailto:|#|/)([^)]+)\)'
-            foreach ($m in [regex]::Matches($content, $regex)) {
-              $rel = $m.Groups[1].Value
-              $pathPart = $rel.Split('#')[0].Split('?')[0]
-              $candidate = $pathPart -replace '/', [IO.Path]::DirectorySeparatorChar
-              $target = Join-Path $file.DirectoryName $candidate
-              $exists = Test-Path -LiteralPath $target
-              $obj = [pscustomobject]@{File=$file.FullName; Link=$rel; Resolved=$target; Exists=$exists}
-              [void]$results.Add($obj)
-              if (-not $exists) { [void]$broken.Add($obj) }
-            }
-          }
-          $lines = New-Object System.Collections.Generic.List[string]
-          $lines.Add('# Relatório de Verificação de Links da Documentação') | Out-Null
-          $lines.Add('') | Out-Null
-          $lines.Add('Data: ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')) | Out-Null
-          $lines.Add('') | Out-Null
-          if ($broken.Count -eq 0) {
-            $lines.Add('**Nenhum link relativo quebrado encontrado.**') | Out-Null
-          } else {
-            $lines.Add('## Links Quebrados') | Out-Null
-            foreach ($b in $broken) {
-              $relPath = $b.File.Replace($root + [IO.Path]::DirectorySeparatorChar, '')
-              $lines.Add('- ['+$relPath+'] link: "' + $b.Link + '" → resolved: "' + $b.Resolved + '"') | Out-Null
-            }
-          }
-          $lines.Add('') | Out-Null
-          $lines.Add('## Amostra de Links Verificados') | Out-Null
-          $sample = $results | Select-Object -First 200
-          foreach ($r in $sample) {
-            $relPath = $r.File.Replace($root + [IO.Path]::DirectorySeparatorChar, '')
-            $lines.Add('- ['+$relPath+'] → "' + $r.Link + '" → ' + ($(if($r.Exists){'OK'} else {'BROKEN'}))) | Out-Null
-          }
-          $reportDir = Join-Path $env:GITHUB_WORKSPACE 'docs/reviews'
-          if (-not (Test-Path $reportDir)) { New-Item -ItemType Directory -Path $reportDir | Out-Null }
-          $dest = Join-Path $reportDir 'DOCS_LINK_CHECK.md'
-          $lines.ToArray() -join "`n" | Out-File -Encoding UTF8 -LiteralPath $dest
-          if ($broken.Count -gt 0) {
-            Write-Error ("Link-check encontrou {0} link(s) quebrado(s)." -f $broken.Count)
-            exit 1
-          }
+        run: node scripts/docs-link-check.mjs
 
       - name: Upload link-check report
         if: always()
@@ -102,18 +69,59 @@ jobs:
         with:
           name: docs-link-check-report
           path: docs/reviews/DOCS_LINK_CHECK.md
+          if-no-files-found: warn
 
   docs_markdown_lint:
-    name: Docs Markdown Lint (soft)
+    name: Docs Markdown Lint
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run markdownlint-cli2 on docs/**/*.md
-        uses: DavidAnson/markdownlint-cli2-action@v16
+      - name: Use Node.js (LTS)
+        uses: actions/setup-node@v4
         with:
-          globs: |
-            docs/**/*.md
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: package-lock.json
 
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run markdownlint-cli2 on docs/**/*.md
+        shell: bash
+        run: |
+          set -o pipefail
+          npm run docs:lint | tee docs/reviews/DOCS_MARKDOWN_LINT.md
+
+      - name: Upload markdownlint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-markdownlint-report
+          path: docs/reviews/DOCS_MARKDOWN_LINT.md
+          if-no-files-found: warn
+
+  secrets_scan:
+    name: Secrets Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config: .gitleaks.toml
+          report-format: json
+          report-path: gitleaks-report.json
+
+      - name: Upload gitleaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          if-no-files-found: warn
