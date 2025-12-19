@@ -64,6 +64,9 @@ jobs:
           cache: "npm"
           cache-dependency-path: package-lock.json
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Run link checker (Markdown in docs/)
         run: node scripts/docs-link-check.mjs
 
@@ -120,12 +123,12 @@ jobs:
         with:
           config: .gitleaks.toml
           report-format: json
-          report-path: gitleaks-report.json
+          report-path: docs/reviews/GITLEAKS_REPORT.json
 
       - name: Upload gitleaks report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gitleaks-report
-          path: gitleaks-report.json
+          path: docs/reviews/GITLEAKS_REPORT.json
           if-no-files-found: warn
