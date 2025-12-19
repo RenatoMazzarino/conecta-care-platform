@@ -1,6 +1,9 @@
 {
   // Markdown lint rules for docs consistency
-  // Start conservative: only detect duplicate headings to avoid noisy failures.
-  "default": false,
-  "MD024": { "siblings_only": true }
+  // Keep a pragmatic baseline: enforce structure, skip line length and inline HTML.
+  "default": true,
+  "MD013": false,
+  "MD033": false,
+  "MD024": { "siblings_only": true },
+  "MD026": false
 }
