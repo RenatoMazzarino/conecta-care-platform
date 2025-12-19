@@ -1,0 +1,12 @@
+# Gitleaks configuration for Conecta Care Platform
+# NOTE: Do not add allowlist entries without a clear justification and evidence.
+
+title = "Conecta Care Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+# Keep empty by default; add entries only when false positives are proven.
+paths = []
+regexes = []
