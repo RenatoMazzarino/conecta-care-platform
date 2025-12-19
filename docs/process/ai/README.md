@@ -6,5 +6,5 @@ O conteúdo aqui descrito **não faz parte da arquitetura do sistema**. Ele repr
 
 ## Documentos Principais
 
--   **[gemini.md](./gemini.md)**: O **Manual Mestre** que governa a operação do assistente Gemini neste repositório. Leitura obrigatória.
--   **[CODEX_QUESTIONS.md](./CODEX_QUESTIONS.md)**: Perguntas críticas de arquitetura e negócio para guiar o desenvolvimento.
+- **[gemini.md](./gemini.md)**: O **Manual Mestre** que governa a operação do assistente Gemini neste repositório. Leitura obrigatória.
+- **[CODEX_QUESTIONS.md](./CODEX_QUESTIONS.md)**: Perguntas críticas de arquitetura e negócio para guiar o desenvolvimento.

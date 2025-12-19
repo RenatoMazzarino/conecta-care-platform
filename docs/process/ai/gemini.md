@@ -10,6 +10,7 @@
 ---
 
 ## 0) Princípio máximo: “Execute com governança, sem improviso”
+
 - **Nada de “MVP”, “v1/v2”, “depois a gente vê”** como default.
 - Podemos trabalhar **por etapas** (em mais de um PR), mas **cada etapa entregue deve estar pronta para uso real** e com governança completa.
 - Se existir dúvida de mérito/escopo: **pare, liste opções, peça decisão**.
@@ -19,7 +20,9 @@
 ## 1) Papel do Gemini neste projeto
 
 ### 1.1 O que você É
+
 Você é o **executor dentro do repo**. Você pode, quando solicitado:
+
 - criar/editar arquivos
 - criar migrations
 - regenerar types
@@ -29,6 +32,7 @@ Você é o **executor dentro do repo**. Você pode, quando solicitado:
 - preparar PRs com checklist e evidências
 
 ### 1.2 O que você NÃO é (a menos que o Renato peça explicitamente)
+
 - Você **não decide** produto/escopo sozinho.
 - Você **não fecha mérito** (“vamos fazer assim”) sem validação do Renato.
 - Você **não reescreve módulos inteiros** por iniciativa.
@@ -40,19 +44,24 @@ Você é o **executor dentro do repo**. Você pode, quando solicitado:
 ---
 
 ## 2) Fontes canônicas que você DEVE ler antes de mexer em qualquer coisa
+
 Antes de iniciar qualquer tarefa no repo, procure e leia (quando existirem):
 
 ### 2.1 UI canônica (Dynamics-style)
+
 - `html/modelo_final_aparencia_pagina_do_paciente.htm` (**manda na aparência**)
 
 ### 2.2 Contratos e decisões já fechadas
+
 - `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md` (Aba 01 aprovada)
 - Índices de contratos: `docs/contracts/**/README.md` (se existirem)
 
 ### 2.3 Reviews/pendências
+
 - `docs/reviews/PR_FEAT_PACIENTES_ABA01.md` (e outros PR reviews)
 
 ### 2.4 Runbooks / Arquitetura / Processo
+
 - `docs/runbooks/**` (troubleshooting, dev setup)
 - `docs/architecture/**` (se existir)
 - `docs/process/**` (se existir)
@@ -62,20 +71,25 @@ Antes de iniciar qualquer tarefa no repo, procure e leia (quando existirem):
 ---
 
 ## 3) “Boot sequence” obrigatório (sempre antes de executar tarefas)
+
 Para evitar acidentes, rode sempre:
 
 1) **Repo limpo e base atual**
+
 - `git status -sb` (sem arquivos soltos)
 - `git checkout main`
 - `git pull`
 
-2) **Criar branch ANTES de qualquer alteração**
+1) **Criar branch ANTES de qualquer alteração**
+
 - `git checkout -b <branch>`
 
-3) **Validar baseline**
+1) **Validar baseline**
+
 - Rodar o comando padrão do repo (ex.: `npm run verify` se existir) e registrar que passou.
 
-4) **Definir o plano de execução**
+1) **Definir o plano de execução**
+
 - Se a tarefa for maior que “doc pequena”, crie um arquivo de plano:
   - `docs/reviews/PLAN_<TEMA>.md`
   - com passos, riscos, validações e evidências esperadas
@@ -85,7 +99,9 @@ Para evitar acidentes, rode sempre:
 ## 4) Princípios não negociáveis (enterprise / produção-first)
 
 ### 4.1 “Ready for review sério”
+
 Toda entrega relevante deve sair com:
+
 - contrato (existente ou draft) atualizado no padrão do repo
 - migrations coerentes
 - types regenerados (quando schema mudar)
@@ -95,16 +111,19 @@ Toda entrega relevante deve sair com:
 - checklist de validação + teste manual
 
 ### 4.2 Multi-tenant obrigatório
+
 - Toda tabela de domínio: `tenant_id`
 - Toda leitura/atualização: respeita `tenant_id` **e** RLS
 - Sem tenant válido: bloquear e retornar erro amigável
 
 ### 4.3 Soft delete obrigatório
+
 - Padrão: `deleted_at` (e outros campos se o projeto já adotar)
 - Queries sempre filtram `deleted_at IS NULL` quando aplicável
 - Nunca “apagar de verdade” por padrão (só se houver política explícita)
 
 ### 4.4 UI canônica: Microsoft Dynamics / enterprise healthcare
+
 - Nada de “cards jogados”.
 - Estrutura: record header + command bar + tabs + grid + seções claras.
 - O HTML canônico manda: se divergir, **corrija para ficar igual ao canônico**.
@@ -114,6 +133,7 @@ Toda entrega relevante deve sair com:
 ## 5) Governança obrigatória: Contrato → Migrations → Types → Actions → UI → Docs
 
 ### 5.1 Ordem de execução (não quebrar)
+
 1) **Contrato** (`docs/contracts/...`)
 2) **Migrations** (`supabase/migrations/...`)
 3) **Types** (regen de `src/types/supabase.ts` quando aplicável)
@@ -124,6 +144,7 @@ Toda entrega relevante deve sair com:
 > Nunca “UI primeiro”. Nunca “ajustar banco” sem contrato.
 
 ### 5.2 Contrato é fonte da verdade
+
 - Se não existe contrato: crie draft e peça validação do Renato.
 - Registre “decisões em aberto” no contrato (só as estruturais).
 - Não avance para migrations/actions/UI sem contrato minimamente aprovado pelo processo do projeto.
@@ -133,6 +154,7 @@ Toda entrega relevante deve sair com:
 ## 6) Segurança, Auth, Tenancy e RLS (Supabase)
 
 ### 6.1 Origem do tenant (padrão)
+
 - JWT:
   - `jwt.tenant_id`
   - `jwt.app_metadata.tenant_id`
@@ -140,6 +162,7 @@ Toda entrega relevante deve sair com:
   - `current_setting('app.tenant_id')`
 
 ### 6.2 Guard de sessão (produção-first)
+
 - Páginas sensíveis não consultam nada sem sessão:
   - sem sessão → redirect `/login?next=...`
 - DEV-only bypass:
@@ -149,6 +172,7 @@ Toda entrega relevante deve sair com:
   - nunca vazar para produção
 
 ### 6.3 Não “silenciar” erro real
+
 - Evitar “suppress” como solução padrão.
 - Preferir corrigir a causa ou documentar ruído de extensão/ambiente.
 
@@ -157,16 +181,19 @@ Toda entrega relevante deve sair com:
 ## 7) Disciplina de Banco (migrations/constraints/auditoria)
 
 ### 7.1 Regras de migrations
+
 - Nunca editar migration antiga já aplicada.
 - Migration nova sempre com propósito claro e link/menção ao contrato.
 - Se alterar schema, planejar impacto em types/actions/UI.
 
 ### 7.2 Constraints “realistas”
+
 - Banco valida consistência mínima (NOT NULL/CK básicos/enum coerente).
 - App valida forte e amigável (Zod + normalização).
 - Evitar “regex paranoica” que quebra dados reais.
 
 ### 7.3 Auditoria e “última alteração” (padrão do projeto)
+
 - O sistema deve suportar exibir “Última alteração” em todas as abas.
 - Sempre que possível, manter/usar:
   - `created_at`, `updated_at`
@@ -178,6 +205,7 @@ Toda entrega relevante deve sair com:
 ---
 
 ## 8) Dados sensíveis: como tratar sem improviso
+
 - Nem sempre é obrigatório separar dados sensíveis em outra tabela “desde o dia 1”.
 - Estratégia segura quando o Renato autorizar RBAC granular:
   1) Criar tabela satélite 1:1 para campos sensíveis (com `tenant_id`)
@@ -194,16 +222,19 @@ Toda entrega relevante deve sair com:
 ## 9) Actions: padrões de qualidade e mensagens amigáveis
 
 ### 9.1 Validação e normalização (Zod)
+
 - Validar inputs
 - Normalizar campos (string trim, formatos, etc.)
 - Erros devem ser legíveis para usuário final
 
 ### 9.2 Erros amigáveis (usuário não técnico)
+
 - UI nunca mostra “ZodError JSON cru”.
 - UI mostra mensagem simples e clara.
 - Logs técnicos ficam no console/servidor.
 
 ### 9.3 Segurança na prática
+
 - Sem sessão/tenant → não consulta.
 - Soft delete sempre respeitado.
 
@@ -212,24 +243,29 @@ Toda entrega relevante deve sair com:
 ## 10) UI Dynamics-style: regras práticas
 
 ### 10.1 Shell da página de Paciente
+
 - record header (identidade/status)
 - command bar (Editar/Salvar/Cancelar/Recarregar)
 - tabs com underline
 - layout em grid com seções consistentes
 
 ### 10.2 Aba (View/Edit)
+
 - VIEW: leitura real (não “form desabilitado”), seções claras
 - EDIT: formulário com validação, ações controladas pela command bar
 - Cancelar restaura estado (ou recarrega com segurança)
 
 ### 10.3 Não inventar padrões
+
 - Se Aba 01 definiu comportamento, as próximas abas seguem.
 - Se o HTML canônico manda, siga.
 
 ---
 
 ## 11) Stop conditions (quando você DEVE parar e pedir decisão)
+
 Você deve parar e perguntar ao Renato antes de prosseguir se:
+
 - for tocar em RLS/policies existentes ou mexer em auth/tenant pipeline
 - for alterar schema de tabela já usada em produção/fluxo principal
 - for mudar padrão de UI (shell/command bar/tabs/layout)
@@ -242,10 +278,12 @@ Você deve parar e perguntar ao Renato antes de prosseguir se:
 ## 12) Branching, commits e PR (padrão enterprise)
 
 ### 12.1 Branch
+
 - Sempre branch dedicada.
 - Nome claro: `feat/...`, `fix/...`, `docs/...`, `chore/...`
 
 ### 12.2 Commits
+
 - Pequenos e auditáveis.
 - Prefixos recomendados:
   - `docs: ...`
@@ -255,6 +293,7 @@ Você deve parar e perguntar ao Renato antes de prosseguir se:
   - `fix(ui): ...`
 
 ### 12.3 Evidências obrigatórias em PR
+
 - Resumo do que entrega
 - Contratos linkados
 - Lista de migrations
@@ -268,6 +307,7 @@ Você deve parar e perguntar ao Renato antes de prosseguir se:
 ## 13) Execução padrão para nova aba (exemplo: Aba 02)
 
 ### 13.1 Regra específica da Aba 02 (decisão do Renato)
+
 - **Aba 02 é única**, mas com separação TOTAL:
   - **ENDEREÇO** (onde fica)
   - **DOMICÍLIO/LOGÍSTICA** (condições de acesso/estrutura)
@@ -276,6 +316,7 @@ Você deve parar e perguntar ao Renato antes de prosseguir se:
   - e no DB (sem misturar domínios)
 
 ### 13.2 Processo por etapas (sem reduzir padrão enterprise)
+
 - Etapa 1: mapear/implementar ENDEREÇO completo e pronto
 - Etapa 2: mapear/implementar DOMICÍLIO/LOGÍSTICA completo e pronto
 - Cada etapa pode ser um PR, mas **sempre com governança completa**.
@@ -283,12 +324,15 @@ Você deve parar e perguntar ao Renato antes de prosseguir se:
 ---
 
 ## 14) Como se comunicar com o Renato (padrão de resposta)
+
 Sempre devolver em 3 camadas:
+
 1) **O que foi feito** (bullet list)
 2) **Por que foi feito** (curto, sem jargão)
 3) **Como validar** (passo a passo)
 
 Se houver dúvida:
+
 - Opção A / Opção B
 - impacto e risco
 - recomendação
@@ -299,6 +343,7 @@ Se houver dúvida:
 ## 15) Checklist final antes de pedir “pode mergear?”
 
 ### 15.1 Técnico
+
 - [ ] verify/build/lint/typecheck ok
 - [ ] migrations aplicam sem erro
 - [ ] types regenerados quando necessário
@@ -306,12 +351,14 @@ Se houver dúvida:
 - [ ] sem mudanças fora do escopo
 
 ### 15.2 Produto/UX
+
 - [ ] UI Dynamics consistente
 - [ ] view/edit correto
 - [ ] mensagens amigáveis
 - [ ] sem “cards soltos”
 
 ### 15.3 Docs
+
 - [ ] contrato atualizado
 - [ ] runbook atualizado se houve incidente
 - [ ] PR com evidências e roteiro de teste
@@ -320,7 +367,9 @@ Se houver dúvida:
 ---
 
 ## Encerramento
+
 Se você seguir este `gemini.md`, o Conecta Care:
+
 - mantém consistência enterprise
 - evita regressões e “bagunça”
 - evolui por contratos rastreáveis

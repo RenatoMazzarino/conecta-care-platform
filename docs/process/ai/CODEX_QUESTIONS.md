@@ -9,6 +9,7 @@ Este documento centraliza as perguntas críticas cujo desconhecimento pode levar
 Estas perguntas permanecem sem decisão final. Cada item está marcado como [ABERTA] e, quando útil, contém links para contexto ou backlog relacionado.
 
 ### Escalas
+
 1. [ABERTA] Quais são os status oficiais de um plantão (ex.: `Scheduled`, `Confirmed`, `InProgress`, `Completed`, `Missed`, `Cancelled`) e onde os registros de aprovação devem ser armazenados?
    - Contexto: visão geral em ../../architecture/SYSTEM_ARCHITECTURE.md (Seção 3) e padrões no guia de processo em ./CODEX_GUIDE.md; definição final pendente de contrato/ADR.
 2. [ABERTA] Qual é o fluxo de troca de plantão: quem pode solicitar, quem aprova e quais eventos de auditoria são mandatórios?
@@ -19,21 +20,24 @@ Estas perguntas permanecem sem decisão final. Cada item está marcado como [ABE
    - Contexto: dependerá de decisão operacional/financeira; sem contrato.
 
 ### Auditoria
-5. [ABERTA] Endpoint centralizado de auditoria e campos mínimos (actor, role, origem, geo/IP, payload): haverá serviço unificado? Quais tabelas/partições?
+
+1. [ABERTA] Endpoint centralizado de auditoria e campos mínimos (actor, role, origem, geo/IP, payload): haverá serviço unificado? Quais tabelas/partições?
    - Contexto: princípio “Auditabilidade Completa” em ../../architecture/SYSTEM_ARCHITECTURE.md (Seção 1); itens de backlog relacionados em ../../architecture/OPEN_TODO.md (P0: “Auditoria granular (core)” e “Serviço Auditoria/Histórico”).
-6. [ABERTA] As políticas de retenção e anonimização de dados (LGPD) afetam o histórico de auditoria? Qual período de retenção será adotado e como anonimizar sob pedido?
+2. [ABERTA] As políticas de retenção e anonimização de dados (LGPD) afetam o histórico de auditoria? Qual período de retenção será adotado e como anonimizar sob pedido?
    - Contexto: requer política/ADR; não definido.
-7. [ABERTA] Há endpoint unificado para “Histórico do Paciente” que consolide Escalas, GED e administrativos? Qual o contrato de payload/consulta?
+3. [ABERTA] Há endpoint unificado para “Histórico do Paciente” que consolide Escalas, GED e administrativos? Qual o contrato de payload/consulta?
    - Contexto: intenção indicada pela visão 360 (../../architecture/SYSTEM_ARCHITECTURE.md Seção 3) e pelo protótipo ../../../html/modelo_final_aparencia_pagina_do_paciente.htm; execução pendente (ver ../../architecture/OPEN_TODO.md P0 “Serviço Auditoria/Histórico”).
 
 ### Segurança / Multi-tenant
-8. [ABERTA] Quais são os papéis (roles) oficiais do sistema (ex.: admin da empresa, familiar, profissional, supervisor) e quais ações cada um pode executar nos módulos de Pacientes e Escalas?
+
+1. [ABERTA] Quais são os papéis (roles) oficiais do sistema (ex.: admin da empresa, familiar, profissional, supervisor) e quais ações cada um pode executar nos módulos de Pacientes e Escalas?
    - Contexto: isolamento por tenant está definido (../../runbooks/auth-tenancy.md), mas a matriz de autorização por papel está em aberto.
 
 ### Dados / Schema
-9. [ABERTA] Convenções de IDs legíveis (ex.: `PAC-000123`, `ESC-000123`): como/onde são gerados? São somente exibição ou persistidos no banco (e com unicidade por tenant)?
-10. [ABERTA] GED: onde os documentos serão armazenados (bucket Supabase, S3, etc.)? Como serão versionados e vinculados a entidades (paciente, escala, financeiro)?
-11. [ABERTA] Clínico/Financeiro/Inventário: quais datasets de sistemas externos existentes devemos espelhar versus criar do zero? Há prioridades/escopo mínimo?
+
+1. [ABERTA] Convenções de IDs legíveis (ex.: `PAC-000123`, `ESC-000123`): como/onde são gerados? São somente exibição ou persistidos no banco (e com unicidade por tenant)?
+2. [ABERTA] GED: onde os documentos serão armazenados (bucket Supabase, S3, etc.)? Como serão versionados e vinculados a entidades (paciente, escala, financeiro)?
+3. [ABERTA] Clínico/Financeiro/Inventário: quais datasets de sistemas externos existentes devemos espelhar versus criar do zero? Há prioridades/escopo mínimo?
 
 ---
 
@@ -53,11 +57,13 @@ Estas perguntas foram cobertas por documentos canônicos (contratos, runbooks ou
 ## Como propor novas perguntas
 
 Critérios mínimos (todas as condições abaixo):
+
 - Ser crítica: a falta da resposta pode causar retrabalho significativo/alinhamento quebrado.
 - Não ser óbvia: a resposta não está evidente nos contratos, runbooks ou arquitetura canônica após leitura rápida.
 - Ser específica: descreva claramente o problema/decisão esperada e o contexto onde será aplicada.
 
 Padrão de submissão:
+
 - Adicione sob “Perguntas Abertas (ativas)” com o marcador [ABERTA].
 - Inclua links de contexto (contrato, runbook, arquitetura, PR/issue) quando existirem.
 - Se a pergunta for completamente respondida posteriormente, mova para “Perguntas Respondidas (com links)” marcando [RESPONDIDA] e cite as fontes.
