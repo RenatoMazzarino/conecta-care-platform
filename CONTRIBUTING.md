@@ -16,10 +16,10 @@ Padrão de branches:
 
 ## Checks mínimos
 Antes de marcar PR como “Ready for review”, rode:
-- npm run lint
-- npm run typecheck
-- npm run build (quando aplicável)
-- (CI) Docs Link Check: o PR falhará se houver links relativos quebrados em `docs/` (job automático)
+- npm run verify (lint + typecheck + build + docs:links + docs:lint)
+- (CI) Docs Link Check: o PR falhará se houver links relativos quebrados em `docs/`
+- (CI) Docs Markdown Lint: o PR falhará se houver violações em `docs/`
+- (CI) Secrets Scan: o PR falhará se houver segredos detectados
 
 ## Governança de documentação
 - Toda mudança de comportamento deve atualizar a documentação correspondente no mesmo PR (Contratos, Runbooks, Arquitetura, Onboarding). PRs com docs desatualizadas podem ser bloqueados.
@@ -45,4 +45,3 @@ Antes de marcar PR como “Ready for review”, rode:
   YYYYMMDDHHMM_pacientes_abaXX_<slug>
 - Toda migration deve iniciar com:
   -- CONTRATO: docs/contracts/pacientes/ABAxx_....md
-

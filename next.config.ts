@@ -18,6 +18,9 @@ if (isProduction) {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  turbopack: {
+    root: __dirname,
+  },
   async headers() {
     return [
       {

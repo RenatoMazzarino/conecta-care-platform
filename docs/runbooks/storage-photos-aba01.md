@@ -1,36 +1,69 @@
- # Storage de Fotos — Pacientes ABA01 (rascunho)
- 
- Aviso: este runbook é um esqueleto inicial. Não substitui contratos nem a arquitetura canônica; serve para orientar políticas e fluxo operacional de upload/consulta de fotos.
- 
- - Contrato relacionado: [../contracts/pacientes/ABA01_DADOS_PESSOAIS.md](../contracts/pacientes/ABA01_DADOS_PESSOAIS.md)
- - Arquitetura canônica: [../architecture/SYSTEM_ARCHITECTURE.md](../architecture/SYSTEM_ARCHITECTURE.md)
- - Backlog: [../architecture/OPEN_TODO.md](../architecture/OPEN_TODO.md) — itens P1 "Runbooks (lacunas)"
- 
- ## Objetivo
- Definir diretrizes de armazenamento de fotos (ex.: avatar/documentação leve) para a Aba 01 de Pacientes com políticas alinhadas a multi-tenant e auditoria.
- 
- ## Escopo mínimo
- - Bucket dedicado (ex.: `patient-photos`).
- - Naming: `tenant/{tenant_id}/patients/{patient_id}/{uuid}.jpg`.
- - Metadados obrigatórios: `tenant_id`, `patient_id`, `uploader_id`, `content_type`, `created_at`.
- 
- ## Políticas/RLS (guidelines)
- - Leitura: restrita ao `tenant_id` do usuário; profissionais só leem pacientes habilitados ao seu escopo.
- - Escrita: apenas perfis autorizados para o paciente/tenant.
- - Público: evitar URLs públicas; preferir URLs assinadas de curta duração.
- 
- ## Fluxo de upload (alto nível)
- 1. Autenticar e obter `tenant_id` do token (app_metadata).
- 2. Solicitar URL assinada para upload (tempo curto; content-type validado).
- 3. Realizar upload direto; registrar evento de auditoria (`document.upload` ou similar) com `patient_id`/`tenant_id`.
- 
- ## Pendências/tarefas
- - [ ] Especificar bucket, políticas e RLS no Supabase (SQL/policies) com exemplos.
- - [ ] Definir tamanhos máximos, formatos aceitos e sanitização EXIF.
- - [ ] Definir expiracão das URLs assinadas (download/upload).
- - [ ] Atualizar `OPEN_TODO.md` com evidências quando implementado.
- 
- ---
- 
- ## Evidências
- - A serem adicionadas (PR/migrations/policies): vincular quando implementado.
+# Runbook — Storage de Fotos (Pacientes ABA01)
+
+Status: ATUAL — operacional.
+
+## Objetivo / quando usar
+
+Definir políticas e fluxo de upload/consulta de fotos de pacientes na Aba 01, com segurança multi-tenant.
+
+## Pré-requisitos
+
+- Supabase Storage habilitado.
+- Acesso admin ao projeto Supabase.
+- Contrato da Aba 01 atualizado.
+
+## Passo a passo (configuração)
+
+1) **Criar bucket privado**
+   - Nome sugerido: `patient-photos`.
+   - Desabilitar acesso público.
+2) **Definir convenção de path**
+   - `tenant/{tenant_id}/patients/{patient_id}/{uuid}.jpg`
+3) **Criar policies (Storage)**
+   - **SELECT**: permitido apenas para usuários do mesmo `tenant_id`.
+   - **INSERT**: permitido apenas para usuários autenticados do tenant.
+   - **DELETE**: apenas admins/roles autorizados.
+4) **Integrar no app**
+   - Upload via URL assinada (curta duração).
+   - Salvar apenas o path interno em `public.patients.photo_path`.
+   - Registrar evento em `audit_events` (ex.: `document.upload`).
+
+## Fluxo de upload (alto nível)
+
+1) Autenticar usuário e obter `tenant_id` do JWT.
+2) Solicitar URL assinada para upload.
+3) Enviar arquivo com `content-type` validado.
+4) Persistir path e metadados no banco.
+
+## Como validar sucesso
+
+- Upload de foto com usuário autenticado.
+- Leitura por usuário do mesmo tenant funciona.
+- Leitura por tenant diferente falha (RLS/policy).
+
+## Rollback / mitigação
+
+- Revogar policies problemáticas e bloquear novos uploads.
+- Remover URLs assinadas se houver vazamento.
+
+## Logs e rastreabilidade
+
+- `storage.objects` (Supabase).
+- `public.patients.photo_path`.
+- Eventos em `audit_events`.
+
+## Troubleshooting
+
+- **403 no upload**: policy ou `tenant_id` inválido.
+- **Arquivo não abre**: MIME type ou URL assinada expirada.
+- **Foto errada**: verificar path no banco.
+
+## Segurança e compliance (o que NÃO fazer)
+
+- Não usar URLs públicas para fotos sensíveis.
+- Não armazenar tokens/URLs assinadas no banco.
+- Não permitir acesso cross-tenant.
+
+## Evidências
+
+- Adicionar links de PR/migrations quando implementado.

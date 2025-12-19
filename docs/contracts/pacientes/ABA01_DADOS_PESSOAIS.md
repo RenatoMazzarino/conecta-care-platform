@@ -1,6 +1,7 @@
 # Contrato da Aba: Dados Pessoais
 
 ## 0) Metadados
+
 - Módulo: Pacientes
 - Aba: ABA01 — Dados Pessoais
 - Versão: 0.4
@@ -21,10 +22,12 @@
   - `src/types/patient.ts` (@deprecated: tipos provisórios/legado; evitar novos usos)
 
 ## 1) Objetivo da Aba
+
 - Capturar e manter dados civis e de contato do paciente (identificação + contato), com validações e normalização de dados (ex.: CPF e telefones), garantindo isolamento multi-tenant via `tenant_id` + RLS.
 - Perfis típicos: atendimento/recepção (cadastro), coordenação/enfermagem (consulta), administrativo (correções).
 
 ## 2) Estrutura de UI (Cards e Campos)
+
 - Layout alvo (Aba 01): `src/components/patient/DadosPessoaisTab.tsx`.
 - Shell da página do paciente (estilo “Dynamics”): `src/app/pacientes/[id]/PatientPageClient.tsx` (referência visual em `html/modelo_final_aparencia_pagina_do_paciente.htm`).
 - Cards/seções:
@@ -40,11 +43,13 @@
   - **Interno (auditoria)**: `created_by`, `updated_by`, `deleted_at`.
 
 Nota (fora da ABA01 / sem coluna em `public.patients`):
+
 - `has_legal_guardian` e `legal_guardian_status` vivem na **Aba Rede de Apoio**; na Aba 01 serão exibidos como **card derivado** via lógica do app.
 
 Tabela padrão por campo (obrigatória):
+
 | Card | Campo (label UI) | Nome técnico (schema.table.column) | Tipo PG | Tipo TS | Obrigatório | Default | Validações | Máscara | Descrição curta |
-|------|-------------------|------------------------|--------|--------|-------------|---------|-----------|--------|----------------|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | Foto do paciente | Foto do paciente | `public.patients.photo_path` | `text` | `string \| null` | Não | `NULL` | **path interno no Storage** (ex.: `patients/<id>/photo.jpg`); URL assinada só na exibição; não armazenar URL pública; trim; não permitir string vazia | — | Foto do paciente (path interno). |
 | Foto do paciente | Consentimento de foto | `public.patients.photo_consent` | `boolean` | `boolean` | Sim | `false` | — | toggle | Consentimento para uso/armazenamento de foto. |
 | Foto do paciente | Data do consentimento de foto | `public.patients.photo_consent_date` | `timestamptz` | `string \| null` | Não | `NULL` | — | — | Timestamp do consentimento de foto. |
@@ -110,13 +115,17 @@ Tabela padrão por campo (obrigatória):
 | Interno (auditoria) | Deletado em | `public.patients.deleted_at` | `timestamptz` | `string \| null` | Não | `NULL` | — | — | Soft delete (interno). |
 
 ## 3) Modelo de Dados (Banco)
+
 Tabela(s) envolvidas:
+
 - `public.patients` (somente colunas da ABA01 + metadados padrão).
 
 Governança (aprovada):
+
 - Legado (`schema_current.sql` + snapshots) é **referência de cobertura/estrutura**. O schema novo segue as decisões deste contrato, com divergências permitidas quando **explicitamente decididas e justificadas** aqui.
 
 Decisões explícitas (aprovadas):
+
 - `mobile_phone` é **obrigatório** (`NOT NULL`).
 - `gender` e `civil_status` são **TEXT + CHECK** (sem enum).
 - Exceções aprovadas (divergem do legado):
@@ -129,6 +138,7 @@ Decisões explícitas (aprovadas):
   - pós-ativação: `is_active = true` → `record_status in ('active', 'inactive', 'deceased', 'discharged', 'pending_financial')`
 
 Chaves e colunas mínimas:
+
 - PK: `public.patients.id` (`uuid`, default `gen_random_uuid()`).
 - Multi-tenant:
   - `public.patients.tenant_id` (`uuid`, **NOT NULL**, default `app_private.current_tenant_id()`).
@@ -140,6 +150,7 @@ Chaves e colunas mínimas:
   - `public.patients.deleted_at` (`timestamptz`, nullable; soft delete quando aplicável).
 
 Índices necessários (mínimo):
+
 - `patients_tenant_id_idx`: btree em `tenant_id`.
 - `patients_tenant_full_name_idx`: btree em (`tenant_id`, `lower(full_name)`), para busca por nome por tenant.
 - `patients_tenant_cpf_uidx`: **unique** em (`tenant_id`, `cpf`) com `WHERE cpf IS NOT NULL`.
@@ -147,6 +158,7 @@ Chaves e colunas mínimas:
 - `patients_tenant_onboarding_step_idx`: btree em (`tenant_id`, `onboarding_step`), para filtros de onboarding.
 
 Constraints/checks necessários (mínimo):
+
 - CPF:
   - check `cpf` com regex `^[0-9]{11}$` quando não nulo.
   - unicidade por tenant quando não nulo.
@@ -181,24 +193,31 @@ Constraints/checks necessários (mínimo):
     - Nome canônico da constraint: `patients_record_status_phase_check`
 
 ## 4) Segurança (RLS / Policies)
+
 RLS:
+
 - `public.patients`: **enabled**
 
 Policies (por tenant):
+
 - SELECT: permitir quando `tenant_id = app_private.current_tenant_id()` **e** `deleted_at IS NULL`.
 - INSERT: permitir quando `tenant_id = app_private.current_tenant_id()` (via `WITH CHECK`).
 - UPDATE: permitir quando `tenant_id = app_private.current_tenant_id()` **e** `deleted_at IS NULL` (via `USING` + `WITH CHECK`).
 - DELETE: permitir quando `tenant_id = app_private.current_tenant_id()` **e** `deleted_at IS NULL` (via `USING`).
 
 Observação sobre `tenant_id` + `app_private.current_tenant_id()`:
+
 - O `tenant_id` deve ser derivado do JWT (`auth.jwt()->>'tenant_id'`) e **nunca** retornar `NULL`.
 - Fallback seguro recomendado: permitir override explícito via `current_setting('app.tenant_id', true)` para seeds/local, e lançar erro se ausente.
 
 ## 5) Operações / Actions do App
+
 Leituras necessárias:
+
 - `getPatientById(patientId)`: retorna os campos da ABA01 de `public.patients` (por tenant) + metadados úteis (`updated_at`).
 
 Updates necessários:
+
 - `updatePatientDadosPessoais(patientId, payload)` onde `payload` contém **apenas** campos da ABA01:
   - Identificação/Perfil: `full_name`, `social_name`, `nickname`, `cpf`, `rg`, `rg_issuer`, `rg_issuer_state`, `rg_issued_at`,
     `date_of_birth`, `gender`, `gender_identity`, `pronouns`, `civil_status`, `preferred_language`,
@@ -221,27 +240,33 @@ Updates necessários:
   - validação do payload (ex.: `zod`) com erros claros (campo + mensagem).
 
 Regras de salvar/cancelar:
+
 - UI inicia em modo **view**.
 - Ao clicar em **Editar**, entrar em modo **edit** com formulário.
 - **Salvar** chama `updatePatientDadosPessoais`; sucesso volta para view e refetch/revalidate.
 - **Cancelar** descarta alterações locais e volta para view.
 
 Estados de UI:
+
 - `loading`: skeleton/spinner no conteúdo da aba.
 - `error`: mensagem + ação de tentar novamente.
 - `success`: toast/banner “Dados pessoais atualizados”.
 
 ## 6) Máscaras e Validações (detalhadas)
+
 CPF:
+
 - Entrada com máscara `000.000.000-00`.
 - Persistência: somente dígitos (`^[0-9]{11}$`).
 - Validar dígitos verificadores no app (antes do update).
 
 Telefone:
+
 - Entrada com máscara `(00) 00000-0000` (aceitar `(00) 0000-0000` quando aplicável).
 - Persistência: somente dígitos (aceitar 10–11 BR; opcional 12–13 com DDI).
 
 Domínios (selects / checks):
+
 - `gender`: `M`, `F`, `Outro`.
 - `civil_status`: `solteiro`, `casado`, `divorciado`, `viuvo`, `uniao_estavel`.
 - `gender_identity`: `Cisgenero`, `Transgenero`, `Nao Binario`, `Outro`, `Prefiro nao informar`.
@@ -257,44 +282,55 @@ Domínios (selects / checks):
 - `record_status`: `draft`, `onboarding`, `active`, `inactive`, `deceased`, `discharged`, `pending_financial` com regra de 2 fases via `is_active`.
 
 Método preferido de contato:
+
 - Campo opcional (`pref_contact_method`, single-select) com check (valores definidos no contrato).
 - Observação: multi-select por pessoa/contato será na **Aba Rede de Apoio** (futuro), não aqui.
 
 Email:
+
 - `trim()` + `toLowerCase()`.
 - Validar formato no app; no banco manter check simples (não substituir validação do app).
 
 Data:
+
 - UI usa `input[type=date]` (ISO `YYYY-MM-DD`).
 - Validar `<= hoje` e idade plausível.
 
 Nome:
+
 - `trim()`; colapsar espaços múltiplos; max 200.
 
 ## 7) Migrações previstas
+
 Base (fundação do schema):
+
 - `supabase/migrations/202512130452_base.sql`
   - schema `app_private`
   - função `app_private.current_tenant_id()` (não retorna `NULL`)
   - função/trigger `touch_updated_at`
 
 Aba 01 (criação inicial):
+
 - `supabase/migrations/202512130453_pacientes_aba01_dados_pessoais.sql`
   - cria `public.patients` (v0.2) + RLS/policies por tenant + trigger `updated_at`
 
 Aba 01 (extensão legado):
+
 - `supabase/migrations/202512130704_pacientes_aba01_dados_pessoais_extend_legado.sql`
   - adiciona colunas/checks do legado para cobertura (pronouns, gender_identity, education_level, race_color, consentimentos, status etc.)
   - ajusta policy de SELECT/UPDATE/DELETE para ignorar `deleted_at` (soft delete)
 
 Aba 01 (alinhamento final do contrato):
+
 - `supabase/migrations/202512131716_pacientes_aba01_align_final.sql`
   - renomeia para nomenclatura canônica do contrato (`photo_path`, `birth_place`, `naturalness_*`)
   - remove duplicidade `document_validation_method` (mantém `doc_validation_method`)
   - garante defaults/checks do status 2 fases e unicidade de CPF por tenant
 
 ## 8) Definição de Pronto (DoD)
+
 Checklist:
+
 - [ ] Contrato aprovado
 - [ ] Migration criada e aplicada no Supabase local
 - [ ] Tipos TS regenerados
@@ -305,10 +341,12 @@ Checklist:
 - [ ] Documentação do runbook atualizada
 
 Testes manuais mínimos (ABA01):
+
 - [ ] Abrir `/pacientes/[id]` e carregar dados reais do Supabase
 - [ ] Entrar em modo edição, alterar campos e salvar
 - [ ] Validar CPF inválido/telefone inválido/email inválido (erro de campo)
 - [ ] Garantir isolamento por tenant (um tenant não lê/atualiza outro)
 
 TODOs (não bloqueiam a ABA01):
+
 - TODO: definir bucket/policies do Storage para `photo_path` (sem expor URLs públicas indevidas).
