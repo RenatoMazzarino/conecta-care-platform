@@ -1,8 +1,8 @@
 # Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-20 05:05:21
+Data: 2025-12-20 06:24:45
 
-Total de links verificados: 119
+Total de links verificados: 120
 Links quebrados: 0
 
 **Nenhum link relativo quebrado encontrado.**
@@ -19,6 +19,7 @@ Links quebrados: 0
 - [docs/architecture/REPO_MAP.md] → "./SYSTEM_ARCHITECTURE.md" → OK
 - [docs/architecture/SYSTEM_ARCHITECTURE.md] → "./OPEN_TODO.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA01_DADOS_PESSOAIS.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA02_ENDERECO_LOGISTICA.md" → OK
 - [docs/contracts/README.md] → "./pacientes/INDEX.md" → OK
 - [docs/contracts/README.md] → "./prontuarios/INDEX.md" → OK
 - [docs/contracts/README.md] → "./agendamentos/INDEX.md" → OK

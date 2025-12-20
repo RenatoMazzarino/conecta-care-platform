@@ -33,11 +33,12 @@ IN
 - Governanca de IA, processos e orientacoes operacionais.
 - Links canonicos e stubs anti-drift.
 - Auditoria e evidencias de validacao.
+- Contratos e planos de abas quando solicitados (ex.: Aba Endereco & Logistica).
 
 OUT
-- Nao tocar Aba Endereco.
 - Nao implementar runtime de IA (SDKs, chamadas OpenAI/Anthropic/etc).
 - Nao alterar produto/UI fora de docs e links de governanca.
+- Nao implementar abas sem contrato aprovado (seguir Contrato -> Migrations -> Types -> Actions -> UI).
 
 ## 2) Hierarquia de fonte de verdade
 

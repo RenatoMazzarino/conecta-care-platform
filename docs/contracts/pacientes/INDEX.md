@@ -1,6 +1,6 @@
 # Índice de Contratos — Módulo Pacientes
 
-Status: ATUAL — módulo com contrato aprovado para ABA01.
+Status: ATUAL — ABA01 implementada; ABA02 em revisao.
 
 Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apontador canônico para os contratos do módulo e deve ser atualizado conforme novos contratos forem aprovados.
 
@@ -9,7 +9,7 @@ Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apont
 | ABA | Status | Contrato |
 | :-- | :----- | :------- |
 | ABA01 — Dados Pessoais | Implementado | [ABA01_DADOS_PESSOAIS.md](./ABA01_DADOS_PESSOAIS.md) |
-| ABA02 — Endereço & Logística | A definir | — |
+| ABA02 — Endereço & Logística | Em revisao | [ABA02_ENDERECO_LOGISTICA.md](./ABA02_ENDERECO_LOGISTICA.md) |
 | ABA03 — Rede de Apoio | A definir | — |
 | ABA04 — Administrativo | A definir | — |
 | ABA05 — Financeiro | A definir | — |
@@ -25,3 +25,4 @@ Notas:
 ## Evidências
 
 - Contrato ABA01 aprovado: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`.
+- Contrato ABA02 em revisao: `docs/contracts/pacientes/ABA02_ENDERECO_LOGISTICA.md`.
