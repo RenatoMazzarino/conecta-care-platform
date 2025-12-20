@@ -25,6 +25,8 @@ npm -v
 11.6.2
 ```
 
+Nota: baseline capturado em ambiente sem Node; o working tree nao estava limpo naquele momento.
+
 ## 1) Proposito e escopo (IN/OUT)
 
 IN
