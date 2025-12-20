@@ -14,7 +14,7 @@ Backlog técnico priorizado (máximo 15 itens), separado por criticidade. Manter
 - **UI Escalas (paciente/profissional)** — Owner: @RenatoMazzarino — DoD: telas na casca do módulo (Pacientes / estilo “Dynamics”) com command bar + header contextual + abas + cards, ações de aprovação/ocorrências (mock inicial permitido).
 - **Abas Financeiro/Clínico/Documentos/Histórico dinâmicas** — Owner: @RenatoMazzarino — DoD: conteúdo vindo de fonte real ou mock explícito mapeado; sem dados fictícios.
 - **Modelo mínimo de GED** — Owner: @RenatoMazzarino — DoD: metadados + vínculos com paciente/entidades operacionais descritos e compatíveis com auditoria.
-- **Proteção de branch** — Owner: @RenatoMazzarino — DoD: checks obrigatórios habilitados (CI + Docs Link Check + Docs Markdown Lint + Secrets Scan) nas regras de proteção da `main`. Evidência parcial: `docs/runbooks/branch-protection.md` + `docs/reviews/BRANCH_PROTECTION_CHECKLIST.md`.
+- **Proteção de branch** — Owner: @RenatoMazzarino — DoD: checks obrigatórios habilitados (CI + Docs Link Check + Docs Markdown Lint + Secrets Scan) nas regras de proteção da `main`. Evidência parcial: `docs/runbooks/branch-protection.md` + `docs/reviews/analise-governanca-estrutura-2025-12-19/BRANCH_PROTECTION_CHECKLIST.md`.
 
 ### Gaps de contratos (P1)
 
@@ -47,15 +47,15 @@ Backlog técnico priorizado (máximo 15 itens), separado por criticidade. Manter
 - (P0) **ADRs formais 001–006** — DoD cumprido (estrutura + decisões base).
   Evidências: `docs/architecture/decisions/` (ADRs 001–006 + índice + template), `docs/architecture/decisions/README.md`.
 - (P0) **CI: Docs Link Check** — DoD cumprido (job no CI; falha se houver link relativo quebrado).
-  Evidências: `.github/workflows/ci.yml` (job “Docs Link Check”), `docs/reviews/DOCS_LINK_CHECK.md`.
+  Evidências: `.github/workflows/ci.yml` (job “Docs Link Check”), `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`.
 - (P0) **Higiene de segredos (plano de rotação)** — DoD cumprido (política e passos).
-  Evidências: `docs/reviews/SECRETS_ROTATION.md`.
+  Evidências: `docs/reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md`.
 - (P1) **Pipeline de lint no CI** — DoD cumprido (`npm run lint` em CI).
   Evidências: `.github/workflows/ci.yml` (job “CI”).
 - (P1) **Índices/contratos por módulo/aba** — DoD cumprido (índices mínimos por módulo + gaps explícitos).
   Evidências: `docs/contracts/README.md`, `docs/contracts/*/INDEX.md`, `docs/MODULE_STATUS.md`.
 - (P1) **Runbooks (lacunas)** — DoD cumprido (runbooks operacionais completos).
-  Evidências: `docs/runbooks/auditoria-endpoint.md`, `docs/runbooks/storage-photos-aba01.md`, `docs/runbooks/security-incident-response.md`, `docs/runbooks/security-backups-access-rotation.md`, `docs/runbooks/security-secrets-scanning.md`, `docs/reviews/RUNBOOKS_FINAL_REVIEW.md`.
+  Evidências: `docs/runbooks/auditoria-endpoint.md`, `docs/runbooks/storage-photos-aba01.md`, `docs/runbooks/security-incident-response.md`, `docs/runbooks/security-backups-access-rotation.md`, `docs/runbooks/security-secrets-scanning.md`, `docs/reviews/analise-governanca-estrutura-2025-12-19/RUNBOOKS_FINAL_REVIEW.md`.
 - (P1) **Scripts npm (verify)** — DoD cumprido (verify agrega lint, typecheck, build, docs:links, docs:lint).
   Evidências: `package.json`, `scripts/docs-link-check.mjs`.
 - (P1) **README/CONTRIBUTING (governança)** — DoD cumprido.
@@ -63,7 +63,7 @@ Backlog técnico priorizado (máximo 15 itens), separado por criticidade. Manter
 - (P2) **Secret scanning no CI** — DoD cumprido (gitleaks com gate forte).
   Evidências: `.github/workflows/ci.yml` (job “Secrets Scan”), `.gitleaks.toml`, `docs/runbooks/security-secrets-scanning.md`.
 - (P2) **Docs Markdown Lint (gate forte)** — DoD cumprido (markdownlint hard gate + baseline zero).
-  Evidências: `.github/workflows/ci.yml` (job “Docs Markdown Lint”), `.markdownlint.jsonc`, `docs/reviews/DOCS_MARKDOWN_LINT.md`.
+  Evidências: `.github/workflows/ci.yml` (job “Docs Markdown Lint”), `.markdownlint.jsonc`, `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_MARKDOWN_LINT.md`.
 - (P0) **API Pacientes (Supabase)** — DoD cumprido (DTOs alinhados ao schema real; listagem/detalhe consumindo API real, sem campos inventados).
   Evidências: `docs/reviews/PR_FEAT_PACIENTES_ABA01.md`, `src/features/pacientes/actions/*`, `src/types/supabase.ts`.
 - (P0) **Schema paciente formalizado** — DoD cumprido (tabela/documentação + constraints no repositório).

@@ -18,7 +18,7 @@ Este documento serve como um registro cronológico (timeline) das análises, dec
     - Contradições entre documentos.
     - Informações desatualizadas ou obsoletas.
     - Duplicidade de conteúdo.
-- **Resultado Esperado:** Um relatório (`docs/reviews/DOCS_AUDIT_REPORT.md`) detalhando os problemas encontrados, com o objetivo de preparar uma reorganização.
+- **Resultado Esperado:** Um relatório (`docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md`) detalhando os problemas encontrados, com o objetivo de preparar uma reorganização.
 
 ### 3. Reorganização da Documentação (`docs/`)
 
@@ -36,7 +36,7 @@ Este documento serve como um registro cronológico (timeline) das análises, dec
     2. **Criação de `docs/MODULE_STATUS.md`:** Um novo arquivo para centralizar o status de cada módulo da plataforma (ex: Pacientes, Financeiro), indicando seu estágio atual (Implementado, Em contrato, etc.) e linkando para a documentação relevante.
     3. **Criação da pasta `docs/process/ai/`:** Documentos relacionados ao processo de trabalho com a IA (`CODEX_GUIDE`, `AI_TOOLING`, etc.) foram movidos para esta nova pasta para separá-los da arquitetura do *software*. Um `README.md` foi adicionado para contextualizar o propósito da pasta.
     4. **Preservação do Histórico:** As movimentações de arquivos foram feitas utilizando `git mv` para garantir que o histórico de commits não fosse perdido.
-    5. **Registro das Alterações:** Um resumo das mudanças foi planejado para ser registrado em `docs/reviews/DOCS_RESTRUCTURE_SUMMARY.md`.
+    5. **Registro das Alterações:** Um resumo das mudanças foi planejado para ser registrado em `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_RESTRUCTURE_SUMMARY.md`.
 
 ### 4. Percepções Iniciais do Assistente
 

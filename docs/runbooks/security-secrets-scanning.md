@@ -39,7 +39,7 @@ Garantir que nenhum segredo seja versionado. Usar este runbook para:
 2) Identificar o arquivo/linha sinalizados.
 3) Se for segredo real:
    - Remover do repo imediatamente.
-   - Rotacionar usando `docs/reviews/SECRETS_ROTATION.md`.
+   - Rotacionar usando `docs/reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md`.
    - Abrir incidente conforme `docs/runbooks/security-incident-response.md`.
 4) Se for falso positivo:
    - Justificar por escrito (por que não é segredo).

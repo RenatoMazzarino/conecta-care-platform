@@ -58,14 +58,14 @@ Subitens e linha-a-linha:
 
 - [x] Confirmar política de ignorar `.env*` no VCS via `.gitignore` (já presente) — Evidência: `.gitignore` existente.
 - [x] Verificar existência de `.env*` versionados para remoção do índice do Git — Resultado: nenhum arquivo `.env*` versionado; tentativa de `git rm --cached` confirmou ausência.
-- [x] Criar/atualizar plano formal de rotação de chaves Supabase (ANON, SERVICE ROLE), escopo e instruções — Documento: [`docs/reviews/SECRETS_ROTATION.md`](../reviews/SECRETS_ROTATION.md).
+- [x] Criar/atualizar plano formal de rotação de chaves Supabase (ANON, SERVICE ROLE), escopo e instruções — Documento: [`docs/reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md`](./SECRETS_ROTATION.md).
 - [x] Documentar higienização local e exemplos — Exemplos existentes confirmados: `*.example` para ambientes locais/online.
 - [x] Adotar varredura automatizada de segredos em PRs (gitleaks) — CONCLUÍDO. Evidências: `.github/workflows/ci.yml` (job “Secrets Scan”), `.gitleaks.toml`, `docs/runbooks/security-secrets-scanning.md`.
 
 Entregas P0 ligadas a este item:
 
-- Plano de rotação: [`SECRETS_ROTATION.md`](../reviews/SECRETS_ROTATION.md).
-- Configuração de secret scanning: [`.gitleaks.toml`](../../.gitleaks.toml) + runbook [`security-secrets-scanning.md`](../runbooks/security-secrets-scanning.md).
+- Plano de rotação: [`SECRETS_ROTATION.md`](./SECRETS_ROTATION.md).
+- Configuração de secret scanning: [`.gitleaks.toml`](../../../.gitleaks.toml) + runbook [`security-secrets-scanning.md`](../../runbooks/security-secrets-scanning.md).
 
 ---
 
@@ -75,17 +75,17 @@ Objetivo: garantir que PRs não quebrem o build nem a documentação.
 
 Subitens e linha-a-linha:
 
-- [x] Adicionar job de verificação de links de documentação (quebra PR se houver links relativos quebrados) — Arquivo: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
+- [x] Adicionar job de verificação de links de documentação (quebra PR se houver links relativos quebrados) — Arquivo: [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml).
 - [x] Endurecer o workflow (concurrency, Node fixado, nomes estáveis e upload de artefatos) — CONCLUÍDO.
 - [x] Adicionar Docs Markdown Lint como gate forte — CONCLUÍDO (job “Docs Markdown Lint”).
 - [x] Validar localmente `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run verify` — Todos passaram (ver seção Evidências).
-- [x] Tornar jobs obrigatórios na proteção de branch (config UI do GitHub) — CONCLUÍDO. Evidência: [`docs/runbooks/branch-protection.md`](../runbooks/branch-protection.md) + checklist [`BRANCH_PROTECTION_CHECKLIST.md`](../reviews/BRANCH_PROTECTION_CHECKLIST.md).
+- [x] Tornar jobs obrigatórios na proteção de branch (config UI do GitHub) — CONCLUÍDO. Evidência: [`docs/runbooks/branch-protection.md`](../../runbooks/branch-protection.md) + checklist [`BRANCH_PROTECTION_CHECKLIST.md`](./BRANCH_PROTECTION_CHECKLIST.md).
 
 Entregas P0 ligadas a este item:
 
-- Workflow de CI (CI, Docs Link Check, Docs Markdown Lint, Secrets Scan): [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml).
-- Relatório de links: [`docs/reviews/DOCS_LINK_CHECK.md`](../reviews/DOCS_LINK_CHECK.md).
-- Relatório de markdownlint: [`docs/reviews/DOCS_MARKDOWN_LINT.md`](../reviews/DOCS_MARKDOWN_LINT.md).
+- Workflow de CI (CI, Docs Link Check, Docs Markdown Lint, Secrets Scan): [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml).
+- Relatório de links: [`docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`](./DOCS_LINK_CHECK.md).
+- Relatório de markdownlint: [`docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_MARKDOWN_LINT.md`](./DOCS_MARKDOWN_LINT.md).
 
 ---
 
@@ -97,19 +97,19 @@ Subitens e linha-a-linha:
 
 - [x] Criar estrutura `docs/architecture/decisions/` com índice e template — Entregue.
 - [x] Redigir ADRs base (001–006):
-  - [x] ADR-001: Contract-Driven Development — [`ADR-001-contract-driven-development.md`](../architecture/decisions/ADR-001-contract-driven-development.md)
-  - [x] ADR-002: Multi-tenant + RLS — [`ADR-002-multi-tenant-rls.md`](../architecture/decisions/ADR-002-multi-tenant-rls.md)
-  - [x] ADR-003: Soft delete — [`ADR-003-soft-delete.md`](../architecture/decisions/ADR-003-soft-delete.md)
-  - [x] ADR-004: UI padrão Dynamics — [`ADR-004-ui-dynamics-standard.md`](../architecture/decisions/ADR-004-ui-dynamics-standard.md)
-  - [x] ADR-005: Tenancy via `app_metadata` no JWT — [`ADR-005-tenancy-app-metadata-jwt.md`](../architecture/decisions/ADR-005-tenancy-app-metadata-jwt.md)
-  - [x] ADR-006: Política de e-mail no DB (check simples; validação forte no app) — [`ADR-006-email-validation-db-policy.md`](../architecture/decisions/ADR-006-email-validation-db-policy.md)
+  - [x] ADR-001: Contract-Driven Development — [`ADR-001-contract-driven-development.md`](../../architecture/decisions/ADR-001-contract-driven-development.md)
+  - [x] ADR-002: Multi-tenant + RLS — [`ADR-002-multi-tenant-rls.md`](../../architecture/decisions/ADR-002-multi-tenant-rls.md)
+  - [x] ADR-003: Soft delete — [`ADR-003-soft-delete.md`](../../architecture/decisions/ADR-003-soft-delete.md)
+  - [x] ADR-004: UI padrão Dynamics — [`ADR-004-ui-dynamics-standard.md`](../../architecture/decisions/ADR-004-ui-dynamics-standard.md)
+  - [x] ADR-005: Tenancy via `app_metadata` no JWT — [`ADR-005-tenancy-app-metadata-jwt.md`](../../architecture/decisions/ADR-005-tenancy-app-metadata-jwt.md)
+  - [x] ADR-006: Política de e-mail no DB (check simples; validação forte no app) — [`ADR-006-email-validation-db-policy.md`](../../architecture/decisions/ADR-006-email-validation-db-policy.md)
 - [x] Incluir apontador para ADRs no hub `docs/README.md` — CONCLUÍDO em P1 (item 4). Link adicionado para `./architecture/decisions/`.
 - [x] Padronizar ADRs (Owner + Alternativas consideradas) e atualizar índice em tabela — CONCLUÍDO.
 
 Entregas P0 ligadas a este item:
 
-- Pasta e ADRs: [`docs/architecture/decisions/`](../architecture/decisions/)
-- Índice em tabela: [`docs/architecture/decisions/README.md`](../architecture/decisions/README.md)
+- Pasta e ADRs: [`docs/architecture/decisions/`](../../architecture/decisions/)
+- Índice em tabela: [`docs/architecture/decisions/README.md`](../../architecture/decisions/README.md)
 
 ---
 
@@ -126,8 +126,8 @@ Subitens e linha-a-linha:
 - [x] Revisar todos os “satélites” e garantir apontamento para docs canônicos (ex.: `SYSTEM_ARCHITECTURE.md`). Status: verificado — `ARCHITECTURE_REAL.md` e `REPO_MAP.md` já são satélites mínimos; `CODEX_GUIDE.md` contém aviso de canonicidade e seção de notas arquivadas.
 - [x] Marcar e mover conteúdo histórico para seções “Arquivado/Histórico” sem apagar fatos (manter links). Status: concluído — movidos `docs/code-review.md` e `docs/research/PROJECT_IMMERSION_REPORT.md` para `docs/archive/` (evidência em `DOCS_CONSOLIDATION_FINAL.md`).
 - [x] Centralizar políticas/processos em `docs/process/` e evitar duplicação em `runbooks/` e `architecture/`. Status: verificado — sem duplicações novas após revisão.
-- [x] Reexecutar link-check e atualizar [`DOCS_LINK_CHECK.md`](../reviews/DOCS_LINK_CHECK.md). Status: executado — sem links relativos quebrados; relatório atualizado.
-  - Evidência adicional: [`DOCS_CONSOLIDATION_FINAL.md`](../reviews/DOCS_CONSOLIDATION_FINAL.md).
+- [x] Reexecutar link-check e atualizar [`DOCS_LINK_CHECK.md`](./DOCS_LINK_CHECK.md). Status: executado — sem links relativos quebrados; relatório atualizado.
+  - Evidência adicional: [`DOCS_CONSOLIDATION_FINAL.md`](./DOCS_CONSOLIDATION_FINAL.md).
 
 Critérios de aceite:
 
@@ -142,10 +142,10 @@ Objetivo: cobertura clara de contratos por módulo e por aba, com status.
 
 Subitens e linha-a-linha:
 
-- [x] Expandir [`docs/MODULE_STATUS.md`](../MODULE_STATUS.md) com colunas: Módulo, Abas, Contratos, Runbooks, Status, Evidência (PR/migration). — CONCLUÍDO
-- [x] Criar template de índice por módulo — CONCLUÍDO: [`docs/contracts/_templates/MODULE_INDEX_TEMPLATE.md`](../contracts/_templates/MODULE_INDEX_TEMPLATE.md)
+- [x] Expandir [`docs/MODULE_STATUS.md`](../../MODULE_STATUS.md) com colunas: Módulo, Abas, Contratos, Runbooks, Status, Evidência (PR/migration). — CONCLUÍDO
+- [x] Criar template de índice por módulo — CONCLUÍDO: [`docs/contracts/_templates/MODULE_INDEX_TEMPLATE.md`](../../contracts/_templates/MODULE_INDEX_TEMPLATE.md)
 - [x] Criar/atualizar índices por módulo (Pacientes, Prontuários, Agendamentos, Escalas, Financeiro, Home Care Ops, Inventário, Configurações). — CONCLUÍDO
-- [x] Relacionar gaps de contratos no [`OPEN_TODO.md`](../architecture/OPEN_TODO.md) com prioridade P1 e link de evidência. — CONCLUÍDO (seção "Gaps de contratos (P1)")
+- [x] Relacionar gaps de contratos no [`OPEN_TODO.md`](../../architecture/OPEN_TODO.md) com prioridade P1 e link de evidência. — CONCLUÍDO (seção "Gaps de contratos (P1)")
 
 Critérios de aceite:
 
@@ -173,9 +173,9 @@ Objetivo: eliminar lacunas operacionais e alinhar com canônicos.
 Subitens e linha-a-linha:
 
 - [x] Identificar runbooks faltantes (exemplos do diagnóstico anterior: políticas de Storage para fotos em ABA01; endpoint unificado de Auditoria).
-- [x] Completar runbooks com conteúdo operacional (sem esqueleto). — CONCLUÍDO: [`runbooks/auditoria-endpoint.md`](../runbooks/auditoria-endpoint.md) e [`runbooks/storage-photos-aba01.md`](../runbooks/storage-photos-aba01.md)
-- [x] Incluir runbooks de segurança operacionais e linkar no ONBOARDING — CONCLUÍDO: [`security-incident-response.md`](../runbooks/security-incident-response.md), [`security-backups-access-rotation.md`](../runbooks/security-backups-access-rotation.md), [`security-secrets-scanning.md`](../runbooks/security-secrets-scanning.md)
-- [x] Revisão final registrada — [`RUNBOOKS_FINAL_REVIEW.md`](../reviews/RUNBOOKS_FINAL_REVIEW.md)
+- [x] Completar runbooks com conteúdo operacional (sem esqueleto). — CONCLUÍDO: [`runbooks/auditoria-endpoint.md`](../../runbooks/auditoria-endpoint.md) e [`runbooks/storage-photos-aba01.md`](../../runbooks/storage-photos-aba01.md)
+- [x] Incluir runbooks de segurança operacionais e linkar no ONBOARDING — CONCLUÍDO: [`security-incident-response.md`](../../runbooks/security-incident-response.md), [`security-backups-access-rotation.md`](../../runbooks/security-backups-access-rotation.md), [`security-secrets-scanning.md`](../../runbooks/security-secrets-scanning.md)
+- [x] Revisão final registrada — [`RUNBOOKS_FINAL_REVIEW.md`](./RUNBOOKS_FINAL_REVIEW.md)
 
 ---
 
@@ -230,30 +230,30 @@ Subitens e linha-a-linha:
 
 ## Evidências e referências
 
-- CI (jobs estáveis: CI, Docs Link Check, Docs Markdown Lint, Secrets Scan): [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
-- Relatório de links: [`docs/reviews/DOCS_LINK_CHECK.md`](../reviews/DOCS_LINK_CHECK.md)
-- Relatório de markdownlint: [`docs/reviews/DOCS_MARKDOWN_LINT.md`](../reviews/DOCS_MARKDOWN_LINT.md)
-- Secret scanning: [`.gitleaks.toml`](../../.gitleaks.toml) + [`docs/runbooks/security-secrets-scanning.md`](../runbooks/security-secrets-scanning.md)
-- Plano de rotação de segredos: [`docs/reviews/SECRETS_ROTATION.md`](../reviews/SECRETS_ROTATION.md)
-- ADRs 001–006 + índice/template: [`docs/architecture/decisions/`](../architecture/decisions/)
-- Sistema de arquitetura (canônico): [`docs/architecture/SYSTEM_ARCHITECTURE.md`](../architecture/SYSTEM_ARCHITECTURE.md)
-- Backlog técnico: [`docs/architecture/OPEN_TODO.md`](../architecture/OPEN_TODO.md)
-- Hub de documentação: [`docs/README.md`](../README.md)
-- Índices de contratos por módulo: [`docs/contracts/README.md`](../contracts/README.md)
-- Onboarding: [`docs/runbooks/ONBOARDING.md`](../runbooks/ONBOARDING.md)
-- Status de módulos: [`docs/MODULE_STATUS.md`](../MODULE_STATUS.md)
-- Protótipos HTML (não canônicos): [`html/README.md`](../../html/README.md)
-- Workflow de migrations (rastreabilidade): [`docs/runbooks/migrations-workflow.md`](../runbooks/migrations-workflow.md)
-- STYLE GUIDE: [`docs/STYLE_GUIDE.md`](../STYLE_GUIDE.md)
-- Templates de Issue: [`.github/ISSUE_TEMPLATE/`](../../.github/ISSUE_TEMPLATE/)
-- CODEOWNERS: [`.github/CODEOWNERS`](../../.github/CODEOWNERS)
-- PR template: [`.github/pull_request_template.md`](../../.github/pull_request_template.md)
-- Normalização de EOL: [`.gitattributes`](../../.gitattributes)
-- Consolidação/histórico: [`docs/reviews/DOCS_CONSOLIDATION_FINAL.md`](../reviews/DOCS_CONSOLIDATION_FINAL.md) + `docs/archive/`
-- Runbooks operacionais: [`docs/reviews/RUNBOOKS_FINAL_REVIEW.md`](../reviews/RUNBOOKS_FINAL_REVIEW.md)
-- Branch protection: [`docs/runbooks/branch-protection.md`](../runbooks/branch-protection.md) + [`docs/reviews/BRANCH_PROTECTION_CHECKLIST.md`](../reviews/BRANCH_PROTECTION_CHECKLIST.md)
-- Script local de link-check: [`scripts/docs-link-check.mjs`](../../scripts/docs-link-check.mjs)
-- Scripts npm: [`package.json`](../../package.json) — `verify`, `docs:links`, `docs:lint`
+- CI (jobs estáveis: CI, Docs Link Check, Docs Markdown Lint, Secrets Scan): [`.github/workflows/ci.yml`](../../../.github/workflows/ci.yml)
+- Relatório de links: [`docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`](./DOCS_LINK_CHECK.md)
+- Relatório de markdownlint: [`docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_MARKDOWN_LINT.md`](./DOCS_MARKDOWN_LINT.md)
+- Secret scanning: [`.gitleaks.toml`](../../../.gitleaks.toml) + [`docs/runbooks/security-secrets-scanning.md`](../../runbooks/security-secrets-scanning.md)
+- Plano de rotação de segredos: [`docs/reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md`](./SECRETS_ROTATION.md)
+- ADRs 001–006 + índice/template: [`docs/architecture/decisions/`](../../architecture/decisions/)
+- Sistema de arquitetura (canônico): [`docs/architecture/SYSTEM_ARCHITECTURE.md`](../../architecture/SYSTEM_ARCHITECTURE.md)
+- Backlog técnico: [`docs/architecture/OPEN_TODO.md`](../../architecture/OPEN_TODO.md)
+- Hub de documentação: [`docs/README.md`](../../README.md)
+- Índices de contratos por módulo: [`docs/contracts/README.md`](../../contracts/README.md)
+- Onboarding: [`docs/runbooks/ONBOARDING.md`](../../runbooks/ONBOARDING.md)
+- Status de módulos: [`docs/MODULE_STATUS.md`](../../MODULE_STATUS.md)
+- Protótipos HTML (não canônicos): [`html/README.md`](../../../html/README.md)
+- Workflow de migrations (rastreabilidade): [`docs/runbooks/migrations-workflow.md`](../../runbooks/migrations-workflow.md)
+- STYLE GUIDE: [`docs/STYLE_GUIDE.md`](../../STYLE_GUIDE.md)
+- Templates de Issue: [`.github/ISSUE_TEMPLATE/`](../../../.github/ISSUE_TEMPLATE/)
+- CODEOWNERS: [`.github/CODEOWNERS`](../../../.github/CODEOWNERS)
+- PR template: [`.github/pull_request_template.md`](../../../.github/pull_request_template.md)
+- Normalização de EOL: [`.gitattributes`](../../../.gitattributes)
+- Consolidação/histórico: [`docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_CONSOLIDATION_FINAL.md`](./DOCS_CONSOLIDATION_FINAL.md) + `docs/archive/`
+- Runbooks operacionais: [`docs/reviews/analise-governanca-estrutura-2025-12-19/RUNBOOKS_FINAL_REVIEW.md`](./RUNBOOKS_FINAL_REVIEW.md)
+- Branch protection: [`docs/runbooks/branch-protection.md`](../../runbooks/branch-protection.md) + [`docs/reviews/analise-governanca-estrutura-2025-12-19/BRANCH_PROTECTION_CHECKLIST.md`](./BRANCH_PROTECTION_CHECKLIST.md)
+- Script local de link-check: [`scripts/docs-link-check.mjs`](../../../scripts/docs-link-check.mjs)
+- Scripts npm: [`package.json`](../../../package.json) — `verify`, `docs:links`, `docs:lint`
 
 ---
 
@@ -278,7 +278,7 @@ Subitens e linha-a-linha:
 - 2025-12-17: P2.17 — automação de docs ativa: job de lint de Markdown (soft) com markdownlint-cli2 e config conservadora; Link Check segue como gate forte.
 - 2025-12-17: P2.18 — segurança operacional: criados runbooks (incident-response, backups/access/rotation) e ONBOARDING atualizado.
 - 2025-12-18: P0.1 — secret scanning gitleaks (CI + config) e runbook de varredura; `SECRETS_ROTATION.md` elevado a operacional.
-- 2025-12-18: P0.2/P2.17 — CI hardening (concurrency, nomes estáveis, artefatos) + markdownlint hard gate + link-check com âncoras; relatórios em `docs/reviews/`.
+- 2025-12-18: P0.2/P2.17 — CI hardening (concurrency, nomes estáveis, artefatos) + markdownlint hard gate + link-check com âncoras; relatórios em `docs/reviews/analise-governanca-estrutura-2025-12-19/`.
 - 2025-12-18: P1.4/P2.15 — consolidação final: docs históricos movidos para `docs/archive/` e registro em `DOCS_CONSOLIDATION_FINAL.md`.
 - 2025-12-18: P1.5/P1.6 — índices por módulo + template; OPEN_TODO com owners e GitHub Issues Mapping.
 - 2025-12-18: P1.7/P2.18 — runbooks completados e revisão final registrada (`RUNBOOKS_FINAL_REVIEW.md`).

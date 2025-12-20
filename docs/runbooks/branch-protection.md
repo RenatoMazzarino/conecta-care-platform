@@ -44,7 +44,7 @@ Ativar proteções na `main` para garantir merge via PR com checks obrigatórios
 
 - Faça um print da tela **Settings → Branches** mostrando a regra `main`.
 - Faça um print da seção **Required status checks** com os nomes dos jobs.
-- Anexe as imagens ou descreva a validação no arquivo `docs/reviews/BRANCH_PROTECTION_CHECKLIST.md`.
+- Anexe as imagens ou descreva a validação no arquivo `docs/reviews/analise-governanca-estrutura-2025-12-19/BRANCH_PROTECTION_CHECKLIST.md`.
 
 ## Rollback / mitigação
 

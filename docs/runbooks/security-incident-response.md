@@ -10,7 +10,7 @@ Responder de forma padronizada a incidentes de segurança (vazamento de segredos
 
 - Acesso administrativo ao repositório e ao Supabase.
 - Acesso aos logs da aplicação/infra.
-- Plano de rotação de segredos: [`SECRETS_ROTATION.md`](../reviews/SECRETS_ROTATION.md).
+- Plano de rotação de segredos: [`SECRETS_ROTATION.md`](../reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md).
 
 ## Classificação de severidade (exemplo)
 

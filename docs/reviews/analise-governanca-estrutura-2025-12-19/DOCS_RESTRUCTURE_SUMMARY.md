@@ -25,7 +25,7 @@ Data: 2025-12-17
 
 - [x] Atualização/validação de links na documentação
   - Passagem de verificação em arquivos-chave: `docs/architecture/SYSTEM_ARCHITECTURE.md`, `docs/runbooks/ONBOARDING.md`, `docs/runbooks/pacientes-aba01-troubleshooting.md`, `docs/process/ai/README.md` e os guias de IA acima.
-  - Nenhum link relativo quebrado encontrado após a consolidação (ver `docs/reviews/DOCS_LINK_CHECK.md`).
+  - Nenhum link relativo quebrado encontrado após a consolidação (ver `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`).
 
 - [x] Redução de sobreposição entre arquitetura e guias de IA
   - `docs/process/ai/CODEX_GUIDE.md`: adicionado aviso de canonicidade e substituída a seção "Arquitetura atual do repo (real)" por link para o documento canônico `docs/architecture/SYSTEM_ARCHITECTURE.md`.

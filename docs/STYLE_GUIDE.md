@@ -25,7 +25,7 @@ Este guia padroniza a escrita dos documentos do repositório para reduzir ambigu
   - Decisões: docs/architecture/decisions/
   - Contratos: docs/contracts/
   - Runbooks: docs/runbooks/
-  - Plano/Backlog: docs/reviews/PLANO_GOVERNANCA_REPO_P0-P3.md e docs/architecture/OPEN_TODO.md
+  - Plano/Backlog: docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md e docs/architecture/OPEN_TODO.md
 - O CI falha PRs com links relativos quebrados (job “Docs Link Check”).
 - O CI falha PRs com violações de markdownlint em `docs/` (job “Docs Markdown Lint”).
 
