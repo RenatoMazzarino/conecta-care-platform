@@ -154,6 +154,9 @@ const useStyles = makeStyles({
       gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     },
   },
+  addressSelect: {
+    minWidth: '220px',
+  },
   fieldGroup: {
     display: 'grid',
     gap: '16px',
@@ -197,6 +200,19 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     textTransform: 'uppercase',
     letterSpacing: '.3px',
+  },
+  riskBadge: {
+    cursor: 'default',
+    borderRadius: '999px',
+    padding: '2px 10px',
+    fontSize: '11px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '.4px',
+  },
+  riskMeta: {
+    fontSize: '12px',
+    color: tokens.colorNeutralForeground3,
   },
   note: {
     margin: 0,
@@ -449,8 +465,7 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
       return addresses.map((address) => ({
         id: address.id,
         label: address.address_label ?? 'Endereco',
-        city: address.city,
-        state: address.state,
+        location: [address.city, address.state].filter(Boolean).join('/'),
         isPrimary: address.is_primary,
       }));
     }, [addresses]);
@@ -585,9 +600,9 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
       [handleCancelEdit, handleSave, handleStartEdit, reload],
     );
 
-    const handleAddressChange = (patch: Partial<PatientAddressUpsert>) => {
+    const handleAddressChange = useCallback((patch: Partial<PatientAddressUpsert>) => {
       setDraftAddress((prev) => (prev ? { ...prev, ...patch } : prev));
-    };
+    }, []);
 
     const handleLogisticsChange = (patch: Partial<PatientAddressLogistics>) => {
       setDraftLogistics((prev) => (prev ? { ...prev, ...patch } : prev));
@@ -611,6 +626,27 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
       setDraftLogistics(buildLogisticsDraft(null));
       setIsEditing(true);
     };
+
+    const handleSetPrimary = useCallback(() => {
+      if (!selectedAddressId || !draftAddress) return;
+      if (!isEditing) {
+        handleStartEdit();
+      }
+      handleAddressChange({ is_primary: true });
+      setCurrentAddress((prev) => (prev ? { ...prev, is_primary: true } : prev));
+      setAddresses((prev) =>
+        prev.map((addr) => ({
+          ...addr,
+          is_primary: addr.id === selectedAddressId,
+        })),
+      );
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Endereço marcado como primário</ToastTitle>
+        </Toast>,
+        { intent: 'info' },
+      );
+    }, [dispatchToast, draftAddress, handleAddressChange, handleStartEdit, isEditing, selectedAddressId]);
 
     const handleCepLookup = async () => {
       if (!draftAddress) return;
@@ -734,15 +770,6 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
       if (!draftAddress) return;
       const cityUf = draftAddress.city && draftAddress.state ? `${draftAddress.city}/${draftAddress.state}` : draftAddress.city;
       const formattedAddress = `${draftAddress.street}, ${draftAddress.number}`;
-      const mapsUrl =
-        draftAddress.latitude != null && draftAddress.longitude != null
-          ? `https://www.google.com/maps?q=${draftAddress.latitude},${draftAddress.longitude}`
-          : null;
-      const wazeUrl =
-        draftAddress.latitude != null && draftAddress.longitude != null
-          ? `https://waze.com/ul?ll=${draftAddress.latitude},${draftAddress.longitude}&navigate=yes`
-          : null;
-
       const parts = [
         patientName ? `Paciente: ${patientName}` : null,
         formattedAddress,
@@ -756,16 +783,18 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
       ].filter(Boolean) as string[];
 
       const text = parts.join('\n');
+      const clipboardPayload = mapsUrl ?? moovitUrl ?? wazeUrl ?? text;
+      const clipboardMessage = mapsUrl || moovitUrl || wazeUrl ? 'Link copiado para o clipboard' : 'Informação copiada para o clipboard';
 
       try {
         if (navigator.share) {
-          await navigator.share({ text });
+          await navigator.share({ text: clipboardPayload });
           return;
         }
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(clipboardPayload);
         dispatchToast(
           <Toast>
-            <ToastTitle>Localizacao copiada</ToastTitle>
+            <ToastTitle>{clipboardMessage}</ToastTitle>
           </Toast>,
           { intent: 'success' },
         );
@@ -835,14 +864,25 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
       );
     }
 
-    const mapsUrl =
-      draftAddress.latitude != null && draftAddress.longitude != null
-        ? `https://www.google.com/maps?q=${draftAddress.latitude},${draftAddress.longitude}`
-        : null;
-    const wazeUrl =
-      draftAddress.latitude != null && draftAddress.longitude != null
-        ? `https://waze.com/ul?ll=${draftAddress.latitude},${draftAddress.longitude}&navigate=yes`
-        : null;
+    const hasCoords = draftAddress.latitude != null && draftAddress.longitude != null;
+    const mapsUrl = hasCoords ? `https://www.google.com/maps?q=${draftAddress.latitude},${draftAddress.longitude}` : null;
+    const wazeUrl = hasCoords
+      ? `https://waze.com/ul?ll=${draftAddress.latitude},${draftAddress.longitude}&navigate=yes`
+      : null;
+    const moovitUrl = hasCoords
+      ? `https://moovitapp.com/?lat=${draftAddress.latitude}&lng=${draftAddress.longitude}`
+      : null;
+    const showRiskBadge = draftAddress.risk_level != null;
+    const riskBadgeColors: Record<string, { background: string; color: string }> = {
+      low: { background: '#dff6dd', color: '#107c10' },
+      medium: { background: '#fff4ce', color: '#c15b00' },
+      high: { background: '#fbe5e7', color: '#a4262c' },
+      unknown: { background: '#f3f2f1', color: '#605e5c' },
+    };
+    const riskBadgeKey = draftAddress.risk_level ?? 'unknown';
+    const riskBadgeStyle = riskBadgeColors[riskBadgeKey] ?? riskBadgeColors.unknown;
+    const riskBadgeText = showRiskBadge ? formatRiskLevel(riskBadgeKey) : '—';
+    const riskUpdatedAtText = formatDateTime(draftAddress.risk_refreshed_at);
 
     const readOnlyAddress = currentAddress ?? draftAddress;
     const readOnlyLogistics = currentAddress?.logistics ?? draftLogistics;
@@ -940,7 +980,24 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
           <div className={styles.leftCol}>
             <section className={`${styles.card} ${styles.cardSpan}`}>
               <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>Endereco</div>
+                <div>
+                  <div className={styles.cardTitle}>Endereco</div>
+                  {addressOptions.length > 1 && (
+                    <Select
+                      className={styles.addressSelect}
+                      size="small"
+                      value={selectedAddressId ?? ''}
+                      disabled={isEditing}
+                      onChange={(e) => handleSelectAddress(e.currentTarget.value)}
+                    >
+                      {addressOptions.map((option) => (
+                        <option key={option.id} value={option.id}>
+                          {option.location ? `${option.label} · ${option.location}` : option.label}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                </div>
                 <div className={styles.inlineActions}>
                   {!isEditing && (
                     <Button appearance="outline" size="small" onClick={handleAddAddress}>
@@ -952,13 +1009,23 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
                       {cepLoading ? 'Buscando...' : 'Buscar CEP'}
                     </Button>
                   )}
+                  {addressOptions.length > 1 && (
+                    <Button
+                      appearance="outline"
+                      size="small"
+                      onClick={handleSetPrimary}
+                      disabled={(draftAddress?.is_primary ?? false) || !selectedAddressId}
+                    >
+                      Definir como primário
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className={styles.cardBody}>
                 {!isEditing && addressOptions.length > 1 && (
                   <div className={styles.addressSwitcher}>
                     {addressOptions.map((option) => {
-                      const location = [option.city, option.state].filter(Boolean).join('/');
+                      const location = option.location;
                       const label = [option.label, location].filter(Boolean).join(' - ');
                       const isSelected = option.id === selectedAddressId;
                       return (
@@ -1682,16 +1749,26 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
           <aside className={styles.rightCol}>
             <section className={styles.card}>
               <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>Integracoes</div>
-                {isEditing && (
-                  <div className={styles.inlineActions}>
-                    <Button appearance="outline" size="small" onClick={handleRefreshGeocode} disabled={geocodeLoading}>
-                      {geocodeLoading ? 'Atualizando...' : 'Atualizar geocode'}
-                    </Button>
-                    <Button appearance="outline" size="small" onClick={handleRefreshRisk} disabled={riskLoading}>
-                      {riskLoading ? 'Atualizando...' : 'Atualizar risco'}
-                    </Button>
-                  </div>
+                <div>
+                  <div className={styles.cardTitle}>Integracoes</div>
+                  <div className={styles.riskMeta}>Última atualização: {riskUpdatedAtText}</div>
+                </div>
+                <div className={styles.inlineActions}>
+                  {isEditing && (
+                    <>
+                      <Button appearance="outline" size="small" onClick={handleRefreshGeocode} disabled={geocodeLoading}>
+                        {geocodeLoading ? 'Atualizando...' : 'Atualizar geocode'}
+                      </Button>
+                      <Button appearance="outline" size="small" onClick={handleRefreshRisk} disabled={riskLoading}>
+                        {riskLoading ? 'Atualizando...' : 'Atualizar risco'}
+                      </Button>
+                    </>
+                  )}
+                </div>
+                {showRiskBadge && (
+                  <span className={styles.riskBadge} style={riskBadgeStyle}>
+                    {riskBadgeText}
+                  </span>
                 )}
               </div>
               <div className={styles.cardBody}>
@@ -1722,6 +1799,17 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
             <section className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitle}>Localizacao</div>
+                <Button
+                  appearance="outline"
+                  size="small"
+                  as="a"
+                  href={moovitUrl ?? undefined}
+                  target="_blank"
+                  rel="noreferrer"
+                  disabled={!moovitUrl}
+                >
+                  Abrir no Moovit
+                </Button>
                 <Button appearance="outline" size="small" icon={<ShareRegular />} onClick={handleShareLocation}>
                   Compartilhar localizacao
                 </Button>
