@@ -13,6 +13,7 @@ import {
 } from '@fluentui/react-icons';
 import { Header } from '@/components/layout';
 import { DadosPessoaisTab, type DadosPessoaisTabHandle } from '@/components/patient/DadosPessoaisTab';
+import { EnderecoLogisticaTab, type EnderecoLogisticaTabHandle } from '@/components/patient/EnderecoLogisticaTab';
 import { getPatientById, type PatientRow } from '@/features/pacientes/actions/getPatientById';
 import { getSupabaseClient } from '@/lib/supabase/client';
 
@@ -267,21 +268,6 @@ type PatientTab =
   | 'documentos'
   | 'historico';
 
-interface Endereco {
-  id: string;
-  paciente_id: string;
-  cep: string;
-  logradouro: string;
-  numero: string;
-  complemento?: string;
-  bairro: string;
-  cidade: string;
-  estado: string;
-  pais: string;
-  referencia?: string;
-  instrucoes_acesso?: string;
-}
-
 interface RedeApoio {
   id: string;
   paciente_id: string;
@@ -307,21 +293,6 @@ interface Administrativo {
   created_at: string;
   updated_at: string;
 }
-
-const mockEndereco: Endereco = {
-  id: '1',
-  paciente_id: '1',
-  cep: '01310-100',
-  logradouro: 'Avenida Paulista',
-  numero: '1578',
-  complemento: 'Apto 42',
-  bairro: 'Bela Vista',
-  cidade: 'São Paulo',
-  estado: 'SP',
-  pais: 'Brasil',
-  referencia: 'Próximo ao MASP',
-  instrucoes_acesso: 'Entrar pela portaria principal, subir ao 4º andar. Interfone 42.',
-};
 
 const mockRedeApoio: RedeApoio[] = [
   {
@@ -380,15 +351,17 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const styles = useStyles();
   const router = useRouter();
   const dadosPessoaisRef = useRef<DadosPessoaisTabHandle | null>(null);
+  const enderecoLogisticaRef = useRef<EnderecoLogisticaTabHandle | null>(null);
   const [dadosPessoaisUi, setDadosPessoaisUi] = useState({ isEditing: false, isSaving: false });
+  const [enderecoLogisticaUi, setEnderecoLogisticaUi] = useState({ isEditing: false, isSaving: false });
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedTab, setSelectedTab] = useState<PatientTab>('dados-pessoais');
   const [patient, setPatient] = useState<PatientRow | null>(null);
   const [patientLoading, setPatientLoading] = useState(false);
   const [patientError, setPatientError] = useState<string | null>(null);
+  const [addressSummary, setAddressSummary] = useState<{ city?: string | null; state?: string | null } | null>(null);
 
-  const endereco = mockEndereco;
   const redeApoio = mockRedeApoio;
   const administrativo = mockAdministrativo;
 
@@ -452,7 +425,8 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     };
   }, [authChecked, isAuthenticated, patientId]);
 
-  const cidadeUf = endereco.cidade && endereco.estado ? `${endereco.cidade}/${endereco.estado}` : endereco.cidade;
+  const cidadeUf =
+    addressSummary?.city && addressSummary?.state ? `${addressSummary.city}/${addressSummary.state}` : addressSummary?.city;
   const responsavelLegal = redeApoio.find((item) => item.is_responsavel_legal)?.nome ?? 'Não informado';
 
   const initials = useMemo(() => {
@@ -479,50 +453,13 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   );
 
   const renderEnderecoLogistica = () => (
-    <div className={styles.tabGrid}>
-      <div className={styles.tabLeftCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Endereço</div>
-          </div>
-          <div className={styles.cardBody}>
-            {renderDefinitionList([
-              { label: 'Logradouro', value: `${endereco.logradouro}, ${endereco.numero}` },
-              { label: 'Complemento', value: endereco.complemento },
-              { label: 'Bairro', value: endereco.bairro },
-              { label: 'Cidade/UF', value: cidadeUf },
-              { label: 'CEP', value: endereco.cep },
-              { label: 'País', value: endereco.pais },
-            ])}
-          </div>
-        </section>
-
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Logística de atendimento</div>
-          </div>
-          <div className={styles.cardBody}>
-            {renderDefinitionList([
-              { label: 'Ponto de referência', value: endereco.referencia },
-              { label: 'Instruções de acesso', value: endereco.instrucoes_acesso },
-              { label: 'Condições de acesso', value: 'Entrada principal' },
-              { label: 'Local de atendimento', value: 'Residência' },
-            ])}
-          </div>
-        </section>
-      </div>
-
-      <aside className={styles.tabRightCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Notas</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>Esta aba será conectada ao banco na etapa da Aba 02 (Endereço & logística).</p>
-          </div>
-        </section>
-      </aside>
-    </div>
+    <EnderecoLogisticaTab
+      ref={enderecoLogisticaRef}
+      patientId={patientId}
+      patientName={patient?.full_name ?? null}
+      onStatusChange={setEnderecoLogisticaUi}
+      onAddressSummary={setAddressSummary}
+    />
   );
 
   const renderRedeApoio = () => (
@@ -757,25 +694,49 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   };
 
   const isDadosPessoaisTabSelected = selectedTab === 'dados-pessoais';
+  const isEnderecoLogisticaTabSelected = selectedTab === 'endereco-logistica';
+  const isEditableTabSelected = isDadosPessoaisTabSelected || isEnderecoLogisticaTabSelected;
+  const activeTabUi = isDadosPessoaisTabSelected ? dadosPessoaisUi : isEnderecoLogisticaTabSelected ? enderecoLogisticaUi : null;
+  const isEditingActiveTab = Boolean(activeTabUi?.isEditing);
+  const isSavingActiveTab = Boolean(activeTabUi?.isSaving);
 
   const handleSave = () => {
-    if (!isDadosPessoaisTabSelected) return;
-    dadosPessoaisRef.current?.save();
+    if (isDadosPessoaisTabSelected) {
+      dadosPessoaisRef.current?.save();
+      return;
+    }
+    if (isEnderecoLogisticaTabSelected) {
+      enderecoLogisticaRef.current?.save();
+    }
   };
 
   const handleEdit = () => {
-    if (!isDadosPessoaisTabSelected) return;
-    if (dadosPessoaisUi.isEditing) {
+    if (isDadosPessoaisTabSelected) {
+      dadosPessoaisRef.current?.startEdit();
+      return;
+    }
+    if (isEnderecoLogisticaTabSelected) {
+      enderecoLogisticaRef.current?.startEdit();
+    }
+  };
+
+  const handleCancel = () => {
+    if (isDadosPessoaisTabSelected) {
       dadosPessoaisRef.current?.cancelEdit();
       return;
     }
-    dadosPessoaisRef.current?.startEdit();
+    if (isEnderecoLogisticaTabSelected) {
+      enderecoLogisticaRef.current?.cancelEdit();
+    }
   };
 
   const handleReload = () => {
     if (isDadosPessoaisTabSelected) {
       dadosPessoaisRef.current?.reload();
       return;
+    }
+    if (isEnderecoLogisticaTabSelected) {
+      enderecoLogisticaRef.current?.reload();
     }
   };
 
@@ -802,23 +763,35 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
               <ShareRegular />
               Compartilhar
             </button>
-            <button
-              className={`${styles.cmd} ${styles.cmdPrimary}`}
-              type="button"
-              onClick={handleSave}
-              disabled={!isDadosPessoaisTabSelected || !dadosPessoaisUi.isEditing || dadosPessoaisUi.isSaving}
-            >
-              <SaveRegular />
-              Salvar alterações
-            </button>
 
-            <span className={styles.cmdSep} />
+            {isEditableTabSelected && isEditingActiveTab && (
+              <>
+                <button
+                  className={`${styles.cmd} ${styles.cmdPrimary}`}
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSavingActiveTab}
+                >
+                  <SaveRegular />
+                  Salvar alterações
+                </button>
+                <button className={styles.cmd} type="button" onClick={handleCancel} disabled={isSavingActiveTab}>
+                  <DismissRegular />
+                  Cancelar
+                </button>
+              </>
+            )}
 
-            <button className={styles.cmd} type="button" onClick={handleEdit} disabled={!isDadosPessoaisTabSelected}>
-              {dadosPessoaisUi.isEditing ? <DismissRegular /> : <EditRegular />}
-              {dadosPessoaisUi.isEditing ? 'Cancelar' : 'Editar'}
-            </button>
-            <button className={styles.cmd} type="button" onClick={handleReload} disabled={!isDadosPessoaisTabSelected}>
+            {isEditableTabSelected && !isEditingActiveTab && (
+              <button className={styles.cmd} type="button" onClick={handleEdit}>
+                <EditRegular />
+                Editar
+              </button>
+            )}
+
+            {isEditableTabSelected && <span className={styles.cmdSep} />}
+
+            <button className={styles.cmd} type="button" onClick={handleReload} disabled={!isEditableTabSelected}>
               <ArrowClockwiseRegular />
               Recarregar
             </button>
