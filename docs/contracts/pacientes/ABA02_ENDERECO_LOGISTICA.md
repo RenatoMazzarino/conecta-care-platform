@@ -4,7 +4,7 @@
 
 - Modulo: Pacientes
 - Aba: ABA02 — Endereco & Logistica
-- Versao: 0.2
+- Versao: 0.3
 - Status: Em revisao
 - Ultima atualizacao: 2025-12-20
 - Governanca:
@@ -16,9 +16,20 @@
   - `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`
   - `docs/architecture/decisions/ADR-004-ui-dynamics-standard.md`
   - `docs/repo_antigo/schema_current.sql`
-  - `docs/reviews/ABA02_LEGACY_FIELD_LIST.md`
+  - `docs/contracts/pacientes/ABA02_LEGACY_FIELD_LIST.md`
+  - `docs/contracts/pacientes/ABA02_LEGACY_TO_CANONICAL_MAP.md`
   - `html/modelo_final_aparencia_pagina_do_paciente.htm`
   - `docs/runbooks/auditoria-endpoint.md`
+
+Fonte do legado (anexos obrigatorios):
+
+- Campos completos de `legacy.patient_addresses` e `legacy.patient_domiciles`: `docs/contracts/pacientes/ABA02_LEGACY_FIELD_LIST.md`.
+- Mapa legado -> canonico (100%): `docs/contracts/pacientes/ABA02_LEGACY_TO_CANONICAL_MAP.md`.
+
+Padrao de nomenclatura:
+
+- Legado: sempre com prefixo `legacy.*`.
+- Canonico: sempre com prefixo `public.*`.
 
 ## 1) Objetivo da Aba
 
@@ -176,6 +187,12 @@ Regras de auditoria:
 - `deleted_at` (soft delete).
 - **Audit trail**: registrar eventos em `public.audit_events` (ver `docs/runbooks/auditoria-endpoint.md`).
 
+### 3.1) Auditoria (minimo do audit trail)
+
+- Eventos minimos: `patient_address.create`, `patient_address.update`, `patient_address.delete`, `patient_address_logistics.update`.
+- Tabela sugerida: `public.audit_events` (append-only, sem update/delete).
+- Payload minimo: `event`, `tenant_id`, `actor_id`, `entity`, `entity_id`, `origin`, `payload.changed_fields`.
+
 ## 4) Seguranca (RLS / Policies)
 
 RLS:
@@ -252,7 +269,26 @@ Observacao:
   - `equipment_space`: `Adequado`, `Restrito`, `Critico`, `Nao_avaliado`.
   - `cell_signal_quality`: `Bom`, `Razoavel`, `Ruim`, `Nao_informado`.
 
-## 7) Migracoes previstas
+## 7) Regras de Migracao (futuro)
+
+- Duplicados: preferir `legacy.patient_domiciles.*` quando nao nulo; fallback para `legacy.patient_addresses.*`.
+- Unificacao:
+  - `legacy.patient_addresses.animal_behavior` + `legacy.patient_domiciles.animals_behavior` -> `public.patient_address_logistics.animals_behavior`.
+  - `legacy.patient_addresses.electric_infra` + `legacy.patient_domiciles.voltage` -> `public.patient_address_logistics.electric_voltage`.
+  - `legacy.patient_addresses.backup_power` + `legacy.patient_domiciles.backup_power_source` -> `public.patient_address_logistics.backup_power_source`.
+- Relacionamento: `legacy.patient_domiciles.patient_id` deve apontar para o **endereco primario** em `public.patient_addresses` (via `address_id`).
+- Soft delete / primario:
+  - Legado nao possui `deleted_at`; migrar como `NULL`.
+  - Criar 1 endereco por paciente com `is_primary = true`.
+- Campos derivados/padroes (V1):
+  - `public.patient_addresses.address_label`: default `Endereco principal`.
+  - `public.patient_addresses.address_purpose`: default `outro`.
+  - `public.patient_addresses.address_source`: default `manual`.
+  - `public.patient_addresses.country`: default `Brasil`.
+  - `public.patient_address_logistics.distance_km`: `NULL` (sem origem legacy).
+  - `public.patient_address_logistics.travel_time_min`: usar `legacy.patient_addresses.eta_minutes` quando existir.
+
+## 8) Migracoes previstas
 
 - `YYYYMMDDHHMM_pacientes_aba02_enderecos.sql`
 - `YYYYMMDDHHMM_pacientes_aba02_endereco_logistica.sql`
@@ -265,7 +301,7 @@ Conteudo esperado:
 - Trigger `touch_updated_at`.
 - Hooks para `audit_events` (quando aplicavel).
 
-## 8) Definicao de Pronto (DoD)
+## 9) Definicao de Pronto (DoD)
 
 Checklist:
 
@@ -278,83 +314,7 @@ Checklist:
 - [ ] Testes manuais minimos documentados
 - [ ] Runbook/Docs atualizados
 
-## 9) Anexo — Mapa Legado -> Novo (100%)
+## 10) Anexos
 
-### public.patient_addresses
-
-| Legado (tabela.coluna) | Destino (nova_tabela.coluna) | Regra/nota |
-| --- | --- | --- |
-| `public.patient_addresses.patient_id` | `public.patient_addresses.patient_id` | FK para paciente; novo modelo permite 1:N enderecos. |
-| `public.patient_addresses.street` | `public.patient_addresses.street` | Copia direta. |
-| `public.patient_addresses.number` | `public.patient_addresses.number` | Copia direta. |
-| `public.patient_addresses.neighborhood` | `public.patient_addresses.neighborhood` | Copia direta. |
-| `public.patient_addresses.city` | `public.patient_addresses.city` | Copia direta. |
-| `public.patient_addresses.state` | `public.patient_addresses.state` | Copia direta (UF). |
-| `public.patient_addresses.zip_code` | `public.patient_addresses.postal_code` | Normalizar para 8 digitos. |
-| `public.patient_addresses.complement` | `public.patient_addresses.complement` | Copia direta. |
-| `public.patient_addresses.reference_point` | `public.patient_addresses.reference_point` | Copia direta. |
-| `public.patient_addresses.zone_type` | `public.patient_address_logistics.zone_type` | Normalizar valores para lista definida. |
-| `public.patient_addresses.facade_image_url` | `public.patient_address_logistics.facade_image_url` | Copia direta. |
-| `public.patient_addresses.allowed_visit_hours` | `public.patient_address_logistics.allowed_visit_hours` | Copia direta. |
-| `public.patient_addresses.travel_notes` | `public.patient_address_logistics.travel_notes` | Copia direta. |
-| `public.patient_addresses.eta_minutes` | `public.patient_address_logistics.travel_time_min` | Renomeado. |
-| `public.patient_addresses.property_type` | `public.patient_address_logistics.property_type` | Normalizar valores para lista definida. |
-| `public.patient_addresses.condo_name` | `public.patient_address_logistics.condo_name` | Copia direta. |
-| `public.patient_addresses.block_tower` | `public.patient_address_logistics.block_tower` | Copia direta. |
-| `public.patient_addresses.floor_number` | `public.patient_address_logistics.floor_number` | Copia direta. |
-| `public.patient_addresses.unit_number` | `public.patient_address_logistics.unit_number` | Copia direta. |
-| `public.patient_addresses.elevator_status` | `public.patient_address_logistics.elevator_status` | Normalizar valores para lista definida. |
-| `public.patient_addresses.wheelchair_access` | `public.patient_address_logistics.wheelchair_access` | Normalizar valores para lista definida. |
-| `public.patient_addresses.street_access_type` | `public.patient_address_logistics.street_access_type` | Normalizar valores para lista definida. |
-| `public.patient_addresses.external_stairs` | `public.patient_address_logistics.external_stairs` | Copia direta. |
-| `public.patient_addresses.has_24h_concierge` | `public.patient_address_logistics.has_24h_concierge` | Copia direta. |
-| `public.patient_addresses.concierge_contact` | `public.patient_address_logistics.concierge_contact` | Copia direta. |
-| `public.patient_addresses.area_risk_type` | `public.patient_address_logistics.area_risk_type` | Normalizar valores para lista definida. |
-| `public.patient_addresses.cell_signal_quality` | `public.patient_address_logistics.cell_signal_quality` | Normalizar valores para lista definida. |
-| `public.patient_addresses.power_outlets_desc` | `public.patient_address_logistics.power_outlets_desc` | Copia direta. |
-| `public.patient_addresses.equipment_space` | `public.patient_address_logistics.equipment_space` | Normalizar valores para lista definida. |
-| `public.patient_addresses.geo_latitude` | `public.patient_addresses.latitude` | Renomeado. |
-| `public.patient_addresses.geo_longitude` | `public.patient_addresses.longitude` | Renomeado. |
-| `public.patient_addresses.ambulance_access` | `public.patient_address_logistics.ambulance_access` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.parking` | `public.patient_address_logistics.parking` | Copia direta. |
-| `public.patient_addresses.entry_procedure` | `public.patient_address_logistics.entry_procedure` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.night_access_risk` | `public.patient_address_logistics.night_access_risk` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.has_wifi` | `public.patient_address_logistics.has_wifi` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.has_smokers` | `public.patient_address_logistics.has_smokers` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.animal_behavior` | `public.patient_address_logistics.animals_behavior` | Renomeado para plural. |
-| `public.patient_addresses.bed_type` | `public.patient_address_logistics.bed_type` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.mattress_type` | `public.patient_address_logistics.mattress_type` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.electric_infra` | `public.patient_address_logistics.electric_voltage` | Renomeado e normalizado. |
-| `public.patient_addresses.backup_power` | `public.patient_address_logistics.backup_power_source` | Renomeado e normalizado. |
-| `public.patient_addresses.water_source` | `public.patient_address_logistics.water_source` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.adapted_bathroom` | `public.patient_address_logistics.adapted_bathroom` | Copia direta. |
-| `public.patient_addresses.pets_description` | `public.patient_address_logistics.pets_description` | Copia direta (merge com domiciles). |
-| `public.patient_addresses.backup_power_desc` | `public.patient_address_logistics.backup_power_desc` | Copia direta. |
-| `public.patient_addresses.general_observations` | `public.patient_address_logistics.general_observations` | Copia direta (merge com domiciles). |
-
-### public.patient_domiciles
-
-| Legado (tabela.coluna) | Destino (nova_tabela.coluna) | Regra/nota |
-| --- | --- | --- |
-| `public.patient_domiciles.patient_id` | `public.patient_address_logistics.address_id` | Vincular ao endereco primario do paciente (via `patient_addresses.id`). |
-| `public.patient_domiciles.ambulance_access` | `public.patient_address_logistics.ambulance_access` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.team_parking` | `public.patient_address_logistics.team_parking` | Copia direta. |
-| `public.patient_domiciles.night_access_risk` | `public.patient_address_logistics.night_access_risk` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.gate_identification` | `public.patient_address_logistics.gate_identification` | Copia direta. |
-| `public.patient_domiciles.entry_procedure` | `public.patient_address_logistics.entry_procedure` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.ventilation` | `public.patient_address_logistics.ventilation` | Copia direta. |
-| `public.patient_domiciles.lighting_quality` | `public.patient_address_logistics.lighting_quality` | Copia direta. |
-| `public.patient_domiciles.noise_level` | `public.patient_address_logistics.noise_level` | Copia direta. |
-| `public.patient_domiciles.bed_type` | `public.patient_address_logistics.bed_type` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.mattress_type` | `public.patient_address_logistics.mattress_type` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.voltage` | `public.patient_address_logistics.electric_voltage` | Renomeado e normalizado. |
-| `public.patient_domiciles.backup_power_source` | `public.patient_address_logistics.backup_power_source` | Renomeado e normalizado. |
-| `public.patient_domiciles.has_wifi` | `public.patient_address_logistics.has_wifi` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.water_source` | `public.patient_address_logistics.water_source` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.has_smokers` | `public.patient_address_logistics.has_smokers` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.hygiene_conditions` | `public.patient_address_logistics.hygiene_conditions` | Copia direta. |
-| `public.patient_domiciles.pets_description` | `public.patient_address_logistics.pets_description` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.animals_behavior` | `public.patient_address_logistics.animals_behavior` | Renomeado; merge com `animal_behavior`. |
-| `public.patient_domiciles.general_observations` | `public.patient_address_logistics.general_observations` | Copia direta (merge com addresses). |
-| `public.patient_domiciles.created_at` | `public.patient_address_logistics.created_at` | Copia direta quando houver; fallback `now()`. |
-| `public.patient_domiciles.updated_at` | `public.patient_address_logistics.updated_at` | Copia direta quando houver; fallback `now()`. |
+- Campos do legado (com duplicados): `docs/contracts/pacientes/ABA02_LEGACY_FIELD_LIST.md`.
+- Mapa legado -> canonico (100%): `docs/contracts/pacientes/ABA02_LEGACY_TO_CANONICAL_MAP.md`.

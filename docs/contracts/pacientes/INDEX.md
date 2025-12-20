@@ -22,6 +22,11 @@ Notas:
 - Os nomes das ABAs seguem o padrão visual de navegação documentado em `AGENT.md` e a arquitetura canônica em `docs/architecture/SYSTEM_ARCHITECTURE.md`.
 - Quando um contrato for aprovado para uma ABA, substitua “A definir” por “Em contrato/Implementado” e adicione o link do documento correspondente.
 
+Anexos ABA02:
+
+- Lista de campos do legado: [ABA02_LEGACY_FIELD_LIST.md](./ABA02_LEGACY_FIELD_LIST.md).
+- Mapa legado -> canonico: [ABA02_LEGACY_TO_CANONICAL_MAP.md](./ABA02_LEGACY_TO_CANONICAL_MAP.md).
+
 ## Evidências
 
 - Contrato ABA01 aprovado: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`.
