@@ -2,7 +2,7 @@
 
 Atualizado em: 2025-12-20
 
-Este plano cobre **somente docs** (plano + contrato + indexacao + mapeamento legado). Implementacao (migrations/types/actions/UI) fica fora desta etapa.
+Este plano cobre **docs + implementacao V1** da Aba 02 (migrations/types/actions/UI) para CEP, geocode e ranking de risco.
 
 - Branch de trabalho: `feat/pacientes-aba02-endereco-logistica`
 - PR (Draft): a definir
@@ -15,14 +15,16 @@ Este plano cobre **somente docs** (plano + contrato + indexacao + mapeamento leg
 ## Escopo
 
 IN
-- Contrato ABA02 completo (com regras de negocio e mapa legado -> novo 100%).
-- Plano atualizado com DoD da fase Docs.
+- Contrato ABA02 atualizado (integracoes CEP/geocode/risco).
+- Migrations para tabelas de endereco/logistica + colunas de integracao.
+- Types regenerados (`src/types/supabase.ts`).
+- Actions e schemas (Zod) da ABA02.
+- UI da Aba 02 conectada ao Supabase (sem mocks).
 - Indexacao do modulo Pacientes atualizada.
-- Lista de campos do legado documentada.
 
 OUT
-- Migrations, types, actions, UI ou runtime.
-- Refactors fora de docs.
+- Alteracoes em outras abas (ABA01/ABA03+).
+- Refactors gerais fora do escopo da ABA02.
 
 ## Referencias obrigatorias
 
@@ -31,7 +33,6 @@ OUT
 - `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`
 - `docs/architecture/decisions/ADR-004-ui-dynamics-standard.md`
 - `db/snapshots_legado/conectacare-2025-11-29.sql`
-- `db/snapshots_legado/conectacare-2025-11-29.json`
 - `docs/repo_antigo/schema_current.sql`
 - `html/modelo_final_aparencia_pagina_do_paciente.htm`
 
@@ -50,6 +51,7 @@ OUT
 - CEP via **BrasilAPI** (autofill) + fallback manual + normalizacao.
 - Endereco impacta cobertura/escala (campos derivados opcionais no V1).
 - Ordem de execucao: Endereco -> Logistica & Estrutura.
+- Cache sugerido (V1): CEP 30 dias (opcional), geocode 30 dias, risco 7 dias.
 
 ## Estrategia em 2 fases (no mesmo contrato)
 
@@ -59,21 +61,25 @@ OUT
 2) **Logistica & Estrutura**
 - Campos de acesso/condicoes com opcionalidade no V1.
 
-## Entregaveis desta etapa (Docs)
+## Entregaveis desta etapa
 
 - `docs/reviews/PLANO_PACIENTES_ABA02_ENDERECO_LOGISTICA.md`
 - `docs/contracts/pacientes/ABA02_ENDERECO_LOGISTICA.md`
 - `docs/contracts/pacientes/INDEX.md`
 - `docs/contracts/pacientes/README.md`
-- Cobertura do legado anexada no contrato (Anexos A e B).
+- Migration(s) ABA02 (enderecos/logistica + integracoes).
+- Types Supabase regenerados.
+- Actions + schemas da Aba 02.
+- UI da Aba 02 sem mocks (enderecos/logistica + integracoes).
 
-## DoD — Fase Docs
+## DoD — V1 Integracoes (CEP/Geocode/Risco)
 
-- [ ] Contrato ABA02 completo e sem placeholders.
-- [ ] Mapa Legado -> Canonico com 100% das colunas (patient_addresses + patient_domiciles).
-- [ ] Cobertura do legado anexada no contrato (Anexos A e B).
-- [ ] Indexacao do modulo atualizada (INDEX/README).
-- [ ] Checagens de docs executadas (links + lint).
+- [ ] Contrato ABA02 atualizado com integracoes e regras de cache.
+- [ ] Migration aplicada no Supabase local (enderecos/logistica + integracoes).
+- [ ] Types TS regenerados.
+- [ ] Actions (CEP/geocode/risco) implementadas.
+- [ ] UI Aba 02 conectada ao Supabase e sem mocks.
+- [ ] `npm run verify` OK.
 
 ## Criterios de Aceite (Docs)
 
@@ -83,18 +89,35 @@ OUT
 - Campos criticos resolvidos: `zone_type`, `team_parking`, `animal_behavior`/`animals_behavior`.
 - Indices/README atualizados com link para os anexos no contrato.
 
-## Proximas etapas (nao executar agora)
+## Checklist de implementacao (ordem)
 
-- Migrations (tabelas, RLS, indices, triggers).
-- Types (gerar `src/types/supabase.ts`).
-- Actions (CRUD + setPrimary + validacoes).
-- UI (view/edit sem mocks, command bar integrado).
-- Testes manuais e runbooks.
+1) Atualizar contrato e plano (integracoes V1).
+2) Criar migrations (tabelas + colunas + RLS).
+3) Regenerar types Supabase.
+4) Implementar schemas + normalizacao.
+5) Implementar actions (CEP/geocode/risco).
+6) Atualizar UI da Aba 02 (botao CEP, geocode/risk, share).
+7) Rodar `npm run verify`.
+
+## Variaveis de ambiente (V1)
+
+- `GEOCODE_PROVIDER` (google|mapbox|osm|none)
+- `GEOCODE_GOOGLE_API_KEY` (se provider=google)
+- `GEOCODE_MAPBOX_TOKEN` (se provider=mapbox)
+- `GEOCODE_USER_AGENT` (opcional, para OSM/Nominatim)
+- `RISK_PROVIDER` (none|custom_http|...)
+- `RISK_API_URL` (se provider=custom_http)
+- `RISK_API_KEY` (se provider=custom_http)
+
+## Politica de cache sugerida (V1)
+
+- CEP: 30 dias (opcional).
+- Geocode: 30 dias ou ate alteracao manual do endereco + refresh manual.
+- Risco: 7 dias + refresh manual.
 
 ## Validacoes desta etapa
 
-- `npm run docs:links`
-- `npm run docs:lint`
+- `npm run verify`
 
 ## Riscos
 

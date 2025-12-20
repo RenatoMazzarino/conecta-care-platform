@@ -73,6 +73,25 @@ Tabela padrao por campo (obrigatoria):
 | Endereco | Origem do CEP | `public.patient_addresses.address_source` | `text` | `string` | Sim | `manual` | ver Secao 6 (address_source) | select | Manual/BrasilAPI/Outro. |
 | Geolocalizacao | Latitude | `public.patient_addresses.latitude` | `numeric` | `number \| null` | Nao | `NULL` | range valido (-90..90) | — | Latitude do endereco. |
 | Geolocalizacao | Longitude | `public.patient_addresses.longitude` | `numeric` | `number \| null` | Nao | `NULL` | range valido (-180..180) | — | Longitude do endereco. |
+| Integracoes | CEP - ultima consulta | `public.patient_addresses.cep_last_lookup_at` | `timestamptz` | `string \| null` | Nao | `NULL` | — | — | Timestamp da ultima consulta de CEP. |
+| Integracoes | CEP - origem | `public.patient_addresses.cep_last_lookup_source` | `text` | `string \| null` | Nao | `NULL` | ver Secao 6 (cep_last_lookup_source) | select | Origem da ultima consulta do CEP. |
+| Integracoes | CEP - payload | `public.patient_addresses.cep_lookup_payload` | `jsonb` | `Json \| null` | Nao | `NULL` | sanitizado | — | Payload resumido da consulta ao BrasilAPI. |
+| Integracoes | Geocode - status | `public.patient_addresses.geocode_status` | `text` | `string \| null` | Nao | `NULL` | ver Secao 6 (geocode_status) | select | Status da ultima geocodificacao. |
+| Integracoes | Geocode - provider | `public.patient_addresses.geocode_provider` | `text` | `string \| null` | Nao | `NULL` | ver Secao 6 (geocode_provider) | select | Provider utilizado. |
+| Integracoes | Geocode - atualizado em | `public.patient_addresses.geocode_refreshed_at` | `timestamptz` | `string \| null` | Nao | `NULL` | — | — | Timestamp do refresh de geocode. |
+| Integracoes | Geocode - cache ate | `public.patient_addresses.geocode_cache_until` | `timestamptz` | `string \| null` | Nao | `NULL` | — | — | Cache valido ate esta data. |
+| Integracoes | Geocode - precisao | `public.patient_addresses.geocode_precision` | `text` | `string \| null` | Nao | `NULL` | trim; max 80 | — | Precisao/qualidade retornada. |
+| Integracoes | Geocode - place id | `public.patient_addresses.geocode_place_id` | `text` | `string \| null` | Nao | `NULL` | trim; max 120 | — | Identificador do lugar (se aplicavel). |
+| Integracoes | Geocode - payload | `public.patient_addresses.geocode_payload` | `jsonb` | `Json \| null` | Nao | `NULL` | sanitizado | — | Payload resumido da geocodificacao. |
+| Integracoes | Geocode - erro | `public.patient_addresses.geocode_error_message` | `text` | `string \| null` | Nao | `NULL` | trim; max 200 | — | Erro curto da ultima tentativa. |
+| Integracoes | Risco - status | `public.patient_addresses.risk_status` | `text` | `string \| null` | Nao | `NULL` | ver Secao 6 (risk_status) | select | Status do ranking de risco. |
+| Integracoes | Risco - provider | `public.patient_addresses.risk_provider` | `text` | `string \| null` | Nao | `NULL` | trim; max 80 | — | Provider do ranking. |
+| Integracoes | Risco - score | `public.patient_addresses.risk_score` | `numeric` | `number \| null` | Nao | `NULL` | >= 0 | — | Score numerico (quando houver). |
+| Integracoes | Risco - nivel | `public.patient_addresses.risk_level` | `text` | `string \| null` | Nao | `NULL` | ver Secao 6 (risk_level) | select | Nivel de risco. |
+| Integracoes | Risco - atualizado em | `public.patient_addresses.risk_refreshed_at` | `timestamptz` | `string \| null` | Nao | `NULL` | — | — | Timestamp do refresh de risco. |
+| Integracoes | Risco - cache ate | `public.patient_addresses.risk_cache_until` | `timestamptz` | `string \| null` | Nao | `NULL` | — | — | Cache valido ate esta data. |
+| Integracoes | Risco - payload | `public.patient_addresses.risk_payload` | `jsonb` | `Json \| null` | Nao | `NULL` | sanitizado | — | Payload resumido do ranking. |
+| Integracoes | Risco - erro | `public.patient_addresses.risk_error_message` | `text` | `string \| null` | Nao | `NULL` | trim; max 200 | — | Erro curto da ultima tentativa. |
 | Auditoria | Criado em | `public.patient_addresses.created_at` | `timestamptz` | `string` | Sim | `now()` | — | — | Timestamp de criacao. |
 | Auditoria | Atualizado em | `public.patient_addresses.updated_at` | `timestamptz` | `string` | Sim | `now()` | — | — | Timestamp de atualizacao. |
 | Auditoria | Criado por | `public.patient_addresses.created_by` | `uuid` | `string \| null` | Nao | `NULL` | — | — | Usuario criador. |
@@ -167,6 +186,7 @@ Regras de negocio (V1):
 - Soft delete: `deleted_at` marca endereco inativo; ao remover um primario, o app deve promover outro endereco ativo.
 - CEP via BrasilAPI: `postal_code` normalizado para digitos; `address_source` registra origem.
 - Campos de cobertura/escala (`distance_km`, `travel_time_min`) sao opcionais e podem ser preenchidos manualmente no V1.
+- Integracoes V1: CEP (BrasilAPI), geocode e ranking de risco com cache e refresh (ver Secao 6.1).
 
 Indices necessarios (minimo):
 
@@ -226,6 +246,9 @@ Escritas necessarias:
 - `setPrimaryAddress(patientId, addressId)` (desmarca outros primarios).
 - `updateAddressLogistics(addressId, payload)`.
 - `softDeleteAddress(addressId)` (set `deleted_at`).
+- `lookupCepBrasilApi(cep)` (nao persiste; apenas preenche o form).
+- `refreshAddressGeocode(addressId, force)` (persistir geocode).
+- `refreshAddressRisk(addressId, force)` (persistir ranking).
 
 Regras de salvar/cancelar:
 
@@ -240,6 +263,20 @@ Integracao BrasilAPI (CEP):
 - Fallback manual: se API falhar ou retornar parcial, manter campos editaveis.
 - `address_source`: `brasilapi` quando origem for auto-preenchimento; `manual` quando preenchido manualmente.
 - `postal_code` armazenado como 8 digitos (sem hifen).
+- Persistir metadados: `cep_last_lookup_at`, `cep_last_lookup_source`, `cep_lookup_payload` (sanitizado).
+
+Integracao Geocode (V1):
+
+- Objetivo: coordenadas confiaveis para compartilhar localizacao e alimentar ranking de risco.
+- Provider plugavel via env (server-only).
+- Cache e refresh: `geocode_refreshed_at`, `geocode_cache_until`.
+- Persistir `latitude`/`longitude` + `geocode_*`.
+
+Integracao Ranking de Risco (V1):
+
+- Provider plugavel via env (server-only).
+- Cache e refresh: `risk_refreshed_at`, `risk_cache_until`.
+- Persistir `risk_*` e exibir estado "Nao configurado" quando aplicavel.
 
 Observacao:
 
@@ -251,6 +288,11 @@ Observacao:
 - UF (`state`): `^[A-Z]{2}$` quando `country = 'Brasil'`.
 - `address_purpose`: `in ('atendimento','cobranca','entrega','outro')`.
 - `address_source`: `in ('manual','brasilapi','outro')`.
+- `cep_last_lookup_source`: `in ('brasilapi','manual')`.
+- `geocode_status`: `in ('pending','success','failed','not_configured')`.
+- `geocode_provider`: `in ('google','mapbox','osm','none')`.
+- `risk_status`: `in ('success','failed','not_configured')`.
+- `risk_level`: `in ('low','medium','high','unknown')`.
 - Enumeracoes (valores legado):
   - `ambulance_access`: `Total`, `Parcial`, `Dificil`, `Nao_acessa`, `Nao_informado`.
   - `night_access_risk`: `Baixo`, `Medio`, `Alto`, `Nao_avaliado`.
@@ -266,8 +308,55 @@ Observacao:
   - `electric_voltage`: `110`, `220`, `Bivolt`, `Nao_informada`.
   - `animals_behavior`: `Doces`, `Bravos`, `Necessitam_contencao`, `Nao_informado`.
   - `water_source`: `Rede_publica`, `Poco_artesiano`, `Cisterna`, `Outro`, `Nao_informado`.
-  - `equipment_space`: `Adequado`, `Restrito`, `Critico`, `Nao_avaliado`.
-  - `cell_signal_quality`: `Bom`, `Razoavel`, `Ruim`, `Nao_informado`.
+- `equipment_space`: `Adequado`, `Restrito`, `Critico`, `Nao_avaliado`.
+- `cell_signal_quality`: `Bom`, `Razoavel`, `Ruim`, `Nao_informado`.
+
+## 6.1) Integracoes e Enriquecimento de Endereco (V1)
+
+### A) CEP (BrasilAPI)
+
+- Input normalizado: somente digitos, 8 caracteres.
+- Botao "Buscar CEP" preenche `street`, `neighborhood`, `city`, `state` quando disponivel.
+- Fallback manual: usuario pode sobrescrever manualmente qualquer campo.
+- Persistir:
+  - `public.patient_addresses.cep_last_lookup_at`
+  - `public.patient_addresses.cep_last_lookup_source` = `brasilapi` | `manual`
+  - `public.patient_addresses.cep_lookup_payload` (jsonb sanitizado)
+
+### B) Geocode (provider plugavel + cache + refresh)
+
+- Provider plugavel via env (server-only):
+  - `GEOCODE_PROVIDER=google|mapbox|osm|none`
+  - chaves em env (nunca no client).
+- Cache:
+  - `geocode_refreshed_at`
+  - `geocode_cache_until`
+  - Botao "Atualizar geocode" força refresh.
+- Persistir:
+  - `public.patient_addresses.latitude`, `public.patient_addresses.longitude`
+  - `public.patient_addresses.geocode_provider`
+  - `public.patient_addresses.geocode_precision`
+  - `public.patient_addresses.geocode_place_id`
+  - `public.patient_addresses.geocode_payload` (jsonb sanitizado)
+  - `public.patient_addresses.geocode_status` = `pending|success|failed|not_configured`
+  - `public.patient_addresses.geocode_error_message` (curto, sem segredos)
+
+### C) Ranking de Risco (provider plugavel + cache + refresh)
+
+- Provider plugavel via env (server-only):
+  - `RISK_PROVIDER=none|custom_http|...`
+- Cache:
+  - `risk_refreshed_at`
+  - `risk_cache_until`
+  - Botao "Atualizar risco" força refresh.
+- Persistir:
+  - `public.patient_addresses.risk_score` (numeric)
+  - `public.patient_addresses.risk_level` = `low|medium|high|unknown`
+  - `public.patient_addresses.risk_provider`
+  - `public.patient_addresses.risk_payload` (jsonb sanitizado)
+- `public.patient_addresses.risk_status` = `success|failed|not_configured`
+- `public.patient_addresses.risk_error_message` (curto, sem segredos)
+- Observacao: mesmo sem provider real, a UI deve exibir "Nao configurado".
 
 ## 7) Regras de Migracao (futuro)
 
@@ -287,11 +376,11 @@ Observacao:
   - `public.patient_addresses.country`: default `Brasil`.
   - `public.patient_address_logistics.distance_km`: `NULL` (sem origem legacy).
   - `public.patient_address_logistics.travel_time_min`: usar `legacy.patient_addresses.eta_minutes` quando existir.
+  - Campos de integracao (`cep_*`, `geocode_*`, `risk_*`): `NULL` no legado.
 
 ## 8) Migracoes previstas
 
-- `YYYYMMDDHHMM_pacientes_aba02_enderecos.sql`
-- `YYYYMMDDHHMM_pacientes_aba02_endereco_logistica.sql`
+- `202512201726_pacientes_aba02_integracoes_cep_geocode_risk.sql`
 
 Conteudo esperado:
 
@@ -417,6 +506,7 @@ Referencia secundaria: `docs/repo_antigo/schema_current.sql`.
   - `public.patient_addresses` (localizacao + identificacao do endereco)
   - `public.patient_address_logistics` (acesso + estrutura da residencia)
 - Campos canonicos que **nao existem no legado** (ex.: `address_label`, `address_purpose`, `is_primary`, `address_source`, `country`, `tenant_id`, `created_by`, `updated_by`, `deleted_at`) devem ser preenchidos por default/app na fase de migracao.
+- Campos canonicos de integracoes (ex.: `cep_last_lookup_at`, `cep_last_lookup_source`, `cep_lookup_payload`, `geocode_*`, `risk_*`) devem iniciar como `NULL`.
 
 #### Precedencia para duplicados
 

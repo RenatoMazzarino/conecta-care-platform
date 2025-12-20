@@ -1,6 +1,6 @@
 # Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-20 18:58:43
+Data: 2025-12-20 21:06:25
 
 Total de links verificados: 121
 Links quebrados: 0
