@@ -63,16 +63,15 @@ OUT
 
 - `docs/reviews/PLANO_PACIENTES_ABA02_ENDERECO_LOGISTICA.md`
 - `docs/contracts/pacientes/ABA02_ENDERECO_LOGISTICA.md`
-- `docs/contracts/pacientes/ABA02_LEGACY_FIELD_LIST.md`
-- `docs/contracts/pacientes/ABA02_LEGACY_TO_CANONICAL_MAP.md`
 - `docs/contracts/pacientes/INDEX.md`
 - `docs/contracts/pacientes/README.md`
+- Cobertura do legado anexada no contrato (Anexos A e B).
 
 ## DoD — Fase Docs
 
 - [ ] Contrato ABA02 completo e sem placeholders.
 - [ ] Mapa Legado -> Canonico com 100% das colunas (patient_addresses + patient_domiciles).
-- [ ] Lista de campos do legado publicada (ABA02_LEGACY_FIELD_LIST).
+- [ ] Cobertura do legado anexada no contrato (Anexos A e B).
 - [ ] Indexacao do modulo atualizada (INDEX/README).
 - [ ] Checagens de docs executadas (links + lint).
 
@@ -82,7 +81,7 @@ OUT
 - Mapa legado -> canonico 100% concluido.
 - Precedencia dos duplicados definida.
 - Campos criticos resolvidos: `zone_type`, `team_parking`, `animal_behavior`/`animals_behavior`.
-- Indices/README atualizados com links da ABA02 e anexos.
+- Indices/README atualizados com link para os anexos no contrato.
 
 ## Proximas etapas (nao executar agora)
 

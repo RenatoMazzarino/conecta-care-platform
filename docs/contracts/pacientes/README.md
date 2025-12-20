@@ -16,5 +16,4 @@ Atualize este arquivo sempre que:
 
 Anexos ABA02:
 
-- `docs/contracts/pacientes/ABA02_LEGACY_FIELD_LIST.md`
-- `docs/contracts/pacientes/ABA02_LEGACY_TO_CANONICAL_MAP.md`
+- `docs/contracts/pacientes/ABA02_ENDERECO_LOGISTICA.md#anexos-cobertura-do-legado-fonte-docsrepo_antigoschema_currentsql`

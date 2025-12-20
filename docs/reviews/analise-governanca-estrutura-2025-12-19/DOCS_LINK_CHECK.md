@@ -1,8 +1,8 @@
 # Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-20 18:50:06
+Data: 2025-12-20 18:58:43
 
-Total de links verificados: 122
+Total de links verificados: 121
 Links quebrados: 0
 
 **Nenhum link relativo quebrado encontrado.**
@@ -20,8 +20,7 @@ Links quebrados: 0
 - [docs/architecture/SYSTEM_ARCHITECTURE.md] → "./OPEN_TODO.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA01_DADOS_PESSOAIS.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA02_ENDERECO_LOGISTICA.md" → OK
-- [docs/contracts/pacientes/INDEX.md] → "./ABA02_LEGACY_FIELD_LIST.md" → OK
-- [docs/contracts/pacientes/INDEX.md] → "./ABA02_LEGACY_TO_CANONICAL_MAP.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA02_ENDERECO_LOGISTICA.md#anexos-cobertura-do-legado-fonte-docsrepo_antigoschema_currentsql" → OK
 - [docs/contracts/README.md] → "./pacientes/INDEX.md" → OK
 - [docs/contracts/README.md] → "./prontuarios/INDEX.md" → OK
 - [docs/contracts/README.md] → "./agendamentos/INDEX.md" → OK

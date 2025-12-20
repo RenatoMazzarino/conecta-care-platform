@@ -24,8 +24,7 @@ Notas:
 
 Anexos ABA02:
 
-- Lista de campos do legado: [ABA02_LEGACY_FIELD_LIST.md](./ABA02_LEGACY_FIELD_LIST.md).
-- Mapa legado -> canonico: [ABA02_LEGACY_TO_CANONICAL_MAP.md](./ABA02_LEGACY_TO_CANONICAL_MAP.md).
+- Cobertura do legado no contrato: [Anexos ABA02](./ABA02_ENDERECO_LOGISTICA.md#anexos-cobertura-do-legado-fonte-docsrepo_antigoschema_currentsql).
 
 ## Evidências
 
