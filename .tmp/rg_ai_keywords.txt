@@ -1,0 +1,104 @@
+.markdownlint.jsonc:3:  // Keep a pragmatic baseline: enforce structure, skip line length and inline HTML.
+ANALISE_DO_PROJETO.md:27:    - Reduzir a fragmentação da informação.
+ANALISE_DO_PROJETO.md:34:- **Ações Executadas (Baseado no histórico do prompt):**
+ANALISE_DO_PROJETO.md:37:    3. **Criação da pasta `docs/process/ai/`:** Documentos relacionados ao processo de trabalho com a IA (`CODEX_GUIDE`, `AI_TOOLING`, etc.) foram movidos para esta nova pasta para separá-los da arquitetura do *software*. Um `README.md` foi adicionado para contextualizar o propósito da pasta.
+.gitignore:14:/coverage
+CONTRIBUTING.md:27:- Para dúvidas de arquitetura/processo use `docs/process/ai/CODEX_QUESTIONS.md` (seguindo o formato) e depois mova para “Respondidas” quando houver cobertura canônica.
+.github/copilot-instructions.md:1:**AVISO**: fonte de verdade em `docs/architecture/CODEX_GUIDE.md`. Visual oficial: `html/comparativo-fluent.html` (Fluent clássico – Opção A).  
+.github/copilot-instructions.md:7:- Para regras completas de produto (Escalas como core), segurança, e padrões de contribuição, consultar `docs/architecture/CODEX_GUIDE.md`.
+scripts/docs-link-check.mjs:79:    const fullMatchIndex = match.index;
+scripts/docs-link-check.mjs:80:    if (fullMatchIndex > 0 && content[fullMatchIndex - 1] === '!') {
+README.md:28:## Codex (campo "Script de configuração")
+README.md:31:## Codex (campo "Script de manutenção")
+docs/runbooks/storage-photos-aba01.md:1:# Runbook — Storage de Fotos (Pacientes ABA01)
+docs/runbooks/storage-photos-aba01.md:11:- Supabase Storage habilitado.
+docs/runbooks/storage-photos-aba01.md:22:3) **Criar policies (Storage)**
+docs/runbooks/storage-photos-aba01.md:51:- `storage.objects` (Supabase).
+supabase/config.toml:88:# OpenAI API Key to use for Supabase AI in the Supabase Studio.
+supabase/config.toml:89:openai_api_key = "***REDACTED***"
+supabase/config.toml:103:[storage]
+supabase/config.toml:108:# Uncomment to configure local storage buckets
+supabase/config.toml:109:# [storage.buckets.images]
+supabase/config.toml:116:# [storage.s3_protocol]
+supabase/config.toml:120:# [storage.image_transformation]
+supabase/config.toml:125:[storage.analytics]
+supabase/config.toml:132:# [storage.analytics.buckets.my-warehouse]
+supabase/config.toml:134:# Store vector embeddings in S3 for large and durable datasets
+supabase/config.toml:136:[storage.vector]
+supabase/config.toml:141:# Vector Buckets is available to Supabase Pro plan.
+supabase/config.toml:142:# [storage.vector.buckets.documents-openai]
+supabase/config.toml:373:# Configures Postgres storage engine to use OrioleDB (S3)
+docs/MODULE_STATUS.md:28:  - P1: Runbooks de lacunas (auditoria endpoint; storage de fotos) — esqueleto entregue; evidências vinculadas no ONBOARDING.
+docs/process/ai/CODEX_GUIDE.md:1:# Codex Guide – Conecta Care (Plataforma Operacional de Home Care)
+docs/process/ai/CODEX_GUIDE.md:82:3. Não inventar colunas/tabelas. Se schema não disponível, abrir dúvida em `CODEX_QUESTIONS.md` e usar mock explícito.  
+docs/process/ai/README.md:3:Esta pasta contém documentos, guias e templates relacionados ao uso de assistentes de IA (como o Gemini) no desenvolvimento da plataforma Conecta Care.
+docs/process/ai/README.md:9:- **[gemini.md](./gemini.md)**: O **Manual Mestre** que governa a operação do assistente Gemini neste repositório. Leitura obrigatória.
+docs/process/ai/README.md:10:- **[CODEX_QUESTIONS.md](./CODEX_QUESTIONS.md)**: Perguntas críticas de arquitetura e negócio para guiar o desenvolvimento.
+docs/process/ai/AI_TOOLING.md:7:### 1) Codex (VS Code) — Implementação
+docs/process/ai/AI_TOOLING.md:10:**Regra:** o Codex implementa; decisões de produto/arquitetura devem estar documentadas (contratos/ADRs).
+docs/process/ai/AI_TOOLING.md:12:### 2) ChatGPT — Decisão e direção técnica
+docs/process/ai/AI_TOOLING.md:14:**Uso:** discutir arquitetura, criar contratos de abas, definir padrões, gerar prompts para o Codex, revisar decisões e manter consistência do sistema.
+docs/process/ai/AI_TOOLING.md:15:**Regra:** ChatGPT não altera o repo diretamente; ele define o plano e os comandos.
+docs/process/ai/AI_TOOLING.md:17:### 3) Codex Web — Revisão de Pull Request (PR)
+docs/process/ai/AI_TOOLING.md:22:### 4) Vercel Agent — Revisão automática
+docs/process/ai/CODEX_QUESTIONS.md:14:   - Contexto: visão geral em ../../architecture/SYSTEM_ARCHITECTURE.md (Seção 3) e padrões no guia de processo em ./CODEX_GUIDE.md; definição final pendente de contrato/ADR.
+docs/process/ai/CODEX_QUESTIONS.md:16:   - Contexto: padrões de eventos em ./CODEX_GUIDE.md (Taxonomia de eventos); especificação final pendente.
+docs/process/ai/CODEX_QUESTIONS.md:18:   - Contexto: requisitos gerais em ./CODEX_GUIDE.md; implementação/schemas pendentes.
+docs/process/ai/gemini.md:1:# gemini.md — Manual Mestre do Gemini (executor de repo) — Conecta Care
+docs/process/ai/gemini.md:3:> **Função deste documento:** ser o “manual operacional mestre” do Gemini Local dentro do repositório `conecta-care-platform`.  
+docs/process/ai/gemini.md:8:> **Regra central:** o Gemini **executa decisões** — não cria decisões de produto sem ordem explícita do Renato.
+docs/process/ai/gemini.md:20:## 1) Papel do Gemini neste projeto
+docs/process/ai/gemini.md:371:Se você seguir este `gemini.md`, o Conecta Care:
+docs/runbooks/security-backups-access-rotation.md:57:- Não armazenar dumps fora de storage seguro.
+docs/archive/PROJECT_IMMERSION_REPORT.md:12:- **Backend**: Supabase (PostgreSQL, Auth, Storage).
+docs/archive/PROJECT_IMMERSION_REPORT.md:33:4. **Actions**: Implementação das lógicas de negócio (Server Actions) que interagem com o banco de dados.
+docs/runbooks/review-workflow.md:31:5) Avaliar feedback dos revisores automáticos (Codex Web / Vercel Agent)
+docs/architecture/OPEN_TODO.md:58:  Evidências: `docs/runbooks/auditoria-endpoint.md`, `docs/runbooks/storage-photos-aba01.md`, `docs/runbooks/security-incident-response.md`, `docs/runbooks/security-backups-access-rotation.md`, `docs/runbooks/security-secrets-scanning.md`, `docs/reviews/analise-governanca-estrutura-2025-12-19/RUNBOOKS_FINAL_REVIEW.md`.
+docs/runbooks/ONBOARDING.md:77:- Storage de fotos (ABA01) — políticas/RLS e fluxo de upload: [docs/runbooks/storage-photos-aba01.md](./storage-photos-aba01.md)
+docs/contracts/pacientes/INDEX.md:22:- Os nomes das ABAs seguem o padrão visual de navegação documentado em `docs/process/ai/CODEX_GUIDE.md` e a arquitetura canônica em `docs/architecture/SYSTEM_ARCHITECTURE.md`.
+docs/reviews/analise-governanca-estrutura-2025-12-19/RUNBOOKS_FINAL_REVIEW.md:21:| `docs/runbooks/storage-photos-aba01.md` | OK | Conteúdo operacional completo |
+docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md:34:  - **Foto do paciente (seção lateral)**: exibe avatar a partir de `photo_path` (path do Storage; URL assinada só na exibição).
+docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md:53:| Foto do paciente | Foto do paciente | `public.patients.photo_path` | `text` | `string \| null` | Não | `NULL` | **path interno no Storage** (ex.: `patients/<id>/photo.jpg`); URL assinada só na exibição; não armazenar URL pública; trim; não permitir string vazia | — | Foto do paciente (path interno). |
+docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md:132:  - Foto: **`photo_path`** (path do Storage); URL assinada apenas na exibição.
+docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md:352:- TODO: definir bucket/policies do Storage para `photo_path` (sem expor URLs públicas indevidas).
+docs/architecture/decisions/ADR-004-ui-dynamics-standard.md:19:- UI livre por módulo: rejeitado por fragmentação visual e custo de manutenção.
+docs/architecture/decisions/ADR-004-ui-dynamics-standard.md:30:- docs/process/ai/CODEX_GUIDE.md (padrões de UI)
+docs/repo_antigo/schema_current.sql:407:CREATE TYPE "public"."storage_provider_enum" AS ENUM (
+docs/repo_antigo/schema_current.sql:416:ALTER TYPE "public"."storage_provider_enum" OWNER TO "postgres";
+docs/repo_antigo/schema_current.sql:553:        'coverage', json_build_object(
+docs/repo_antigo/schema_current.sql:1384:    "storage_provider" "public"."storage_provider_enum" DEFAULT 'Supabase'::"public"."storage_provider_enum",
+docs/repo_antigo/schema_current.sql:1385:    "storage_path" "text",
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:28:      - CODEX_GUIDE.md
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:29:      - CODEX_QUESTIONS.md
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:30:      - gemini.md
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:66:| docs/architecture/SYSTEM_ARCHITECTURE.md | Arquitetura canônica (princípios/estado atual/visão). | SIM | ATUAL | Dup. com CODEX_GUIDE em visão 360/UI e com README (fluxo). |
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:73:| docs/process/ai/README.md | Explica o escopo da pasta de processo de IA. | NÃO | ATUAL | Dup. leve com CODEX_GUIDE/gemini.md sobre governança. |
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:75:| docs/process/ai/CODEX_GUIDE.md | Guia operacional (IA) com visão 360 e padrões. | DEPENDE | ATUAL | Dup. com SYSTEM_ARCHITECTURE (visão 360/UI). |
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:76:| docs/process/ai/CODEX_QUESTIONS.md | Perguntas críticas abertas/fechadas. | NÃO | ATUAL | Cita lacunas parcialmente respondidas. |
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:77:| docs/process/ai/gemini.md | Manual mestre do Gemini (executor). | DEPENDE | ATUAL | Dup. de princípios (tenancy/soft delete/UI). |
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:85:| docs/runbooks/ONBOARDING.md | Onboarding rápido do projeto. | SIM | ATUAL | Dup. leve com README e CODEX_GUIDE em princípios. |
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:114:  - docs/process/ai/CODEX_GUIDE.md, linhas 28–31: “Referência visual canônica”.
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:144:  - docs/process/ai/CODEX_GUIDE.md, linhas 23–24: lista outras abas (Endereço, Rede de apoio, etc.). Em docs/contracts/pacientes/ há apenas a ABA01.
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:146:- Policies de Storage para fotos (ABA01)
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:150:  - docs/process/ai/CODEX_QUESTIONS.md, linhas 63–66: marcado como “RESPONDIDA (Parcialmente)” — não há especificação final.
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_AUDIT_REPORT.md:154:A documentação de docs/ está, em geral, consistente com as decisões canônicas (contratos, runbooks e arquitetura). Há duplicidades propositais (reforço de princípios) e alguns documentos explicitamente descontinuados que devem permanecer como ponte/aviso. Os principais pontos de atenção são: (a) eliminar/evitar documentos paralelos que possam divergir do canônico; (b) formalizar ADRs; (c) endereçar lacunas conhecidas (policies de Storage; endpoint de auditoria); e (d) corrigir a contradição prática da presença de `.env*` versionados, em desacordo com a política.
+docs/reviews/analise-governanca-estrutura-2025-12-19/GOVERNANCE_P0_P2_FINAL_AUDIT.md:11:- Runbooks com esqueleto/rascunho: segurança (2), auditoria endpoint, storage fotos ABA01.
+docs/reviews/analise-governanca-estrutura-2025-12-19/GOVERNANCE_P0_P2_FINAL_AUDIT.md:44:- P1.4 Consolidação: `docs/README.md`, `docs/architecture/SYSTEM_ARCHITECTURE.md`, `docs/process/ai/CODEX_GUIDE.md`, `docs/architecture/{ARCHITECTURE_REAL.md,REPO_MAP.md}`, `docs/research/PROJECT_IMMERSION_REPORT.md`, `docs/code-review.md`, (a criar) `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_CONSOLIDATION_FINAL.md`, `docs/archive/`.
+docs/reviews/analise-governanca-estrutura-2025-12-19/GOVERNANCE_P0_P2_FINAL_AUDIT.md:47:- P1.7 Runbooks lacunas: `docs/runbooks/{auditoria-endpoint.md,storage-photos-aba01.md}`.
+docs/reviews/analise-governanca-estrutura-2025-12-19/GOVERNANCE_P0_P2_FINAL_AUDIT.md:64:- Runbooks com “(rascunho)” (P1.7/P2.18): auditoria endpoint, storage fotos ABA01, segurança (2). Ação: completar conteúdo com seções obrigatórias e validação.
+docs/reviews/analise-governanca-estrutura-2025-12-19/GOVERNANCE_P0_P2_FINAL_AUDIT.md:94:- [ ] Completar 4 runbooks (segurança x2, auditoria endpoint, storage fotos ABA01) com: objetivo, pré-requisitos, passo a passo, validação, rollback, logs, troubleshooting, compliance.
+docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md:126:- [x] Revisar todos os “satélites” e garantir apontamento para docs canônicos (ex.: `SYSTEM_ARCHITECTURE.md`). Status: verificado — `ARCHITECTURE_REAL.md` e `REPO_MAP.md` já são satélites mínimos; `CODEX_GUIDE.md` contém aviso de canonicidade e seção de notas arquivadas.
+docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md:175:- [x] Identificar runbooks faltantes (exemplos do diagnóstico anterior: políticas de Storage para fotos em ABA01; endpoint unificado de Auditoria).
+docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md:176:- [x] Completar runbooks com conteúdo operacional (sem esqueleto). — CONCLUÍDO: [`runbooks/auditoria-endpoint.md`](../../runbooks/auditoria-endpoint.md) e [`runbooks/storage-photos-aba01.md`](../../runbooks/storage-photos-aba01.md)
+docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md:267:- 2025-12-17: P1.7 — adicionados runbooks (auditoria endpoint; storage fotos ABA01) e referenciados no ONBOARDING; link-check atualizado.
+docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md:270:- 2025-12-17: P1.5 — gaps de contratos adicionados ao `OPEN_TODO.md` com DoD e evidências (INDEX de Pacientes, MODULE_STATUS, CODEX_GUIDE, SYSTEM_ARCHITECTURE).
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_RESTRUCTURE_SUMMARY.md:3:Objetivo: reduzir fragmentação e deixar claro o que é arquitetura (estado atual), visão (longo prazo), governança/processo (workflow), contrato (fonte de verdade) e runbook (como operar). Todas as mudanças foram restritas a `docs/` e priorizaram mínimo impacto.
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_RESTRUCTURE_SUMMARY.md:20:    - `docs/process/ai/CODEX_GUIDE.md`
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_RESTRUCTURE_SUMMARY.md:22:    - `docs/process/ai/CODEX_QUESTIONS.md`
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_RESTRUCTURE_SUMMARY.md:23:    - `docs/process/ai/gemini.md`
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_RESTRUCTURE_SUMMARY.md:31:  - `docs/process/ai/CODEX_GUIDE.md`: adicionado aviso de canonicidade e substituída a seção "Arquitetura atual do repo (real)" por link para o documento canônico `docs/architecture/SYSTEM_ARCHITECTURE.md`.
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md:41:- [docs/process/ai/README.md] → "./gemini.md" → OK
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md:42:- [docs/process/ai/README.md] → "./CODEX_QUESTIONS.md" → OK
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md:84:- [docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../runbooks/storage-photos-aba01.md" → OK
+docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md:122:- [docs/runbooks/ONBOARDING.md] → "./storage-photos-aba01.md" → OK
+src/app/pacientes/[id]/PatientPageClient.tsx:696:            <p className={styles.muted}>Aba “Documentos” será integrada ao Storage + catálogo GED.</p>

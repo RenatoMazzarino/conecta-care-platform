@@ -1,0 +1,4 @@
+src/lib/supabase/client.ts:45:          return nativeFetch(input, init);
+src/lib/supabase/client.ts:53:          return nativeFetch(input, init);
+src/lib/supabase/client.ts:59:        return nativeFetch(input, { ...init, headers });
+supabase/config.toml:134:# Store vector embeddings in S3 for large and durable datasets
