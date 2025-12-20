@@ -244,6 +244,317 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_addresses: {
+        Row: {
+          address_label: string
+          address_purpose: string
+          address_source: string
+          cep_last_lookup_at: string | null
+          cep_last_lookup_source: string | null
+          cep_lookup_payload: Json | null
+          city: string
+          complement: string | null
+          country: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          geocode_cache_until: string | null
+          geocode_error_message: string | null
+          geocode_payload: Json | null
+          geocode_place_id: string | null
+          geocode_precision: string | null
+          geocode_provider: string | null
+          geocode_refreshed_at: string | null
+          geocode_status: string | null
+          id: string
+          is_primary: boolean
+          latitude: number | null
+          longitude: number | null
+          neighborhood: string
+          number: string
+          patient_id: string
+          postal_code: string
+          reference_point: string | null
+          risk_cache_until: string | null
+          risk_error_message: string | null
+          risk_level: string | null
+          risk_payload: Json | null
+          risk_provider: string | null
+          risk_refreshed_at: string | null
+          risk_score: number | null
+          risk_status: string | null
+          state: string
+          street: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          address_label?: string
+          address_purpose?: string
+          address_source?: string
+          cep_last_lookup_at?: string | null
+          cep_last_lookup_source?: string | null
+          cep_lookup_payload?: Json | null
+          city: string
+          complement?: string | null
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          geocode_cache_until?: string | null
+          geocode_error_message?: string | null
+          geocode_payload?: Json | null
+          geocode_place_id?: string | null
+          geocode_precision?: string | null
+          geocode_provider?: string | null
+          geocode_refreshed_at?: string | null
+          geocode_status?: string | null
+          id?: string
+          is_primary?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          neighborhood: string
+          number: string
+          patient_id: string
+          postal_code: string
+          reference_point?: string | null
+          risk_cache_until?: string | null
+          risk_error_message?: string | null
+          risk_level?: string | null
+          risk_payload?: Json | null
+          risk_provider?: string | null
+          risk_refreshed_at?: string | null
+          risk_score?: number | null
+          risk_status?: string | null
+          state: string
+          street: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          address_label?: string
+          address_purpose?: string
+          address_source?: string
+          cep_last_lookup_at?: string | null
+          cep_last_lookup_source?: string | null
+          cep_lookup_payload?: Json | null
+          city?: string
+          complement?: string | null
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          geocode_cache_until?: string | null
+          geocode_error_message?: string | null
+          geocode_payload?: Json | null
+          geocode_place_id?: string | null
+          geocode_precision?: string | null
+          geocode_provider?: string | null
+          geocode_refreshed_at?: string | null
+          geocode_status?: string | null
+          id?: string
+          is_primary?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          neighborhood?: string
+          number?: string
+          patient_id?: string
+          postal_code?: string
+          reference_point?: string | null
+          risk_cache_until?: string | null
+          risk_error_message?: string | null
+          risk_level?: string | null
+          risk_payload?: Json | null
+          risk_provider?: string | null
+          risk_refreshed_at?: string | null
+          risk_score?: number | null
+          risk_status?: string | null
+          state?: string
+          street?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_addresses_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_address_logistics: {
+        Row: {
+          access_conditions: string | null
+          adapted_bathroom: boolean
+          address_id: string
+          allowed_visit_hours: string | null
+          ambulance_access: string | null
+          animals_behavior: string | null
+          area_risk_type: string | null
+          backup_power_desc: string | null
+          backup_power_source: string | null
+          bed_type: string | null
+          block_tower: string | null
+          cell_signal_quality: string | null
+          concierge_contact: string | null
+          condo_name: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          distance_km: number | null
+          electric_voltage: string | null
+          elevator_status: string | null
+          entry_procedure: string | null
+          equipment_space: string | null
+          external_stairs: string | null
+          facade_image_url: string | null
+          floor_number: number | null
+          gate_identification: string | null
+          general_observations: string | null
+          has_24h_concierge: boolean
+          has_smokers: boolean
+          has_wifi: boolean
+          hygiene_conditions: string | null
+          lighting_quality: string | null
+          mattress_type: string | null
+          night_access_risk: string | null
+          noise_level: string | null
+          parking: string | null
+          pets_description: string | null
+          power_outlets_desc: string | null
+          property_type: string | null
+          street_access_type: string | null
+          team_parking: string | null
+          tenant_id: string
+          travel_notes: string | null
+          travel_time_min: number | null
+          unit_number: string | null
+          updated_at: string
+          updated_by: string | null
+          ventilation: string | null
+          water_source: string | null
+          wheelchair_access: string | null
+          zone_type: string | null
+        }
+        Insert: {
+          access_conditions?: string | null
+          adapted_bathroom?: boolean
+          address_id: string
+          allowed_visit_hours?: string | null
+          ambulance_access?: string | null
+          animals_behavior?: string | null
+          area_risk_type?: string | null
+          backup_power_desc?: string | null
+          backup_power_source?: string | null
+          bed_type?: string | null
+          block_tower?: string | null
+          cell_signal_quality?: string | null
+          concierge_contact?: string | null
+          condo_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          distance_km?: number | null
+          electric_voltage?: string | null
+          elevator_status?: string | null
+          entry_procedure?: string | null
+          equipment_space?: string | null
+          external_stairs?: string | null
+          facade_image_url?: string | null
+          floor_number?: number | null
+          gate_identification?: string | null
+          general_observations?: string | null
+          has_24h_concierge?: boolean
+          has_smokers?: boolean
+          has_wifi?: boolean
+          hygiene_conditions?: string | null
+          lighting_quality?: string | null
+          mattress_type?: string | null
+          night_access_risk?: string | null
+          noise_level?: string | null
+          parking?: string | null
+          pets_description?: string | null
+          power_outlets_desc?: string | null
+          property_type?: string | null
+          street_access_type?: string | null
+          team_parking?: string | null
+          tenant_id?: string
+          travel_notes?: string | null
+          travel_time_min?: number | null
+          unit_number?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          ventilation?: string | null
+          water_source?: string | null
+          wheelchair_access?: string | null
+          zone_type?: string | null
+        }
+        Update: {
+          access_conditions?: string | null
+          adapted_bathroom?: boolean
+          address_id?: string
+          allowed_visit_hours?: string | null
+          ambulance_access?: string | null
+          animals_behavior?: string | null
+          area_risk_type?: string | null
+          backup_power_desc?: string | null
+          backup_power_source?: string | null
+          bed_type?: string | null
+          block_tower?: string | null
+          cell_signal_quality?: string | null
+          concierge_contact?: string | null
+          condo_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          distance_km?: number | null
+          electric_voltage?: string | null
+          elevator_status?: string | null
+          entry_procedure?: string | null
+          equipment_space?: string | null
+          external_stairs?: string | null
+          facade_image_url?: string | null
+          floor_number?: number | null
+          gate_identification?: string | null
+          general_observations?: string | null
+          has_24h_concierge?: boolean
+          has_smokers?: boolean
+          has_wifi?: boolean
+          hygiene_conditions?: string | null
+          lighting_quality?: string | null
+          mattress_type?: string | null
+          night_access_risk?: string | null
+          noise_level?: string | null
+          parking?: string | null
+          pets_description?: string | null
+          power_outlets_desc?: string | null
+          property_type?: string | null
+          street_access_type?: string | null
+          team_parking?: string | null
+          tenant_id?: string
+          travel_notes?: string | null
+          travel_time_min?: number | null
+          unit_number?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          ventilation?: string | null
+          water_source?: string | null
+          wheelchair_access?: string | null
+          zone_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_address_logistics_address_id_fkey"
+            columns: ["address_id"]
+            referencedRelation: "patient_addresses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -385,4 +696,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-
