@@ -34,10 +34,11 @@ IN
 - Links canonicos e stubs anti-drift.
 - Auditoria e evidencias de validacao.
 - Contratos e planos de abas quando solicitados (ex.: Aba Endereco & Logistica).
+- Implementacao da Aba Endereco & Logistica (ABA02) quando solicitada, seguindo o fluxo contrato-driven.
 
 OUT
 - Nao implementar runtime de IA (SDKs, chamadas OpenAI/Anthropic/etc).
-- Nao alterar produto/UI fora de docs e links de governanca.
+- Nao alterar produto/UI fora do fluxo contrato-driven ou sem aprovacao explicita.
 - Nao implementar abas sem contrato aprovado (seguir Contrato -> Migrations -> Types -> Actions -> UI).
 
 ## 2) Hierarquia de fonte de verdade
