@@ -712,19 +712,21 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
 
   const handleEdit = () => {
     if (isDadosPessoaisTabSelected) {
-      if (dadosPessoaisUi.isEditing) {
-        dadosPessoaisRef.current?.cancelEdit();
-        return;
-      }
       dadosPessoaisRef.current?.startEdit();
       return;
     }
     if (isEnderecoLogisticaTabSelected) {
-      if (enderecoLogisticaUi.isEditing) {
-        enderecoLogisticaRef.current?.cancelEdit();
-        return;
-      }
       enderecoLogisticaRef.current?.startEdit();
+    }
+  };
+
+  const handleCancel = () => {
+    if (isDadosPessoaisTabSelected) {
+      dadosPessoaisRef.current?.cancelEdit();
+      return;
+    }
+    if (isEnderecoLogisticaTabSelected) {
+      enderecoLogisticaRef.current?.cancelEdit();
     }
   };
 
@@ -761,22 +763,34 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
               <ShareRegular />
               Compartilhar
             </button>
-            <button
-              className={`${styles.cmd} ${styles.cmdPrimary}`}
-              type="button"
-              onClick={handleSave}
-              disabled={!isEditableTabSelected || !isEditingActiveTab || isSavingActiveTab}
-            >
-              <SaveRegular />
-              Salvar alterações
-            </button>
 
-            <span className={styles.cmdSep} />
+            {isEditableTabSelected && isEditingActiveTab && (
+              <>
+                <button
+                  className={`${styles.cmd} ${styles.cmdPrimary}`}
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSavingActiveTab}
+                >
+                  <SaveRegular />
+                  Salvar alterações
+                </button>
+                <button className={styles.cmd} type="button" onClick={handleCancel} disabled={isSavingActiveTab}>
+                  <DismissRegular />
+                  Cancelar
+                </button>
+              </>
+            )}
 
-            <button className={styles.cmd} type="button" onClick={handleEdit} disabled={!isEditableTabSelected}>
-              {isEditingActiveTab ? <DismissRegular /> : <EditRegular />}
-              {isEditingActiveTab ? 'Cancelar' : 'Editar'}
-            </button>
+            {isEditableTabSelected && !isEditingActiveTab && (
+              <button className={styles.cmd} type="button" onClick={handleEdit}>
+                <EditRegular />
+                Editar
+              </button>
+            )}
+
+            {isEditableTabSelected && <span className={styles.cmdSep} />}
+
             <button className={styles.cmd} type="button" onClick={handleReload} disabled={!isEditableTabSelected}>
               <ArrowClockwiseRegular />
               Recarregar
