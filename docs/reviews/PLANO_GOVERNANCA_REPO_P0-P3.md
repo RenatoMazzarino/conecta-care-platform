@@ -1,6 +1,6 @@
 # Plano de Governança e Saneamento do Repositório (P0–P3)
 
-Atualizado em: 2025-12-18
+Atualizado em: 2025-12-19
 
 Este documento é a fonte canônica do planejamento de saneamento e governança do repositório. Deve ser mantido sempre atualizado conforme a execução avança. Novos itens identificados durante a execução devem ser incluídos retroativamente no nível correto (P0–P3). Se algo executado exigir reclassificação (ex.: algo que era P1 mas mostra-se P0), este plano deve ser atualizado imediatamente e a execução registrada.
 
@@ -42,7 +42,7 @@ Este documento é a fonte canônica do planejamento de saneamento e governança 
 - [x] 18. Segurança operacional (P2)
 - [ ] 19. Internacionalização/terminologia (P3)
 - [ ] 20. Validação contínua (P3)
-- [ ] 21. Submeter solução (✓ final)
+- [x] 21. Submeter solução (✓ final)
 
 Observação: o item 21 só será marcado quando todo o escopo planejado estiver concluído e validado.
 
@@ -69,7 +69,7 @@ Entregas P0 ligadas a este item:
 
 ---
 
-### 2) CI/CD e qualidade (P0) — Status: CONCLUÍDO (pendência manual: branch protection)
+### 2) CI/CD e qualidade (P0) — Status: CONCLUÍDO
 
 Objetivo: garantir que PRs não quebrem o build nem a documentação.
 
@@ -79,7 +79,7 @@ Subitens e linha-a-linha:
 - [x] Endurecer o workflow (concurrency, Node fixado, nomes estáveis e upload de artefatos) — CONCLUÍDO.
 - [x] Adicionar Docs Markdown Lint como gate forte — CONCLUÍDO (job “Docs Markdown Lint”).
 - [x] Validar localmente `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run verify` — Todos passaram (ver seção Evidências).
-- [ ] Tornar jobs obrigatórios na proteção de branch (config UI do GitHub) — A FAZER (ação manual no GitHub). Runbook: [`docs/runbooks/branch-protection.md`](../runbooks/branch-protection.md) + checklist [`BRANCH_PROTECTION_CHECKLIST.md`](../reviews/BRANCH_PROTECTION_CHECKLIST.md).
+- [x] Tornar jobs obrigatórios na proteção de branch (config UI do GitHub) — CONCLUÍDO. Evidência: [`docs/runbooks/branch-protection.md`](../runbooks/branch-protection.md) + checklist [`BRANCH_PROTECTION_CHECKLIST.md`](../reviews/BRANCH_PROTECTION_CHECKLIST.md).
 
 Entregas P0 ligadas a este item:
 
@@ -224,7 +224,7 @@ Subitens e linha-a-linha:
 - Segurança operacional (P2): runbooks de incidentes, backups, acesso e rotação programada. — CONCLUÍDO (runbooks completos + revisão final).
 - Internacionalização/terminologia (P3): glossário e política de idioma, termos médicos/legais.
 - Validação contínua (P3): cadência de revisão mensal com checklist e owners.
-- Submeter solução (✓ final): fechar PR guarda-chuva e gerar release notes.
+- Submeter solução (✓ final): fechar PR guarda-chuva e gerar release notes. — CONCLUÍDO
 
 ---
 
@@ -259,6 +259,7 @@ Subitens e linha-a-linha:
 
 ## Histórico de atualizações deste plano
 
+- 2025-12-19: branch protection configurado (checks obrigatórios CI, Docs Link Check, Docs Markdown Lint, Secrets Scan) e fechamento do PR guarda-chuva com release notes; item 21 marcado como concluído.
 - 2025-12-17: criação inicial do plano unificado; P0 marcado como concluído; inclusão de branch `chore/repo-governance-docs-p0-p3` e referência ao PR #6 (Draft) como guarda-chuva; detalhamento de P1 planejado.
 - 2025-12-17: P1.4 (Consolidação) — adicionado link explícito para ADRs no hub `docs/README.md`; subitem marcado como concluído.
 - 2025-12-17: P1.5 (parcial) — criado `contracts/pacientes/INDEX.md` e expandido `MODULE_STATUS.md`; link-check atualizado.
