@@ -1,6 +1,7 @@
 # ABA02 — Legacy Field List (legacy.patient_addresses + legacy.patient_domiciles)
 
-Fonte: `docs/repo_antigo/schema_current.sql`
+Fonte principal: `db/snapshots_legado/conectacare-2025-11-29.sql` (schema).
+Referencia secundaria: `docs/repo_antigo/schema_current.sql`.
 
 ## Legend
 

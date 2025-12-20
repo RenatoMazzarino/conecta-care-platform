@@ -30,6 +30,8 @@ OUT
 - `docs/contracts/_templates/CONTRACT_TEMPLATE.md`
 - `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`
 - `docs/architecture/decisions/ADR-004-ui-dynamics-standard.md`
+- `db/snapshots_legado/conectacare-2025-11-29.sql`
+- `db/snapshots_legado/conectacare-2025-11-29.json`
 - `docs/repo_antigo/schema_current.sql`
 - `html/modelo_final_aparencia_pagina_do_paciente.htm`
 
