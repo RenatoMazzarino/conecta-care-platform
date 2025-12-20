@@ -16,16 +16,15 @@
   - `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`
   - `docs/architecture/decisions/ADR-004-ui-dynamics-standard.md`
   - `db/snapshots_legado/conectacare-2025-11-29.sql`
-  - `db/snapshots_legado/conectacare-2025-11-29.json`
   - `docs/repo_antigo/schema_current.sql`
   - `docs/contracts/pacientes/ABA02_LEGACY_FIELD_LIST.md`
   - `docs/contracts/pacientes/ABA02_LEGACY_TO_CANONICAL_MAP.md`
   - `html/modelo_final_aparencia_pagina_do_paciente.htm`
   - `docs/runbooks/auditoria-endpoint.md`
 
-Fonte do legado (anexos obrigatorios):
+Fonte do legado (anexos obrigatórios):
 
-- Snapshot legado principal: `db/snapshots_legado/conectacare-2025-11-29.sql` (schema) e `db/snapshots_legado/conectacare-2025-11-29.json` (dados).
+- Snapshot legado principal: `db/snapshots_legado/conectacare-2025-11-29.sql` (schema).
 - Campos completos de `legacy.patient_addresses` e `legacy.patient_domiciles`: `docs/contracts/pacientes/ABA02_LEGACY_FIELD_LIST.md`.
 - Mapa legado -> canonico (100%): `docs/contracts/pacientes/ABA02_LEGACY_TO_CANONICAL_MAP.md`.
 
