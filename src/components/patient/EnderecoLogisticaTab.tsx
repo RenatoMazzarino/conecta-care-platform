@@ -18,6 +18,7 @@ import {
 } from '@fluentui/react-components';
 import {
   ArrowClockwiseRegular,
+  CopyRegular,
   LocationRegular,
   MapRegular,
   ShareRegular,
@@ -768,33 +769,17 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
 
     const handleShareLocation = async () => {
       if (!draftAddress) return;
-      const cityUf = draftAddress.city && draftAddress.state ? `${draftAddress.city}/${draftAddress.state}` : draftAddress.city;
-      const formattedAddress = `${draftAddress.street}, ${draftAddress.number}`;
-      const parts = [
-        patientName ? `Paciente: ${patientName}` : null,
-        formattedAddress,
-        cityUf,
-        `CEP: ${formatPostalCode(draftAddress.postal_code)}`,
-        mapsUrl ? `Google Maps: ${mapsUrl}` : null,
-        wazeUrl ? `Waze: ${wazeUrl}` : null,
-        draftAddress.latitude != null && draftAddress.longitude != null
-          ? `Coordenadas: ${draftAddress.latitude}, ${draftAddress.longitude}`
-          : null,
-      ].filter(Boolean) as string[];
-
-      const text = parts.join('\n');
-      const clipboardPayload = mapsUrl ?? moovitUrl ?? wazeUrl ?? text;
-      const clipboardMessage = mapsUrl || moovitUrl || wazeUrl ? 'Link copiado para o clipboard' : 'Informação copiada para o clipboard';
-
+      const message = buildLocationMessage();
+      if (!message) return;
       try {
         if (navigator.share) {
-          await navigator.share({ text: clipboardPayload });
+          await navigator.share({ text: message });
           return;
         }
-        await navigator.clipboard.writeText(clipboardPayload);
+        await navigator.clipboard.writeText(message);
         dispatchToast(
           <Toast>
-            <ToastTitle>{clipboardMessage}</ToastTitle>
+            <ToastTitle>Mensagem copiada para o clipboard</ToastTitle>
           </Toast>,
           { intent: 'success' },
         );
@@ -802,6 +787,28 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
         dispatchToast(
           <Toast>
             <ToastTitle>{error instanceof Error ? error.message : 'Falha ao compartilhar'}</ToastTitle>
+          </Toast>,
+          { intent: 'error' },
+        );
+      }
+    };
+
+    const handleCopyLocationMessage = async () => {
+      if (!draftAddress) return;
+      const message = buildLocationMessage();
+      if (!message) return;
+      try {
+        await navigator.clipboard.writeText(message);
+        dispatchToast(
+          <Toast>
+            <ToastTitle>Mensagem copiada para o clipboard</ToastTitle>
+          </Toast>,
+          { intent: 'success' },
+        );
+      } catch (error) {
+        dispatchToast(
+          <Toast>
+            <ToastTitle>{error instanceof Error ? error.message : 'Falha ao copiar'}</ToastTitle>
           </Toast>,
           { intent: 'error' },
         );
@@ -883,6 +890,21 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
     const riskBadgeStyle = riskBadgeColors[riskBadgeKey] ?? riskBadgeColors.unknown;
     const riskBadgeText = showRiskBadge ? formatRiskLevel(riskBadgeKey) : '—';
     const riskUpdatedAtText = formatDateTime(draftAddress.risk_refreshed_at);
+    const buildLocationMessage = () => {
+      const parts: string[] = [];
+      if (patientName) {
+        parts.push(`Paciente: ${patientName}`);
+      }
+      const streetLine = [draftAddress.street, draftAddress.number].filter(Boolean).join(', ');
+      if (streetLine) parts.push(streetLine);
+      const cityUf = [draftAddress.city, draftAddress.state].filter(Boolean).join('/');
+      if (cityUf) parts.push(cityUf);
+      if (draftAddress.postal_code) parts.push(`CEP: ${formatPostalCode(draftAddress.postal_code)}`);
+      if (mapsUrl) parts.push(`Google Maps: ${mapsUrl}`);
+      if (wazeUrl) parts.push(`Waze: ${wazeUrl}`);
+      if (moovitUrl) parts.push(`Moovit: ${moovitUrl}`);
+      return parts.join('\n');
+    };
 
     const readOnlyAddress = currentAddress ?? draftAddress;
     const readOnlyLogistics = currentAddress?.logistics ?? draftLogistics;
@@ -1798,21 +1820,17 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
 
             <section className={styles.card}>
               <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>Localizacao</div>
-                <Button
-                  appearance="outline"
-                  size="small"
-                  as="a"
-                  href={moovitUrl ?? undefined}
-                  target="_blank"
-                  rel="noreferrer"
-                  disabled={!moovitUrl}
-                >
-                  Abrir no Moovit
-                </Button>
-                <Button appearance="outline" size="small" icon={<ShareRegular />} onClick={handleShareLocation}>
-                  Compartilhar localizacao
-                </Button>
+                <div>
+                  <div className={styles.cardTitle}>Localizacao</div>
+                </div>
+                <div className={styles.inlineActions}>
+                  <Button appearance="outline" size="small" icon={<ShareRegular />} onClick={handleShareLocation}>
+                    Compartilhar localizacao
+                  </Button>
+                  <Button appearance="outline" size="small" icon={<CopyRegular />} onClick={handleCopyLocationMessage}>
+                    Copiar mensagem
+                  </Button>
+                </div>
               </div>
               <div className={styles.cardBody}>
                 {renderReadOnlyList([
@@ -1830,6 +1848,13 @@ export const EnderecoLogisticaTab = forwardRef<EnderecoLogisticaTabHandle, Ender
                   <p className={styles.note}>
                     <a className={styles.link} href={wazeUrl} target="_blank" rel="noreferrer">
                       Abrir no Waze
+                    </a>
+                  </p>
+                )}
+                {moovitUrl && (
+                  <p className={styles.note}>
+                    <a className={styles.link} href={moovitUrl} target="_blank" rel="noreferrer">
+                      Abrir no Moovit
                     </a>
                   </p>
                 )}
