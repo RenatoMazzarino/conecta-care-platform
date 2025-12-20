@@ -1,8 +1,8 @@
 # Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-20 02:43:07
+Data: 2025-12-20 04:15:35
 
-Total de links verificados: 121
+Total de links verificados: 119
 Links quebrados: 0
 
 **Nenhum link relativo quebrado encontrado.**
@@ -38,8 +38,6 @@ Links quebrados: 0
 - [docs/MODULE_STATUS.md] → "./contracts/home-care-ops/INDEX.md" → OK
 - [docs/MODULE_STATUS.md] → "./contracts/inventario/INDEX.md" → OK
 - [docs/MODULE_STATUS.md] → "./contracts/configuracoes/INDEX.md" → OK
-- [docs/process/ai/README.md] → "./gemini.md" → OK
-- [docs/process/ai/README.md] → "./CODEX_QUESTIONS.md" → OK
 - [docs/README.md] → "./architecture/" → OK
 - [docs/README.md] → "./architecture/decisions/" → OK
 - [docs/README.md] → "./contracts/" → OK
