@@ -1,6 +1,6 @@
-# CODEX_QUESTIONS.md (deprecated)
+# CODEX_QUESTIONS.md (stub)
 
-The open questions list has been consolidated into AGENT.md.
+Este documento foi consolidado no AGENT.md (fonte unica de verdade).
+Veja: ../../../AGENT.md#11-apendice-perguntas-e-decisoes
 
-- Source of truth: AGENT.md (Appendix: Open questions)
-- This file is kept as a pointer to avoid drift.
+Ultimo commit com conteudo completo: 3afc5863ec474734b872120e2a629f47f0cc334e

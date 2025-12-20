@@ -1,6 +1,6 @@
-# gemini.md (deprecated)
+# gemini.md (stub)
 
-This document is deprecated. Canonical AI guidance now lives in AGENT.md.
+Este documento foi consolidado no AGENT.md (fonte unica de verdade).
+Veja: ../../../AGENT.md#5-non-negotiables
 
-- Source of truth: AGENT.md
-- This file is kept as a pointer to avoid drift.
+Ultimo commit com conteudo completo: 3afc5863ec474734b872120e2a629f47f0cc334e

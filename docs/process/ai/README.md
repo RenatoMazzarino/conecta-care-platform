@@ -1,17 +1,13 @@
-# Processo de Trabalho com IA
+# Processo de Trabalho com IA (stub)
 
-Esta pasta contem documentos de processo para uso de assistentes de IA no repo.
-A fonte unica de verdade agora e o arquivo AGENT.md na raiz.
+Este diretorio foi consolidado no AGENT.md (fonte unica de verdade).
+Veja: ../../../AGENT.md#1-proposito-e-escopo-inout
 
-## Fonte unica de verdade
-
-- AGENT.md (canonico)
-
-## Arquivos mantidos como stubs
+Stubs mantidos aqui:
 
 - gemini.md
 - CODEX_GUIDE.md
 - AI_TOOLING.md
 - CODEX_QUESTIONS.md
 
-Todos os stubs apontam para AGENT.md para evitar duplicidade e drift.
+Ultimo commit com conteudo completo: 3afc5863ec474734b872120e2a629f47f0cc334e

@@ -1,180 +1,143 @@
-# AGENT.md - AI single source of truth (Conecta Care)
+# AGENT.md - fonte unica de verdade para IA (Conecta Care)
 
-Purpose
-- This file is the single source of truth for AI guidance in this repo.
-- If any other AI doc conflicts with this file, AGENT.md wins.
-- Other AI docs are stubs that link here to avoid drift.
+## Baseline
 
-Scope
-- Applies to all assistants: Codex (VS Code), Gemini local, Copilot, ChatGPT, Codex Web, Vercel Agent.
-- Defines governance, non-negotiables, stop conditions, and operational flow.
+```
+git status -sb
+## chore/ai-agent-single-source-of-truth...origin/chore/ai-agent-single-source-of-truth
+ M .github/copilot-instructions.md
+ M AGENT.md
+ M docs/process/ai/AI_TOOLING.md
+ M docs/process/ai/CODEX_GUIDE.md
+ M docs/process/ai/CODEX_QUESTIONS.md
+ M docs/process/ai/README.md
+ M docs/process/ai/gemini.md
+RM .tmp/rg_ai_terms.txt -> docs/reviews/AI_TERM_SCAN_2025-12-20.txt
+ M docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md
+?? AGENTS.md
+git rev-parse --abbrev-ref HEAD
+chore/ai-agent-single-source-of-truth
+git rev-parse HEAD
+3dcc67b9079a60cdd4e4cba13199dab95dbc0d13
+node -v
+/bin/bash: line 1: node: command not found
+npm -v
+11.6.2
+```
 
-## Governance flow (mandatory order)
+## 1) Proposito e escopo (IN/OUT)
 
-Contract -> Migrations -> Types -> Actions -> UI -> Docs/Runbooks/Review
+IN
+- Governanca de IA, processos e orientacoes operacionais.
+- Links canonicos e stubs anti-drift.
+- Auditoria e evidencias de validacao.
 
-Rules
-- Do not skip the order.
-- Contract is the source of truth. If missing, create a draft and request approval.
+OUT
+- Nao tocar Aba Endereco.
+- Nao implementar runtime de IA (SDKs, chamadas OpenAI/Anthropic/etc).
+- Nao alterar produto/UI fora de docs e links de governanca.
 
-## Tooling and roles
+## 2) Hierarquia de fonte de verdade
 
-- Codex (VS Code): executes changes in the repo (code, docs, migrations).
-- ChatGPT: discusses decisions, writes contracts/ADRs, defines plan and commands.
-- Codex Web: PR review (only reviews PRs, not raw commits).
-- Vercel Agent: automated review in Vercel/GitHub.
-- Humans: make product decisions and final approvals.
+AGENT.md > specs/contratos (docs/contracts) > migrations (supabase/migrations) > types > actions > UI
 
-## Non-negotiables (do not violate)
+Regras
+- Se houver conflito, AGENT.md vence.
+- Contrato e a fonte de verdade para escopo funcional.
 
-- Multi-tenant + RLS: tenant_id required; RLS enforced in DB and app.
-- Soft delete: use deleted_at; do not hard delete by default.
-- UI standard: Microsoft Dynamics / Fluent classic shell.
-- Executor does not decide product or scope without explicit approval.
-- No secrets in repo: do not commit .env or keys; keep .env.example only.
-- No "MVP" shortcuts that reduce governance or quality.
+## 3) Papeis de agentes e responsabilidades
 
-## Stop conditions (pause and ask)
+- Executor: implementa mudancas no repo, segue o fluxo e registra evidencias.
+- Arquiteto: define decisoes e contratos; nao executa mudancas diretas no repo.
+- Revisor: revisa PRs e aponta riscos/bugs; nao muda escopo.
 
-Stop and ask for a decision when any of the following is true:
-- Missing or unclear contract/ADR for the requested change.
-- Conflicting instructions between docs or between doc and code.
-- Schema mismatch between DTOs and DB (do not invent columns).
-- Request implies a major refactor or pattern change without explicit approval.
-- Security risk or secret exposure is suspected.
+## 4) Workflow padrao
 
-## Required reading before changes
+branch -> baseline -> mudanca -> validacao -> PR
 
-- Canonical UI HTML: html/modelo_final_aparencia_pagina_do_paciente.htm
-- Contracts: docs/contracts/**
-- Reviews: docs/reviews/**
-- Runbooks: docs/runbooks/**
-- Architecture: docs/architecture/**
+Checklist minimo
+- git status -sb
+- criar branch
+- executar mudanca
+- validar (npm run verify) ou registrar impedimento
+- abrir PR (Draft cedo)
 
-If a referenced path does not exist, do not invent it. Search for the closest existing source.
+## 5) Non-negotiables
 
-## Pre-flight / boot sequence
+- Fluxo de governanca: Contrato -> Migrations -> Types -> Actions -> UI -> Docs/Runbooks/Review.
+- Multi-tenant + RLS obrigatorio.
+- Soft delete com deleted_at.
+- UI Dynamics/Fluent classico (command bar + record header + tabs + grid).
+- Executor nao decide produto sem aprovacao explicita.
+- Sem segredos no repo (.env e chaves nunca versionados).
 
-- git status -sb (understand working tree state)
-- git checkout main
-- git pull
-- git checkout -b <branch>
-- Run npm run verify or record why it could not run.
-- For work larger than a small doc change, create a plan (steps, risks, validation, evidence).
+## 6) Stop conditions
 
-## Product and platform vision (core rules)
+Pare e peça decisao quando:
+- Contrato/ADR ausente ou ambiguo.
+- Instrucoes conflitantes entre docs ou entre doc e codigo.
+- DTO diverge do schema do banco (nao inventar coluna).
+- Pedido implica refatoracao grande ou mudanca de padrao sem aprovacao.
+- Suspeita de segredo/versionamento indevido.
 
-- Escalas is the operational core.
-- Pacientes is the data anchor feeding Escalas, Financeiro, Inventario, Clinico, GED, and Auditoria.
-- GED + Auditoria provide compliance, evidence, and traceability.
-- Multi-tenant and auditability are required for all domain data.
+## 7) Seguranca e segredos
 
-## Escalas (core behavior)
+Regras
+- Nunca registrar chaves reais; sempre redigir (ex: sk-***, AIza***).
+- .env e variantes nunca devem ser commitados.
 
-- Shifts are 12h per patient (2 shifts per day).
-- Swap/changes require approval (escalista/supervisor).
-- Check-in/out uses geo + biometric API (ex: SERPRO) + BLE presence pings.
-- Financeiro ties to shift events (late/early adjustments with approvals).
+Como reportar
+- Pausar a mudanca.
+- Redigir qualquer evidencia no log/relatorio.
+- Abrir issue/nota no PR com passos de rotacao.
 
-## UI standard (Dynamics / Fluent classic)
+## 8) Politica de stubs (anti-drift)
 
-- Global header: keep the Conecta Care shell.
-- Command bar: top actions; title "Conecta Care . Pacientes".
-- Record header: patient avatar + name + metadata (status, alergia, etc).
-- Tabs (inline, no pills): Dados pessoais, Endereco & logistica, Rede de apoio, Administrativo,
-  Financeiro, Clinico, Documentos/GED, Historico & Auditoria.
-- Layout: 2/3 + 1/3 grid with cards; sidebar for status/auditoria/timeline.
-- Stack: Fluent classic + CSS/Tailwind simple. Do not use MUI or Fluent 2.
+Template unico (max 20 linhas)
+- 1 paragrafo: documento consolidado.
+- Link para secao exata em AGENT.md.
+- Linha: "Ultimo commit com conteudo completo: <hash>".
 
-Canonical UI references
-- html/modelo_final_aparencia_pagina_do_paciente.htm
-- html/comparativo-fluent.html (legacy reference)
-- src/app/pacientes/page.tsx and src/app/pacientes/[id]/page.tsx
+Regras
+- Nao repetir regras completas fora de AGENT.md.
+- Stubs devem apontar para o mesmo topo/ancora canonica.
 
-## Data and migrations discipline
+## 9) Integracao com ferramentas (adapters)
 
-- Never edit old migrations once applied.
-- New migrations must link to the contract at the top of the file.
-- Avoid fragile or paranoid DB regex checks; DB validates minimal consistency, app validates strongly.
-- If schema is unknown, pause and document the question before changing code.
+- Copilot: usar AGENT.md como fonte canonica; .github/copilot-instructions.md e stub.
+- Codex (VS Code): executor do repo; segue workflow e non-negotiables.
+- Gemini local: se usado, seguir AGENT.md; sem decidir produto.
+- Codex Web / Vercel Agent: revisao automatica de PRs (nao altera repo).
 
-## Repo vs DB sync procedure
+## 10) Estado atual de IA no produto
 
-1) Compare DTOs with DB schema snapshots (db/snapshots if present).
-2) If a column or constraint is missing, pause and document in docs/architecture/OPEN_TODO.md.
-3) Do not invent schema; use explicit mock or placeholder with documentation.
-4) Only propose migrations after alignment.
+- Nao ha runtime de IA no app (sem SDKs/chamadas).
+- openai_api_key em supabase/config.toml e para Supabase Studio AI (nao runtime).
+- Vector storage esta desativado por padrao.
 
-## Audit and last update
+## 11) Apendice: Perguntas e decisoes
 
-- Prefer created_at/updated_at and created_by/updated_by if available.
-- UI should show "Ultima alteracao" (date + author) where data exists.
-- Event naming pattern: <dominio>.<entidade>.<acao> (keep audit payload contextual).
-
-## Actions and UX quality
-
-- Validate inputs (Zod), normalize data, and return user-friendly errors.
-- UI should not expose raw error payloads.
-- Keep logs technical, UI messages simple.
-
-## Sensitive data handling
-
-- If granular RBAC is required, use a staged approach (satellite table, backfill, policy, migration plan).
-- Do not execute sensitive data separation without explicit approval.
-
-## Branch, commits, and PR workflow
-
-- One branch per unit of work.
-- Open PR early as Draft to enable automated reviewers.
-- Run npm run verify before Ready for review (or document why it failed).
-- Commit prefixes: feat, fix, docs, chore, refactor, ci.
-
-## AI runtime and config notes
-
-- There is no AI SDK or runtime integration in the app dependencies today.
-- supabase/config.toml contains openai_api_key for Supabase Studio AI only (not app runtime).
-- Vector storage config exists but is disabled by default.
-- Any future AI runtime must be explicit, documented, and approved.
-
-## Stubs policy (anti-drift)
-
-- docs/process/ai/gemini.md, CODEX_GUIDE.md, AI_TOOLING.md, CODEX_QUESTIONS.md are stubs.
-- .github/copilot-instructions.md is a minimal pointer to this file.
-
-## References
-
-- Architecture: docs/architecture/SYSTEM_ARCHITECTURE.md
-- Contracts: docs/contracts/
-- Runbooks: docs/runbooks/
-- Open questions: see Appendix below
-
-## Appendix: Open questions (from CODEX_QUESTIONS)
+Perguntas abertas (origem: CODEX_QUESTIONS)
 
 Escalas
-1) What are the official shift statuses and where are approvals stored?
-   - Context: docs/architecture/SYSTEM_ARCHITECTURE.md (Section 3), docs/process/ai/CODEX_GUIDE.md (legacy).
-2) What is the shift swap flow (who requests, who approves, required audit events)?
-   - Context: event taxonomy in legacy CODEX_GUIDE content.
-3) Check-in/out: which biometric API and geo/BLE payload is required?
-   - Context: core requirements mention SERPRO and BLE; schema pending.
-4) Are there rounding/tolerance rules for hours that impact billing?
+1) Status oficiais de plantao e onde registrar aprovacoes?
+2) Fluxo de troca de plantao (quem solicita/aprova, eventos obrigatorios)?
+3) Check-in/out: qual API de biometria e payload minimo (geo/BLE)?
+4) Regras de tolerancia/arredondamento que impactam faturamento?
 
 Auditoria
-1) Is there a centralized audit endpoint/service, and what is the minimum schema?
-2) Data retention/anonymization policy for audit history (LGPD)?
-3) Is there a unified Patient History endpoint aggregating Escalas/GED/admin?
-   - Context: SYSTEM_ARCHITECTURE.md vision and HTML prototype.
+1) Endpoint centralizado de auditoria e schema minimo?
+2) Politica de retencao e anonimizacao LGPD para historico?
+3) Endpoint unificado de Historico do Paciente (Escalas/GED/admin)?
 
-Security / Multi-tenant
-1) What are the official roles and allowed actions for Pacientes and Escalas?
+Seguranca / Multi-tenant
+1) Roles oficiais e permissoes em Pacientes e Escalas?
 
-Data / Schema
-1) Should readable IDs (PAC-000123) be stored or display-only?
-2) Where will GED documents be stored, versioned, and linked?
-3) Clinico/Financeiro/Inventario: which datasets are mirrored vs created from scratch?
+Dados / Schema
+1) IDs legiveis (PAC-000123): persistir ou apenas exibir?
+2) GED: onde armazenar/versionar/vincular documentos?
+3) Clinico/Financeiro/Inventario: espelhar dados externos ou criar do zero?
 
-## Appendix: Answered questions (from CODEX_QUESTIONS)
-
-- Tenant identification and isolation: tenant_id from Supabase Auth JWT; RLS enforces isolation.
-  - Sources: docs/runbooks/auth-tenancy.md, docs/architecture/SYSTEM_ARCHITECTURE.md
-- Paciente schema (ABA01): defined in docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md.
+Perguntas respondidas
+- Tenant: vem do JWT do Supabase Auth; RLS garante isolamento.
+- Schema Pacientes ABA01: docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md.
