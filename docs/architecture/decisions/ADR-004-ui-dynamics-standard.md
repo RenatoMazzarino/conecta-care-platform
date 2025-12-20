@@ -27,5 +27,5 @@ Consequências
 Referências
 
 - html/modelo_final_aparencia_pagina_do_paciente.htm
-- docs/process/ai/CODEX_GUIDE.md (padrões de UI)
+- AGENT.md (padrões de UI)
 - docs/architecture/SYSTEM_ARCHITECTURE.md (Princípios)
