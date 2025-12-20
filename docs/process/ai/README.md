@@ -1,10 +1,17 @@
 # Processo de Trabalho com IA
 
-Esta pasta contém documentos, guias e templates relacionados ao uso de assistentes de IA (como o Gemini) no desenvolvimento da plataforma Conecta Care.
+Esta pasta contem documentos de processo para uso de assistentes de IA no repo.
+A fonte unica de verdade agora e o arquivo AGENT.md na raiz.
 
-O conteúdo aqui descrito **não faz parte da arquitetura do sistema**. Ele representa o nosso **processo de trabalho** e as melhores práticas que adotamos para otimizar a codificação, a documentação e a análise de código com ferramentas de IA.
+## Fonte unica de verdade
 
-## Documentos Principais
+- AGENT.md (canonico)
 
-- **[gemini.md](./gemini.md)**: O **Manual Mestre** que governa a operação do assistente Gemini neste repositório. Leitura obrigatória.
-- **[CODEX_QUESTIONS.md](./CODEX_QUESTIONS.md)**: Perguntas críticas de arquitetura e negócio para guiar o desenvolvimento.
+## Arquivos mantidos como stubs
+
+- gemini.md
+- CODEX_GUIDE.md
+- AI_TOOLING.md
+- CODEX_QUESTIONS.md
+
+Todos os stubs apontam para AGENT.md para evitar duplicidade e drift.

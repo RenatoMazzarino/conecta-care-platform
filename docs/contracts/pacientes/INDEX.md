@@ -19,7 +19,7 @@ Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apont
 
 Notas:
 
-- Os nomes das ABAs seguem o padrão visual de navegação documentado em `docs/process/ai/CODEX_GUIDE.md` e a arquitetura canônica em `docs/architecture/SYSTEM_ARCHITECTURE.md`.
+- Os nomes das ABAs seguem o padrão visual de navegação documentado em `AGENT.md` e a arquitetura canônica em `docs/architecture/SYSTEM_ARCHITECTURE.md`.
 - Quando um contrato for aprovado para uma ABA, substitua “A definir” por “Em contrato/Implementado” e adicione o link do documento correspondente.
 
 ## Evidências

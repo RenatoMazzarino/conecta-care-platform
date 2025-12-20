@@ -24,7 +24,7 @@ Antes de marcar PR como “Ready for review”, rode:
 ## Governança de documentação
 - Toda mudança de comportamento deve atualizar a documentação correspondente no mesmo PR (Contratos, Runbooks, Arquitetura, Onboarding). PRs com docs desatualizadas podem ser bloqueados.
 - Evite duplicação de conteúdo: a arquitetura canônica está em `docs/architecture/SYSTEM_ARCHITECTURE.md`; decisões em `docs/architecture/decisions/`.
-- Para dúvidas de arquitetura/processo use `docs/process/ai/CODEX_QUESTIONS.md` (seguindo o formato) e depois mova para “Respondidas” quando houver cobertura canônica.
+- Para dúvidas de arquitetura/processo use `AGENT.md` (Apendice: Open questions) e depois mova para “Respondidas” quando houver cobertura canônica.
 
 ## Convenção de commits
 - Use prefixos: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `ci:`.
