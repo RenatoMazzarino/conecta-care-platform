@@ -2,7 +2,7 @@
 
 Data: 2025-12-18
 Branch: `chore/governance-p0-p2-finalize`
-Fonte do plano: [`docs/reviews/PLANO_GOVERNANCA_REPO_P0-P3.md`](./PLANO_GOVERNANCA_REPO_P0-P3.md)
+Fonte do plano: [`docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md`](./PLANO_GOVERNANCA_REPO_P0-P3.md)
 
 ## Sumário executivo
 
@@ -38,10 +38,10 @@ Legenda “Qualidade”: OK = pronto para produção; Precisa elevar = falta gat
 
 ## Arquivos envolvidos por item
 
-- P0.1 Segurança/Segredos: `.github/workflows/ci.yml`, `docs/reviews/SECRETS_ROTATION.md`, (a criar) `docs/runbooks/security-secrets-scanning.md`, (a criar) `.gitleaks.toml`.
-- P0.2 CI/CD: `.github/workflows/ci.yml`, `README.md`, `docs/runbooks/branch-protection.md`, (a criar) `docs/reviews/BRANCH_PROTECTION_CHECKLIST.md`.
+- P0.1 Segurança/Segredos: `.github/workflows/ci.yml`, `docs/reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md`, (a criar) `docs/runbooks/security-secrets-scanning.md`, (a criar) `.gitleaks.toml`.
+- P0.2 CI/CD: `.github/workflows/ci.yml`, `README.md`, `docs/runbooks/branch-protection.md`, (a criar) `docs/reviews/analise-governanca-estrutura-2025-12-19/BRANCH_PROTECTION_CHECKLIST.md`.
 - P0.3 ADRs: `docs/architecture/decisions/*`, (a aprimorar) `docs/architecture/decisions/README.md`.
-- P1.4 Consolidação: `docs/README.md`, `docs/architecture/SYSTEM_ARCHITECTURE.md`, `docs/process/ai/CODEX_GUIDE.md`, `docs/architecture/{ARCHITECTURE_REAL.md,REPO_MAP.md}`, `docs/research/PROJECT_IMMERSION_REPORT.md`, `docs/code-review.md`, (a criar) `docs/reviews/DOCS_CONSOLIDATION_FINAL.md`, `docs/archive/`.
+- P1.4 Consolidação: `docs/README.md`, `docs/architecture/SYSTEM_ARCHITECTURE.md`, `docs/process/ai/CODEX_GUIDE.md`, `docs/architecture/{ARCHITECTURE_REAL.md,REPO_MAP.md}`, `docs/research/PROJECT_IMMERSION_REPORT.md`, `docs/code-review.md`, (a criar) `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_CONSOLIDATION_FINAL.md`, `docs/archive/`.
 - P1.5 Índices/Contratos: `docs/contracts/pacientes/INDEX.md`, (a criar) `docs/contracts/_templates/MODULE_INDEX_TEMPLATE.md`, (a criar) `docs/contracts/{escalas,financeiro,prontuarios,agendamentos,home-care-ops,inventario,configuracoes}/INDEX.md`, `docs/MODULE_STATUS.md`, `docs/README.md`.
 - P1.6 OPEN_TODO: `docs/architecture/OPEN_TODO.md`.
 - P1.7 Runbooks lacunas: `docs/runbooks/{auditoria-endpoint.md,storage-photos-aba01.md}`.
@@ -80,7 +80,7 @@ Legenda “Qualidade”: OK = pronto para produção; Precisa elevar = falta gat
 - [ ] Fixar Node 24.x documentado e manter cache npm.
 - [ ] Padronizar nomes dos jobs: “CI”, “Docs Link Check”, “Docs Markdown Lint”, “Secrets Scan”.
 - [ ] Upload de artefatos para link-check, markdownlint e secrets.
-- [ ] Atualizar `docs/runbooks/branch-protection.md` com nomes exatos e checklist + `docs/reviews/BRANCH_PROTECTION_CHECKLIST.md`.
+- [ ] Atualizar `docs/runbooks/branch-protection.md` com nomes exatos e checklist + `docs/reviews/analise-governanca-estrutura-2025-12-19/BRANCH_PROTECTION_CHECKLIST.md`.
 
 1) Markdownlint → hard gate
 
@@ -92,7 +92,7 @@ Legenda “Qualidade”: OK = pronto para produção; Precisa elevar = falta gat
 1) Runbooks 100% acionáveis
 
 - [ ] Completar 4 runbooks (segurança x2, auditoria endpoint, storage fotos ABA01) com: objetivo, pré-requisitos, passo a passo, validação, rollback, logs, troubleshooting, compliance.
-- [ ] Criar `docs/reviews/RUNBOOKS_FINAL_REVIEW.md` com checklist de completude.
+- [ ] Criar `docs/reviews/analise-governanca-estrutura-2025-12-19/RUNBOOKS_FINAL_REVIEW.md` com checklist de completude.
 
 1) Consolidação final & higiene
 
@@ -117,4 +117,4 @@ Legenda “Qualidade”: OK = pronto para produção; Precisa elevar = falta gat
 ### Evidências desta auditoria
 
 - Execução local: `npm ci`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm run verify` — OK.
-- Relatório de links regenerado: [`docs/reviews/DOCS_LINK_CHECK.md`](./DOCS_LINK_CHECK.md) — 0 quebrados.
+- Relatório de links regenerado: [`docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`](./DOCS_LINK_CHECK.md) — 0 quebrados.

@@ -1,11 +1,19 @@
-# Revisões e Auditorias
+# Revisoes e Auditorias
 
-Esta pasta armazena documentos de revisão, auditorias e outros artefatos de garantia de qualidade.
+Esta pasta armazena documentos de revisao, auditorias e outros artefatos de garantia de qualidade.
 
-O propósito destes arquivos é servir como **evidência e registro de decisões** tomadas em momentos específicos do projeto, como:
+O proposito destes arquivos e servir como **evidencia e registro de decisoes** tomadas em momentos especificos do projeto, como:
 
-- **Revisões de Pull Requests**: Resumos e checklists de validação para PRs complexos.
-- **Auditorias**: Relatórios de auditoria sobre a documentação, código ou segurança.
-- **Resumos de Reestruturação**: Documentos que explicam o "antes e depois" de mudanças significativas na estrutura do projeto.
+- **Revisoes de Pull Requests**: Resumos e checklists de validacao para PRs complexos.
+- **Auditorias**: Relatorios de auditoria sobre a documentacao, codigo ou seguranca.
+- **Resumos de Reestruturacao**: Documentos que explicam o "antes e depois" de mudancas significativas na estrutura do projeto.
 
-**Aviso**: Muitos documentos aqui são "snapshots" de um momento no tempo e podem não refletir o estado atual do projeto. A fonte da verdade para o código e a arquitetura reside nos contratos, runbooks e no próprio código-fonte.
+## Analise de governanca e estrutura (2025-12-19)
+
+Os artefatos do ciclo de analise de governanca e estrutura foram consolidados em:
+
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/`
+
+Esse repositorio evita confusao com auditorias futuras e concentra todas as evidencias do ciclo.
+
+**Aviso**: Muitos documentos aqui sao "snapshots" de um momento no tempo e podem nao refletir o estado atual do projeto. A fonte da verdade para o codigo e a arquitetura reside nos contratos, runbooks e no proprio codigo-fonte.

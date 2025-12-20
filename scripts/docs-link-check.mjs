@@ -3,7 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const docsRoot = path.join(root, 'docs');
-const reportPath = path.join(docsRoot, 'reviews', 'DOCS_LINK_CHECK.md');
+const reportPath = path.join(docsRoot, 'reviews', 'analise-governanca-estrutura-2025-12-19', 'DOCS_LINK_CHECK.md');
 
 const externalSchemeRegex = /^[a-zA-Z][a-zA-Z0-9+.-]*:/;
 const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;

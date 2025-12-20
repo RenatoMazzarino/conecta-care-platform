@@ -79,8 +79,8 @@ Não há arquivos .htm dentro de docs/; o protótipo visual canônico (.htm) est
 | docs/repo_antigo/schema_current.sql | Snapshot de schema legado (referência histórica). | NÃO | OBSOLETO | Diverge do contrato em colunas/defaults (ver citações). |
 | docs/research/PROJECT_IMMERSION_REPORT.md | Visão de imersão (contexto). | NÃO | ATUAL | Dup. de princípios (tenancy/fluxo/UI) em alto nível. |
 | docs/reviews/README.md | Explica o propósito de reviews/auditorias. | NÃO | ATUAL | — |
-| docs/reviews/DOCS_LINK_CHECK.md | Verificação manual de links (snapshot). | NÃO | PARCIAL | — |
-| docs/reviews/DOCS_RESTRUCTURE_SUMMARY.md | Resumo de reestruturação (snapshot). | NÃO | PARCIAL | — |
+| docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md | Verificação manual de links (snapshot). | NÃO | PARCIAL | — |
+| docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_RESTRUCTURE_SUMMARY.md | Resumo de reestruturação (snapshot). | NÃO | PARCIAL | — |
 | docs/reviews/PR_FEAT_PACIENTES_ABA01.md | Resumo de revisão de PR (snapshot). | NÃO | PARCIAL | — |
 | docs/runbooks/ONBOARDING.md | Onboarding rápido do projeto. | SIM | ATUAL | Dup. leve com README e CODEX_GUIDE em princípios. |
 | docs/runbooks/auth-tenancy.md | Tenancy/JWT e RLS (prod e dev). | SIM | ATUAL | Dup. com SYSTEM_ARCHITECTURE e contrato (RLS). |

@@ -10,7 +10,7 @@ Definir política de backups, controle de acesso e rotação programada de segre
 
 - Acesso administrativo ao Supabase.
 - Acesso às variáveis de ambiente (Vercel/CI).
-- Plano de rotação: [`SECRETS_ROTATION.md`](../reviews/SECRETS_ROTATION.md).
+- Plano de rotação: [`SECRETS_ROTATION.md`](../reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md).
 
 ## Passo a passo
 
@@ -45,7 +45,7 @@ Definir política de backups, controle de acesso e rotação programada de segre
 ## Logs e rastreabilidade
 
 - Logs do provedor de backups.
-- Registro de rotação em `docs/reviews/SECRETS_ROTATION.md`.
+- Registro de rotação em `docs/reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md`.
 
 ## Troubleshooting
 

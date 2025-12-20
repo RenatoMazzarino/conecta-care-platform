@@ -27,23 +27,23 @@ Branch: `chore/governance-p0-p2-finalize`
 ## Como validar
 
 1) `npm run verify`
-2) `npm run docs:links` (relatório em `docs/reviews/DOCS_LINK_CHECK.md`)
-3) `npm run docs:lint` (relatório em `docs/reviews/DOCS_MARKDOWN_LINT.md`)
-4) `gitleaks detect --config .gitleaks.toml --report-format json --report-path docs/reviews/GITLEAKS_REPORT.json`
+2) `npm run docs:links` (relatório em `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`)
+3) `npm run docs:lint` (relatório em `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_MARKDOWN_LINT.md`)
+4) `gitleaks detect --config .gitleaks.toml --report-format json --report-path docs/reviews/analise-governanca-estrutura-2025-12-19/GITLEAKS_REPORT.json`
 5) No CI, validar jobs: **CI**, **Docs Link Check**, **Docs Markdown Lint**, **Secrets Scan**.
 
 ## Pendências fora do repo (ação manual)
 
 - Ativar proteção de branch conforme `docs/runbooks/branch-protection.md`.
-- Preencher evidências em `docs/reviews/BRANCH_PROTECTION_CHECKLIST.md` após configuração.
+- Preencher evidências em `docs/reviews/analise-governanca-estrutura-2025-12-19/BRANCH_PROTECTION_CHECKLIST.md` após configuração.
 
 ## Evidências principais
 
-- `docs/reviews/PLANO_GOVERNANCA_REPO_P0-P3.md`
-- `docs/reviews/DOCS_CONSOLIDATION_FINAL.md`
-- `docs/reviews/RUNBOOKS_FINAL_REVIEW.md`
-- `docs/reviews/SECRETS_ROTATION.md`
-- `docs/reviews/DOCS_LINK_CHECK.md`
-- `docs/reviews/DOCS_MARKDOWN_LINT.md`
-- `docs/reviews/GOVERNANCE_P0_P2_FINAL_AUDIT.md`
-- `docs/reviews/GITLEAKS_REPORT.json`
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md`
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_CONSOLIDATION_FINAL.md`
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/RUNBOOKS_FINAL_REVIEW.md`
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/SECRETS_ROTATION.md`
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_MARKDOWN_LINT.md`
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/GOVERNANCE_P0_P2_FINAL_AUDIT.md`
+- `docs/reviews/analise-governanca-estrutura-2025-12-19/GITLEAKS_REPORT.json`
