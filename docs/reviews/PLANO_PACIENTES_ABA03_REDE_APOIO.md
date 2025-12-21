@@ -3,7 +3,7 @@
 ## 0) Baseline
 - `git status -sb` → `## feat/pacientes-aba03-rede-apoio...origin/feat/pacientes-aba03-rede-apoio`
 - `git rev-parse --abbrev-ref HEAD` → `feat/pacientes-aba03-rede-apoio`
-- `git rev-parse HEAD` → `4a8417f9641890b78251debb6088575ebbbfc604`
+- `git rev-parse HEAD` → `73ca855ba6e98d233a78469c538be5afa624caa8`
 - `npm run docs:links` → ✅ OK (relatório em `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`)
 - `npm run docs:lint` → ✅ OK
 
@@ -37,7 +37,7 @@
 
 ## 5) Estratégia por fases
 1. **Docs (esta etapa)**: escrever plano + contrato, capturar cobertura de legado e decisões abertas (Aba 03 vs Aba 04, portal etc.).
-2. **Dados**: definir tabelas canônicas (ex.: `patient_related_persons`, `patient_household_members`, `care_team_members`, `patient_documents`, `patient_document_logs`, `patient_admin_info`, `patient_administrative_profiles`) e novas colunas/constraints.
+2. **Dados**: definir tabelas canônicas (ex.: `patient_related_persons`, `patient_household_members`, `care_team_members`, `patient_documents`, `patient_document_logs`, `patient_portal_access`) e novas colunas/constraints. Tabelas administrativas permanecem na Aba04.
 3. **Types**: gerar tipos Supabase baseados nas tabelas definidas.
 4. **Actions**: desenhar actions de get/list/save/setPrimary/invite/revoke, validações de documentos e audit trail.
 5. **UI**: implementar tabs (view/edit) com cards/leitura/edição e fichas das três frentes.
@@ -48,8 +48,11 @@
 - Fluxo contrato-driven obrigatório.
 - Multi-tenant + RLS + soft delete (uso de `tenant_id` e `deleted_at`).
 - Modo leitura terá cards label/valor, modo edição com inputs como Aba01/Aba02.
-- Aba03 se restringe à rede de apoio: referências a gestor/escalista/admin financeiro saíram do contrato e foram deslocadas para a seção “Fora do escopo (Aba04 Administrativa)” do contrato.
-- O contrato agora documenta a enum `document_status` completa e a governança do portal (nivéis `viewer/communicator/decision_authorized`, geração de links, revogações e auditoria), para evitar ambiguidade com Aba04.
+- Aba03 se restringe à rede de apoio: referências a gestor/escalista/admin financeiro foram removidas e registradas como fora do escopo (Aba04 Administrativa).
+- Profissionais de saúde externos permanecem na Aba03; administração/backoffice permanece na Aba04.
+- IA para validação legal preparada, mas desligada por padrão (`LEGAL_DOC_AI_ENABLED=false`).
+- Aprovação manual é obrigatória para validar o responsável legal (`document_status = manual_approved`).
+- Governança do portal (MVP) está especificada apenas como gestão e rastreabilidade, sem implementação de portal.
 
 **Em aberto (documentar no contrato + lista de perguntas no final):**
 - Como separar Aba 03 x Aba 04 (opções descritas no contrato).
@@ -62,9 +65,10 @@ Tabulação das tabelas legadas que alimentam a Aba 03 e que serão detalhadas n
 - `patient_related_persons` (responsáveis/contatos, flags de autorização, preferências, informações de contato e endereços).
 - `patient_household_members` (moradores/cuidadores próximos com tipo/role/schedule).
 - `care_team_members` (profissionais vinculados, papeis, contatos, status, regime, classificações internas vs externas).
-- `patient_documents` (documentos jurídicos/financeiros/clinicos, metadados de versão, status e assinatura).
+- `patient_documents` (recorte jurídico de curatela/procuração e metadados de validação).
 - `patient_document_logs` (auditoria de ações sobre documentos).
-- `patient_admin_info` e `patient_administrative_profiles` (dados administrativos/equipe interna com escalistas, supervisores, checklists legais).
+- `view_patient_legal_guardian_summary` (view legado para resumo do responsável legal).
+- `patient_admin_info` e `patient_administrative_profiles` aparecem apenas como “fora do escopo” (Aba04 Administrativa).
 
 - Cada tabela agora tem sua lista completa de colunas, tipos e constraints dentro de `docs/contracts/pacientes/ABA03_REDE_APOIO.md`, seguida do mapa legado→canônico. Os dados administrativos aparecem apenas para rastrear o legado e são explicitamente marcados como “Fora do escopo (Aba04 Administrativa)” para garantir cobertura total sem misturar escopo.
 
@@ -81,7 +85,5 @@ Se algum destes falhar, registrar erro acima e continuar apenas com docs (sem co
 - **Audit trail**: garantir eventos de upload, mudança de status, geração/revogação de links e troca do responsável vigente; registrar que esses eventos existem mesmo que a infraestrutura venha depois.
 
 ## 10) Perguntas abertas (priorizadas)
-- Confirmar se a Aba 04 deve abrigar os profissionais internos ou se a Aba 03 cobre toda a rede e usa `type/origin` para separar.
-- Definir o escopo do portal (quais níveis — visualizar, comunicar, autorizar — entram já no MVP e quem pode mudar).
-- Estabelecer o workflow de documentos jurídicos: IA + checklist manual ou apenas manual no V1?
-- Validar quais `document_status` bloqueiam o portal (ex.: curatela/rejeição impede envio de convite) e quem registra a assinatura final (`signed_by` ou similar).
+- Confirmar quais perfis internos terão a permissão `can_manage_portal_access=true` (alteração/revogação de acesso).
+- Validar quem assina a revisão final (campo `approved_by`/`signed_by`) e onde esse registro ficará no modelo canônico.

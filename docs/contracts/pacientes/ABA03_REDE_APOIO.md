@@ -22,13 +22,26 @@
 - Garantir leitura rápida (cards label/valor) e edição controlada (inputs + validações), protegendo a jornada multi-tenant com auditoria completa.
 - Usuários: supervisores clínicos, enfermeiros, administrativos e equipe de suporte legal responsável por autorizações e convites.
 
-### Escopo fechado (Rede de Apoio)
+## 2) Escopo
 
-- **Pilar 1 — Responsável legal**: um paciente pode ter múltiplos responsáveis legais ao longo do tempo, mas apenas um deles deve ser considerado o “responsável legal vigente” ativo. Documentos suportados: curatela/interdição judicial ou procuração particular. O fluxo exige upload, IA opcional (feature flag OFF por padrão) e validação manual final; somente registros com `document_status = manual_approved` são considerados válidos.
-- **Pilar 2 — Contatos e familiares**: contatos sem poder legal, com campos de nome, parentesco, meios de contato, preferências/horários, flags de autorização (clínica/financeira) e observações. Deve haver sinalização de “principal” para comunicação prioritária.
-- **Pilar 3 — Rede de cuidados (externa)**: profissionais externos (médico, nutricionista, fisioterapeuta, enfermeiro etc.). Gestores, escalistas, backoffice ou funções administrativas internos ficam fora do escopo desta aba.
+**IN (Aba03 — Rede de Apoio):**
 
-## 2) Estrutura de UI (Cards e Campos)
+- Responsável legal + documentos jurídicos (curatela/interdição ou procuração particular).
+- Contatos/familiares sem poder legal.
+- Rede de cuidados externa (profissionais externos do paciente).
+- Gestão de acesso ao portal (MVP): apenas governança e rastreabilidade, não implementação de portal.
+
+**OUT (Aba04 Administrativa/Financeira):**
+
+- Gestor responsável, escalista, backoffice, financeiro, faturamento e contratos financeiros.
+- Checklists administrativos e fluxos de autorização financeira.
+
+Regras de escopo:
+
+- Um paciente pode ter 0..N responsáveis legais ao longo do tempo, mas apenas 1 pode estar vigente/ativo.
+- O responsável legal só é considerado válido quando `document_status = manual_approved`.
+
+## 3) Estrutura de UI (Cards e Campos)
 
 A aba será composta por quatro cards principais, com layout em grade (coluna esquerda: cards de domínio; coluna direita: integrações/portal). Cada card respeita o modo leitura (grid label/valor) e modo edição (inputs retangulares, botões "Novo" e "Salvar/Cancelar").
 
@@ -86,39 +99,49 @@ Combina acesso ao portal (usuário, convite, permissões) com evidência documen
 | Nivel de acesso | portal_access_level | text | Sim | Visualiza / Comunica / Autoriza. |
 | Convidar/Revogar | portal_invite_token | text | - | Token temporário enviado por email. |
 | Documento jurídico | patient_documents* | jsonb link | Sim para curatela | Referência ao upload com status e audit trail. |
-| Status de validação | document_status | enum | Sim | (Pendente, Validado, Rejeitado). |
+| Status de validação | document_status | enum | Sim | Workflow completo em `document_status` (manual obrigatório). |
 | Checklist de IA | document_validation_payload | jsonb | Não | Resultados do pipeline de análise automática. |
 | Última atualização | portals_refresh_at | timestamptz | Não | Timestamp do último convite ou atualização. |
 
-## 3) Modelo de Dados (Banco)
+## 4) Modelo de Dados (Banco)
 
-### 3.1 Tabelas canônicas sugeridas
+### 4.1 Tabelas canônicas sugeridas
 
 1. `public.patient_responsible_parties` (reaproveita `patient_related_persons`): armazena responsáveis legais com flags, contatos e preferências.
 2. `public.patient_contacts` (subset de `patient_related_persons` / `patient_household_members`): contatos gerais com sinalização de principal e consentimentos.
-3. `public.patient_care_network` (baseado em `care_team_members`): profissionais clínicos/operacionais com regime, status, equipe interna vs externa.
-4. `public.patient_documents` (mantém a tabela legada): documentos jurídicos (curatela, procuração) com audit trail simplificado.
+3. `public.patient_care_network` (baseado em `care_team_members`): profissionais clínicos/operacionais externos com regime e status.
+4. `public.patient_documents` (mantém a tabela legada): documentos jurídicos do responsável legal (curatela/procuração).
 5. `public.patient_document_logs` (legado) para auditoria de uploads/validações.
-6. `public.patient_admin_history` (merge de `patient_admin_info` + `patient_administrative_profiles`): registre status administrativo (escalistas, admissões, contratações, checklists de validação).
-7. `public.patient_portal_access` exclusivo para tokens e níveis de acesso ao portal.
+6. `public.patient_portal_access` exclusivo para tokens e níveis de acesso ao portal.
 
 Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) e soft delete via `deleted_at`. `created_by/updated_by` replicam o padrão do módulo (references em actions). `is_primary` e `is_main_contact` são unique partial indexes por `patient_id` + `tenant_id` quando `deleted_at is null`.
 
-## 3.1) Fora do escopo (Aba04 Administrativa)
+### 4.2 Fora do escopo (Aba04 Administrativa)
 
 - Toda terminologia ligada a “gestor responsável”, “escalista”, “backoffice”, “financeiro”, “faturamento” ou “contrato financeiro” foi removida deste modelo e passa a ser tratada no escopo da Aba04 Administrativa. Os tabelas `patient_admin_info` e `patient_administrative_profiles` são referenciadas apenas para manter o mapa de legado, mas o processamento/documentação desses dados deve residir em Aba04.
+- Tabelas explicitamente fora do escopo desta aba: `patient_admin_info`, `patient_administrative_profiles` e demais entidades administrativas/financeiras correlatas.
 
-## 4) Segurança (RLS / Policies)
+## 5) Segurança (RLS / Policies)
 
 - RLS habilitado em todas as tabelas; policies replicam o padrão do módulo: `tenant_id` igual a `current_setting('request.jwt.claims', true)::jsonb ->> 'tenant_id'` ou `service_role`.
 - SELECT: pacientes vinculados ao tenant. INSERT/UPDATE/DELETE limitados a pessoas com role adequada (ex.: `authenticated` com permissão via claims, `service_role` para jobs).
 - `portal_access` deve respeitar adicionais: somente `service_role` e usuários com claim `can_manage_app_access=true` podem alterar tokens ou níveis de acesso.
 
-## 4.1) Derivações para UI
+## 6) Derivações para UI
 
-- O card “Responsável legal” pode ser alimentado por uma consulta derivada que agrega os responsáveis ativos (filtrando `document_status` e `deleted_at`) e expõe o responsável vigente com `nome`, `status`, `document_status` e `atualizado_em`. Alternativamente, uma view como `view_patient_legal_guardian_summary` pode expor essas colunas para simplificar o front-end sem precisar criar tabela adicional. A view deve incluir `responsible_party_id`, `patient_id`, `name`, `status`, `document_status`, `document_title`, `document_expires_at` e `updated_at`.
+- O card “Responsável legal” pode ser alimentado por uma consulta derivada (join nas tabelas canônicas) ou por uma view de legado. Essa view **não é tabela canônica** da Aba03, apenas um atalho de leitura.
+- Campo esperado no resumo (canônico para UI):
+  - `patient_id`
+  - `related_person_id` (responsável legal primário)
+  - `legal_guardian_name`
+  - `legal_guardian_relationship`
+  - `legal_guardian_phone`
+  - `has_legal_guardian`
+  - `legal_doc_status`
+  - `updated_at`
+- Se `view_patient_legal_guardian_summary` aparecer no legado como tabela materializada, ela deve ser tratada como VIEW derivada (ou query agregada em actions), sem virar tabela canônica.
 
-## 5) Operações / Actions do App
+## 7) Operações / Actions do App
 
 - `getPatientResponsibleParty(patient_id)` retorna responsável principal com documentos validados.
 - `listPatientContacts(patient_id)` lista contatos secundários com flags de autorização.
@@ -129,7 +152,7 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 - `invitePortalAccess(patient_id)` gera token, envia email e grava `portal_invite_sent_at`.
 - `setPortalAccessLevel(patient_id, level)` define `portal_access_level` e dispara auditoria.
 
-## 5.1) Gestão de acesso ao Portal do Paciente (MVP — governança)
+## 8) Gestão de acesso ao Portal do Paciente (MVP — governança)
 
 ### 5.1.1) Níveis de acesso
 
@@ -150,24 +173,25 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 - Cada geração cria log/audit event (`portal_link_generated`) com payload resumido (`link_id`, `responsible_party_id`, `expires_at`, `created_by`, `status`), e o token pode ser revogado via `portal_link_revoked`.
 - O link é derivado no front-end (sem implementar auth) a partir do token persistido, com `portal_access_level` e `expira_em` visíveis na UI.
 
-## 6) Status de documentos jurídicos
+Nota: o portal não é implementado nesta etapa; a Aba03 descreve apenas a governança e a rastreabilidade de acesso.
+
+## 9) Status de documentos jurídicos
 
 - A enum `document_status` controla o fluxo completo:
   1. `uploaded` — o arquivo foi anexado e ainda não passou por IA ou revisão.
   2. `ai_pending` — aguardando análise automática (só quando `LEGAL_DOC_AI_ENABLED=true`).
-  3. `ai_extracted` — IA extraiu evidências e checklists.
-  4. `ai_rejected` — IA rejeitou o documento e o coloca em revisão humana.
-  5. `ai_inconclusive` — IA não conseguiu decidir; mantém o documento em revisão humana.
-  6. `manual_review_pending` — aguardando revisão manual (entrada padrão se IA desligado).
+  3. `ai_failed` — IA executou e falhou/errou, exigindo revisão manual.
+  4. `ai_passed` — IA concluiu com sucesso e registrou evidências (não aprova sozinha).
+  5. `manual_pending` — aguardando revisão manual (entrada padrão se IA desligado).
+  6. `manual_rejected` — revisão final reprovada.
   7. `manual_approved` — revisão final aprovada; somente esse status torna o responsável legal válido.
-  8. `manual_rejected` — revisão final reprovada.
+  8. `revoked` — documento revogado/substituído (ex.: nova procuração ou sentença).
   9. `expired` — documento venceu; impede acesso até upload de nova versão.
-  10. `revoked` — documento revogado/substituído (ex.: nova procuração ou sentença).
 
 - **Bloqueio obrigatório:** o responsável legal só é considerado vigente quando associado a `document_status = manual_approved`. Outros status mantêm o registro em estado “em revisão” e não habilitam autorizações ou links persistentes.
-- **IA opcional:** `LEGAL_DOC_AI_ENABLED` defaulta para `false`. Quando OFF, os estados `ai_*` são pulados automaticamente e o fluxo segue `uploaded` → `manual_review_pending`. Quando ON, a IA apenas “pré-analisa”; os resultados (`ai_extracted`, `ai_rejected`, `ai_inconclusive`) alimentam checklists, mas a aprovação final continua manual.
+- **IA opcional:** `LEGAL_DOC_AI_ENABLED` defaulta para `false`. Quando OFF, os estados `ai_*` são pulados automaticamente e o fluxo segue `uploaded` → `manual_pending`. Quando ON, a IA apenas “pré-analisa”; o resultado (`ai_passed` ou `ai_failed`) alimenta checklists, mas a aprovação final continua manual.
 
-## 7) Máscaras e Validações (detalhadas)
+## 10) Máscaras e Validações (detalhadas)
 
 - CPF/RG seguem formatos oficiais; CPF 11 dígitos numéricos e RG 7–9 dígitos com opcional hífen.
 - Telefone: E.164 (remover espaços) e fallback para apenas números quando com +55.
@@ -176,12 +200,12 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 - Preferências de contato: catálogos (Manhã/Tarde/Noite/Comercial/Qualquer) são validados por constraint check.
 - Portal access level: enum {visualizar, comunicar, autorizar}; atualizações registram `portal_access_changed_by` e `portal_access_changed_at`.
 
-## 8) Migrações previstas
+## 11) Migrações previstas
 
 - `supabase/migrations/20251221XXXX_pacientes_aba03_rede_apoio.sql` (placeholder): cria tabelas canônicas listadas em 3.1, indexes parciais para `is_primary` e `is_main_contact`, RLS e audit triggers.
 - `supabase/migrations/20251221XXXX_pacientes_aba03_document_validation.sql`: adiciona campos `document_validation_payload`, `document_status`, `portal_access_level`, `portal_invite_token` nas tabelas referidas.
 
-## 9) Definição de Pronto (DoD)
+## 12) Definição de Pronto (DoD)
 
 - [ ] Contrato revisado e aceito (documentado aqui).
 - [ ] Migration(s) definidas e aplicadas no ambiente de dev (documentar números no próximo PR).
@@ -191,9 +215,23 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 - [ ] RLS + policies testadas (tenants + soft delete).
 - [ ] Checklist de QA manual (modo leitura/edição, portal, documentos) registrado.
 
-## 10) Cobertura do legado (100%) (fonte: `docs/repo_antigo/schema_current.sql`, `db/snapshots_legado/conectacare-2025-11-29.sql`)
+## 13) Cobertura do legado (100%) (fonte: `docs/repo_antigo/schema_current.sql`, `db/snapshots_legado/conectacare-2025-11-29.sql`)
 
-- Todas as tabelas abaixo e suas colunas aparecem explicitamente no mapa legado→canônico. Campos de natureza administrativa estão marcados como “Fora do escopo (Aba04 Administrativa)” para manter a rastreabilidade sem misturar escopo.
+- As tabelas in-scope abaixo têm suas colunas e mapeamento explícitos no mapa legado→canônico. Itens administrativos aparecem apenas na lista out-of-scope para preservar rastreabilidade sem misturar escopo.
+
+**IN-SCOPE (Aba03):**
+
+- `patient_related_persons` — 42 colunas (responsável legal + contatos).
+- `care_team_members` — 26 colunas (rede de cuidados externa).
+- `patient_household_members` — 7 colunas (contatos conviventes).
+- `patient_documents` — 64 colunas (recorte jurídico: curatela/procuração).
+- `patient_document_logs` — 8 colunas (auditoria dos documentos).
+- `view_patient_legal_guardian_summary` — 6 colunas (view legado; referência para UI).
+
+**OUT-OF-SCOPE (Aba04 Administrativa/Financeira):**
+
+- `patient_admin_info` — 101 colunas (administrativo/financeiro).
+- `patient_administrative_profiles` — 12 colunas (administrativo).
 
 ### Tabela: `public.patient_related_persons`
 
@@ -367,108 +405,20 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 | details | jsonb | payload |
 | created_at | timestamptz | default now() |
 
-### Tabela: `public.patient_admin_info`
+### View legado: `public.view_patient_legal_guardian_summary`
 
 | Coluna | Tipo | Observações |
 | --- | --- | --- |
-| patient_id | uuid | PK/FK |
-| tenant_id | uuid | |
-| status | text | default Ativo |
-| admission_type | text | |
-| complexity | text | |
-| service_package | text | |
-| start_date | date | |
-| end_date | date | |
-| supervisor_id | uuid | FK |
-| escalista_id | uuid | FK |
-| nurse_responsible_id | uuid | FK |
-| frequency | text | |
-| operation_area | text | |
-| admission_source | text | |
-| contract_id | text | |
-| notes_internal | text | |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
-| demand_origin | text | |
-| primary_payer_type | text | |
-| contract_start_date | date | |
-| contract_end_date | date | |
-| renewal_type | public.renewal_type_enum | |
-| external_contract_id | text | |
-| authorization_number | text | |
-| judicial_case_number | text | |
-| status_reason | text | |
-| status_changed_at | timestamptz | |
-| commercial_responsible_id | uuid | |
-| contract_manager_id | uuid | |
-| scale_rule_start_date | date | |
-| scale_rule_end_date | date | |
-| scale_mode | text | |
-| scale_notes | text | |
-| chk_contract_ok | boolean | |
-| chk_contract_at | date | |
-| chk_contract_by | text | |
-| chk_consent_ok | boolean | |
-| chk_consent_at | date | |
-| chk_consent_by | text | |
-| chk_medical_report_ok | boolean | |
-| chk_medical_report_at | date | |
-| chk_medical_report_by | text | |
-| chk_legal_docs_ok | boolean | |
-| chk_financial_docs_ok | boolean | |
-| chk_judicial_ok | boolean | |
-| checklist_notes | text | |
-| effective_discharge_date | date | |
-| service_package_description | text | |
-| demand_origin_description | text | |
-| official_letter_number | text | |
-| contract_status_reason | text | |
-| admin_notes | text | |
-| cost_center_id | text | |
-| erp_case_code | text | |
-| contract_category | public.contract_category_enum | |
-| acquisition_channel | text | |
-| payer_admin_contact_id | uuid | FK → patient_related_persons |
-| primary_payer_description | text | |
-| scale_model | public.scale_model_enum | |
-| shift_modality | public.shift_modality_enum | |
-| base_professional_category | text | |
-| quantity_per_shift | integer | default 1 |
-| weekly_hours_expected | numeric | |
-| day_shift_start | time | |
-| night_shift_start | time | |
-| includes_weekends | boolean | default true |
-| holiday_rule | text | |
-| auto_generate_scale | boolean | default false |
-| chk_address_proof_ok | boolean | |
-| chk_legal_guardian_docs_ok | boolean | |
-| chk_financial_responsible_docs_ok | boolean | |
-| checklist_complete | boolean | |
-| checklist_notes_detailed | text | |
-| service_package_name | text | |
+| patient_id | uuid | |
+| related_person_id | uuid | |
+| responsavellegalnome | text | |
+| responsavellegalparentesco | text | |
+| responsavellegaltelefoneprincipal | text | |
+| hasresponsavellegal | boolean | |
 
-> **Nota:** este conjunto de campos é mantido apenas para cobertura do legado; o tratamento real (gestores/escalistas/contratos financeiros) deve acontecer na Aba04 Administrativa.
+> **Nota:** esta view é apenas referência para UI; na Aba03 ela deve ser tratada como VIEW derivada, não como tabela canônica.
 
-### Tabela: `public.patient_administrative_profiles`
-
-| Coluna | Tipo | Observações |
-| --- | --- | --- |
-| patient_id | uuid | PK/FK |
-| admission_date | date | default CURRENT_DATE |
-| discharge_prediction_date | date | |
-| discharge_date | date | |
-| admission_type | text | check enum |
-| service_package_name | text | |
-| contract_number | text | |
-| contract_status | text | default active |
-| technical_supervisor_name | text | |
-| administrative_contact_name | text | |
-| created_at | timestamptz | default now() |
-| updated_at | timestamptz | default now() |
-
-> **Nota:** esta tabela permanece registrada aqui apenas para manter cobertura do legado; toda lógica operacional deve residir na Aba04 Administrativa.
-
-## 11) Mapa legado → canônico
+## 14) Mapa legado → canônico
 
 | Domínio | Campo canônico | Origem legado | Regra / Observação |
 | --- | --- | --- | --- |
@@ -482,27 +432,15 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 | Rede de cuidados | `patient_care_network.*` | care_team_members.* | Copy of columns with canonical naming (regime/status/role). |
 | Documentos | `patient_documents.*` | `patient_documents.*` | Mantém columns; novas fields (document_status, document_validation_payload) ficam derived. |
 | Auditoria | `patient_document_logs.*` | `patient_document_logs.*` | Legado direto. |
-| Administrativo | `patient_admin_history.*` | `patient_admin_info.*` + `patient_administrative_profiles.*` | Merge de status, escalistas e contratos; **Fora do escopo Aba03 → Aba04 Administrativa**. |
+| Resumo (view) | `view_patient_legal_guardian_summary.*` | `view_patient_legal_guardian_summary.*` | View legado usada como atalho de leitura, sem criar tabela canônica. |
 | Portal | `patient_portal_access.*` | patient_documents / patient_related_persons | Documentos legais alimentam tokens; `portal_access_level` derived. |
 
-## 12) Separação Aba03 x Aba04 (decisão em aberto)
+## 15) Separação Aba03 x Aba04 (decisão fechada)
 
-Opções avaliadas:
+- **Aba03 (Rede de Apoio):** responsável legal + documentos jurídicos, contatos/familiares e rede de cuidados externa.
+- **Aba04 (Administrativa/Financeira):** gestores internos, escalistas, backoffice, faturamento e contratos financeiros.
 
-- **Opção A**: Aba 03 = Rede externa (responsáveis, contatos, rede clínica); Aba 04 = equipes internas + operações administrativas.
-- **Opção B (recomendada V1)**: Aba 03 cobre toda a rede de apoio (externa + interna) e usa `type`/`origin` para filtrar, liberando Aba 04 para indicadores puramente administrativos.
-- **Opção C**: Aba 03 = rede clínica; Aba 04 = operações/portal/escala.
+## 16) Perguntas em aberto para Renato
 
-Feedback solicitado:
-
-- Confirmar se a Aba 04 deve conter os mesmos profissionais internos ou apenas supervisores/escala.
-- Validar o escopo do portal (visualização x autorização) e se o convite fica restrito a contatos ou inclui toda a rede de cuidados.
-- Definir quais roles têm autoridade para alterar `portal_access_level` e revogar tokens.
-- Decidir quais `document_status` bloqueiam o acesso (ex.: curatela rejeitada impede convite).
-
-## 13) Perguntas em aberto para Renato
-
-- Queremos manter a Aba 03 como guarda única da rede ou dividir profissionais internos com Aba 04?
-- Qual fluxo deve ser padrão para documentos jurídicos: IA + checklist manual ou apenas manual no V1?
-- O portal precisa de níveis distintos (visualizar / autorizar) já no MVP ou só "visualizar" + "autorizar" como toggle?
-- Quem assina/officia checklists (curatela/procuração) e onde registrar o responsável final? (ex.: `signed_by`).
+- Confirmar quais perfis internos terão a permissão `can_manage_portal_access=true`.
+- Definir o campo canônico para assinatura final da revisão (`approved_by` ou `signed_by`) e em qual tabela ficará registrado.
