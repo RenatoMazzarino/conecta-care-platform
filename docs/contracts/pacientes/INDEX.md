@@ -10,7 +10,7 @@ Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apont
 | :-- | :----- | :------- |
 | ABA01 — Dados Pessoais | Implementado | [ABA01_DADOS_PESSOAIS.md](./ABA01_DADOS_PESSOAIS.md) |
 | ABA02 — Endereço & Logística | Em revisao | [ABA02_ENDERECO_LOGISTICA.md](./ABA02_ENDERECO_LOGISTICA.md) |
-| ABA03 — Rede de Apoio | A definir | — |
+| ABA03 — Rede de Apoio | Draft | [ABA03_REDE_APOIO.md](./ABA03_REDE_APOIO.md) |
 | ABA04 — Administrativo | A definir | — |
 | ABA05 — Financeiro | A definir | — |
 | ABA06 — Clínico | A definir | — |
@@ -25,6 +25,11 @@ Notas:
 Anexos ABA02:
 
 - Cobertura do legado no contrato: [Anexos ABA02](./ABA02_ENDERECO_LOGISTICA.md#anexos-cobertura-do-legado-fonte-docsrepo_antigoschema_currentsql).
+
+## Referências ABA03
+
+- Contrato e cobertura de legado: `docs/contracts/pacientes/ABA03_REDE_APOIO.md`
+- Plano associado: `docs/reviews/PLANO_PACIENTES_ABA03_REDE_APOIO.md`
 
 ## Evidências
 
