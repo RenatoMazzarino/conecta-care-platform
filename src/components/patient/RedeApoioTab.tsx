@@ -42,7 +42,7 @@ import {
 import { approveLegalDocumentManual } from '@/features/pacientes/actions/aba03/approveLegalDocumentManual';
 import { createPortalInvite } from '@/features/pacientes/actions/aba03/createPortalInvite';
 import { getRedeApoioSummary } from '@/features/pacientes/actions/aba03/getRedeApoioSummary';
-import { requestLegalDocAiCheck } from '@/features/pacientes/actions/aba03/requestLegalDocAiCheck';
+import { approveLegalDocumentAi } from '@/features/pacientes/actions/aba03/approveLegalDocumentAi';
 import { revokePortalInvite } from '@/features/pacientes/actions/aba03/revokePortalInvite';
 import { setLegalGuardian } from '@/features/pacientes/actions/aba03/setLegalGuardian';
 import { setPortalAccessLevel } from '@/features/pacientes/actions/aba03/setPortalAccessLevel';
@@ -174,6 +174,45 @@ const useStyles = makeStyles({
   linkInput: {
     fontSize: '12px',
   },
+  cardFooter: {
+    borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
+    paddingTop: '12px',
+    display: 'flex',
+    justifyContent: 'flex-end',
+    gap: '8px',
+  },
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+    padding: '24px',
+  },
+  modalBox: {
+    backgroundColor: tokens.colorNeutralBackground1,
+    borderRadius: tokens.borderRadiusLarge,
+    boxShadow: tokens.shadow8,
+    width: '100%',
+    maxWidth: '560px',
+    padding: '24px',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
+  },
+  modalHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '16px',
+  },
+  modalActions: {
+    display: 'flex',
+    gap: '8px',
+    justifyContent: 'flex-end',
+  },
 });
 
 interface RedeApoioTabProps {
@@ -302,6 +341,66 @@ type LegalDocumentRow = {
   document_status?: string | null;
 };
 
+type LegalGuardianForm = {
+  name: string;
+  relationship: string;
+  phone: string;
+  email: string;
+  contact_time_preference?: string | null;
+  preferred_contact?: string | null;
+  observations?: string;
+};
+
+type ContactModalForm = {
+  name: string;
+  relationship: string;
+  phone: string;
+  email: string;
+  contact_type?: string | null;
+  contact_time_preference?: string | null;
+  preferred_contact?: string | null;
+};
+
+type CareTeamModalForm = {
+  profissional_nome: string;
+  role_in_case: string;
+  contact_email?: string;
+  contact_phone?: string;
+  status?: string | null;
+  regime?: string | null;
+  notes?: string;
+};
+
+const initialLegalForm: LegalGuardianForm = {
+  name: '',
+  relationship: '',
+  phone: '',
+  email: '',
+  contact_time_preference: undefined,
+  preferred_contact: undefined,
+  observations: '',
+};
+
+const initialContactForm: ContactModalForm = {
+  name: '',
+  relationship: '',
+  phone: '',
+  email: '',
+  contact_type: undefined,
+  contact_time_preference: undefined,
+  preferred_contact: undefined,
+};
+
+const initialCareTeamForm: CareTeamModalForm = {
+  profissional_nome: '',
+  role_in_case: '',
+  contact_email: '',
+  contact_phone: '',
+  status: 'Ativo',
+  regime: undefined,
+  notes: '',
+};
+
 export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(function RedeApoioTab(
   { patientId, onStatusChange, onLegalGuardianSummary },
   ref,
@@ -319,6 +418,17 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
   const [portalAccessLevelDraft, setPortalAccessLevelDraft] = useState<PortalAccessInput['portal_access_level']>('viewer');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [latestInviteLink, setLatestInviteLink] = useState<string | null>(null);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [legalModalSaving, setLegalModalSaving] = useState(false);
+  const [legalForm, setLegalForm] = useState<LegalGuardianForm>(initialLegalForm);
+  const [legalDocumentFile, setLegalDocumentFile] = useState<File | null>(null);
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [contactModalSaving, setContactModalSaving] = useState(false);
+  const [contactModalForm, setContactModalForm] = useState<ContactModalForm>(initialContactForm);
+  const [isCareModalOpen, setIsCareModalOpen] = useState(false);
+  const [careModalSaving, setCareModalSaving] = useState(false);
+  const [careModalForm, setCareModalForm] = useState<CareTeamModalForm>(initialCareTeamForm);
+  const [isPortalPanelOpen, setIsPortalPanelOpen] = useState(false);
 
   const relatedPersons = useMemo(
     () => (summary?.relatedPersons ?? []) as RelatedPersonRow[],
@@ -383,6 +493,180 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  const openLegalModal = useCallback(() => {
+    setLegalForm(initialLegalForm);
+    setLegalDocumentFile(null);
+    setIsLegalModalOpen(true);
+  }, []);
+
+  const closeLegalModal = useCallback(() => setIsLegalModalOpen(false), []);
+
+  const handleLegalModalSave = useCallback(async () => {
+    if (!legalForm.name.trim()) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Informe o nome do responsável legal</ToastTitle>
+        </Toast>,
+        { intent: 'warning' },
+      );
+      return;
+    }
+
+    setLegalModalSaving(true);
+    try {
+      const related = await upsertRelatedPerson(patientId, {
+        name: legalForm.name,
+        relationship_degree: legalForm.relationship,
+        phone_primary: legalForm.phone,
+        email: legalForm.email,
+        contact_time_preference: toOption(contactTimePreferenceOptions, legalForm.contact_time_preference) ?? undefined,
+        preferred_contact: toOption(preferredContactOptions, legalForm.preferred_contact) ?? undefined,
+        is_legal_guardian: true,
+        contact_type: 'ResponsavelLegal',
+        observations: legalForm.observations,
+      });
+
+      if (!related.id) {
+        throw new Error('Falha ao cadastrar responsável legal');
+      }
+
+      const relatedId = typeof related.id === 'string' ? related.id : null;
+      if (!relatedId) {
+        throw new Error('Falha ao obter ID do responsável legal');
+      }
+
+      await setLegalGuardian(patientId, relatedId);
+
+      if (legalDocumentFile) {
+        await uploadLegalDocument(patientId, relatedId, legalDocumentFile, {
+          title: legalDocumentFile.name,
+          category: 'legal',
+        });
+      }
+
+      await reload();
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Responsável legal cadastrado</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      closeLegalModal();
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao cadastrar responsável legal'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setLegalModalSaving(false);
+    }
+  }, [closeLegalModal, dispatchToast, legalDocumentFile, legalForm, patientId, reload]);
+
+  const openContactModal = useCallback(() => {
+    setContactModalForm(initialContactForm);
+    setIsContactModalOpen(true);
+  }, []);
+
+  const closeContactModal = useCallback(() => setIsContactModalOpen(false), []);
+
+  const handleContactModalSave = useCallback(async () => {
+    if (!contactModalForm.name.trim()) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Informe o nome do contato</ToastTitle>
+        </Toast>,
+        { intent: 'warning' },
+      );
+      return;
+    }
+
+    setContactModalSaving(true);
+    try {
+      await upsertRelatedPerson(patientId, {
+        name: contactModalForm.name,
+        relationship_degree: contactModalForm.relationship,
+        phone_primary: contactModalForm.phone,
+        email: contactModalForm.email,
+        contact_type: toOption(contactTypeOptions, contactModalForm.contact_type) ?? undefined,
+        contact_time_preference:
+          toOption(contactTimePreferenceOptions, contactModalForm.contact_time_preference) ?? undefined,
+        preferred_contact: toOption(preferredContactOptions, contactModalForm.preferred_contact) ?? undefined,
+      });
+      await reload();
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Contato cadastrado</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      closeContactModal();
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao cadastrar contato'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setContactModalSaving(false);
+    }
+  }, [closeContactModal, contactModalForm, dispatchToast, patientId, reload]);
+
+  const openCareModal = useCallback(() => {
+    setCareModalForm(initialCareTeamForm);
+    setIsCareModalOpen(true);
+  }, []);
+
+  const closeCareModal = useCallback(() => setIsCareModalOpen(false), []);
+
+  const handleCareModalSave = useCallback(async () => {
+    if (!careModalForm.profissional_nome.trim()) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Informe o nome do profissional</ToastTitle>
+        </Toast>,
+        { intent: 'warning' },
+      );
+      return;
+    }
+
+    setCareModalSaving(true);
+    try {
+      await upsertCareTeamMember(patientId, {
+        profissional_nome: careModalForm.profissional_nome,
+        role_in_case: careModalForm.role_in_case,
+        contact_email: careModalForm.contact_email,
+        contact_phone: careModalForm.contact_phone,
+        status: toOption(careTeamStatusOptions, careModalForm.status) ?? 'Ativo',
+        regime: toOption(careTeamRegimeOptions, careModalForm.regime),
+        notes: careModalForm.notes,
+      });
+      await reload();
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Profissional cadastrado</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      closeCareModal();
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao cadastrar profissional'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setCareModalSaving(false);
+    }
+  }, [careModalForm, closeCareModal, dispatchToast, patientId, reload]);
+
+  const togglePortalPanel = useCallback(() => {
+    setIsPortalPanelOpen((prev) => !prev);
+  }, []);
 
   const handleStartEdit = () => {
     setIsEditing(true);
@@ -473,39 +757,6 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
     });
   };
 
-  const handleNewContact = () => {
-    setContactDraft({
-      name: '',
-      relationship_degree: '',
-      contact_type: undefined,
-      phone_primary: '',
-      phone_secondary: '',
-      email: '',
-      is_legal_guardian: false,
-      is_emergency_contact: false,
-      is_financial_responsible: false,
-      can_authorize_clinical: false,
-      can_authorize_financial: false,
-      is_main_contact: false,
-      contact_time_preference: undefined,
-      preferred_contact: undefined,
-      observations: '',
-    });
-  };
-
-  const handleNewCareTeam = () => {
-    setCareTeamDraft({
-      professional_id: undefined,
-      profissional_nome: '',
-      role_in_case: '',
-      status: 'Ativo',
-      regime: undefined,
-      contact_email: '',
-      contact_phone: '',
-      notes: '',
-    });
-  };
-
   const handleEditCareTeam = (member: CareTeamMemberRow) => {
     setCareTeamDraft({
       id: member.id,
@@ -589,18 +840,18 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
   const handleAiCheck = async () => {
     if (!latestLegalDoc?.id) return;
     try {
-      await requestLegalDocAiCheck(latestLegalDoc.id);
+      await approveLegalDocumentAi(latestLegalDoc.id);
       await reload();
       dispatchToast(
         <Toast>
-          <ToastTitle>Pré-análise IA registrada</ToastTitle>
+          <ToastTitle>Análise de IA aprovada</ToastTitle>
         </Toast>,
         { intent: 'info' },
       );
     } catch (error) {
       dispatchToast(
         <Toast>
-          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao processar IA'}</ToastTitle>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao aprovar IA'}</ToastTitle>
         </Toast>,
         { intent: 'error' },
       );
@@ -783,17 +1034,22 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                     ))}
                   </div>
                 )}
+                <div className={styles.cardFooter}>
+                  <Button appearance="outline" icon={<AddRegular />} onClick={openLegalModal}>
+                    Cadastrar responsável legal
+                  </Button>
+                  {latestLegalDoc && (
+                    <Button appearance="outline" icon={<ShieldLockRegular />} onClick={() => void approveLegalDocumentAi(latestLegalDoc.id)}>
+                      Aprovar análise de IA
+                    </Button>
+                  )}
+                </div>
               </div>
             </section>
 
             <section className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitle}>Contatos & familiares</div>
-                {isEditing && (
-                  <Button appearance="outline" icon={<AddRegular />} onClick={handleNewContact}>
-                    Novo contato
-                  </Button>
-                )}
               </div>
               <div className={styles.cardBody}>
                 {relatedPersons.length === 0 && <div className={styles.empty}>Nenhum contato cadastrado.</div>}
@@ -861,16 +1117,17 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                     <Field label="Tipo de contato">
                       <Select
                         value={contactDraft.contact_type ?? ''}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          const value = event.currentTarget?.value ?? '';
                           setContactDraft((prev) =>
                             prev
                               ? {
                                   ...prev,
-                                  contact_type: toOption(contactTypeOptions, event.currentTarget.value),
+                                  contact_type: toOption(contactTypeOptions, value),
                                 }
                               : prev,
-                          )
-                        }
+                          );
+                        }}
                       >
                         <option value="">Selecione</option>
                         {contactTypeOptions.map((option) => (
@@ -883,16 +1140,17 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                     <Field label="Canal preferido">
                       <Select
                         value={contactDraft.preferred_contact ?? ''}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          const value = event.currentTarget?.value ?? '';
                           setContactDraft((prev) =>
                             prev
                               ? {
                                   ...prev,
-                                  preferred_contact: toOption(preferredContactOptions, event.currentTarget.value),
+                                  preferred_contact: toOption(preferredContactOptions, value),
                                 }
                               : prev,
-                          )
-                        }
+                          );
+                        }}
                       >
                         <option value="">Selecione</option>
                         {preferredContactOptions.map((option) => (
@@ -905,19 +1163,17 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                     <Field label="Horario preferido">
                       <Select
                         value={contactDraft.contact_time_preference ?? ''}
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          const value = event.currentTarget?.value ?? '';
                           setContactDraft((prev) =>
                             prev
                               ? {
                                   ...prev,
-                                  contact_time_preference: toOption(
-                                    contactTimePreferenceOptions,
-                                    event.currentTarget.value,
-                                  ),
+                                  contact_time_preference: toOption(contactTimePreferenceOptions, value),
                                 }
                               : prev,
-                          )
-                        }
+                          );
+                        }}
                       >
                         <option value="">Selecione</option>
                         {contactTimePreferenceOptions.map((option) => (
@@ -989,17 +1245,17 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                     </Field>
                   </div>
                 )}
+                <div className={styles.cardFooter}>
+                  <Button appearance="outline" icon={<AddRegular />} onClick={openContactModal}>
+                    Adicionar contato
+                  </Button>
+                </div>
               </div>
             </section>
 
             <section className={styles.card}>
               <div className={styles.cardHeader}>
                 <div className={styles.cardTitle}>Rede de cuidados (externa)</div>
-                {isEditing && (
-                  <Button appearance="outline" icon={<AddRegular />} onClick={handleNewCareTeam}>
-                    Novo profissional
-                  </Button>
-                )}
               </div>
               <div className={styles.cardBody}>
                 {careTeamMembers.length === 0 && <div className={styles.empty}>Nenhum profissional cadastrado.</div>}
@@ -1111,6 +1367,11 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                     </Field>
                   </div>
                 )}
+                <div className={styles.cardFooter}>
+                  <Button appearance="outline" icon={<AddRegular />} onClick={openCareModal}>
+                    Adicionar profissional
+                  </Button>
+                </div>
               </div>
             </section>
           </div>
@@ -1128,7 +1389,7 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                   <ReadOnlyRow label="Revogado" value={formatText(portalAccess?.revoked_at ?? null)} />
                 </dl>
 
-                {isEditing && (
+                {isPortalPanelOpen && (
                   <div className={styles.formGrid}>
                     <Field label="Nivel de acesso">
                       <Select
@@ -1166,11 +1427,244 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                     )}
                   </div>
                 )}
+                <div className={styles.cardFooter}>
+                  <Button appearance="outline" icon={<LinkRegular />} onClick={togglePortalPanel}>
+                    {isPortalPanelOpen ? 'Fechar gerenciamento' : 'Gerenciar portal'}
+                  </Button>
+                </div>
               </div>
             </section>
           </aside>
         </div>
       </div>
+      {isLegalModalOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalBox}>
+            <div className={styles.modalHeader}>
+              <h3>Cadastro de responsável legal</h3>
+              <Button appearance="transparent" icon={<DismissRegular />} onClick={closeLegalModal}>
+                Fechar
+              </Button>
+            </div>
+            <div className={styles.formGrid}>
+              <Field label="Nome" required>
+                <Input value={legalForm.name} onChange={(event) => setLegalForm((prev) => ({ ...prev, name: event.target.value }))} />
+              </Field>
+              <Field label="Parentesco/função" required>
+                <Input
+                  value={legalForm.relationship}
+                  onChange={(event) => setLegalForm((prev) => ({ ...prev, relationship: event.target.value }))}
+                />
+              </Field>
+              <Field label="Telefone" required>
+                <Input
+                  value={legalForm.phone}
+                  onChange={(event) => setLegalForm((prev) => ({ ...prev, phone: event.target.value }))}
+                />
+              </Field>
+              <Field label="Email" required>
+                <Input
+                  value={legalForm.email}
+                  onChange={(event) => setLegalForm((prev) => ({ ...prev, email: event.target.value }))}
+                />
+              </Field>
+              <Field label="Documento jurídico">
+                <input
+                  className={styles.fileInput}
+                  type="file"
+                  onChange={(event) => setLegalDocumentFile(event.currentTarget.files?.[0] ?? null)}
+                />
+              </Field>
+              <Field label="Observações">
+                <Textarea
+                  value={legalForm.observations}
+                  onChange={(event) => setLegalForm((prev) => ({ ...prev, observations: event.target.value }))}
+                />
+              </Field>
+            </div>
+            <div className={styles.modalActions}>
+              <Button appearance="outline" onClick={closeLegalModal}>
+                Cancelar
+              </Button>
+              <Button appearance="primary" onClick={handleLegalModalSave} disabled={legalModalSaving}>
+                {legalModalSaving ? 'Salvando...' : 'Salvar responsável legal'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isContactModalOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalBox}>
+            <div className={styles.modalHeader}>
+              <h3>Cadastrar contato</h3>
+              <Button appearance="transparent" icon={<DismissRegular />} onClick={closeContactModal}>
+                Fechar
+              </Button>
+            </div>
+            <div className={styles.formGrid}>
+              <Field label="Nome" required>
+                <Input value={contactModalForm.name} onChange={(event) => setContactModalForm((prev) => ({ ...prev, name: event.target.value }))} />
+              </Field>
+              <Field label="Parentesco/função" required>
+                <Input
+                  value={contactModalForm.relationship}
+                  onChange={(event) => setContactModalForm((prev) => ({ ...prev, relationship: event.target.value }))}
+                />
+              </Field>
+              <Field label="Telefone">
+                <Input
+                  value={contactModalForm.phone}
+                  onChange={(event) => setContactModalForm((prev) => ({ ...prev, phone: event.target.value }))}
+                />
+              </Field>
+              <Field label="Email">
+                <Input
+                  value={contactModalForm.email}
+                  onChange={(event) => setContactModalForm((prev) => ({ ...prev, email: event.target.value }))}
+                />
+              </Field>
+              <Field label="Tipo de contato">
+                <Select
+                  value={contactModalForm.contact_type ?? ''}
+                  onChange={(event) => {
+                    const value = event.currentTarget?.value ?? '';
+                    setContactModalForm((prev) => ({ ...prev, contact_type: value || undefined }));
+                  }}
+                >
+                  <option value="">Selecione</option>
+                  {contactTypeOptions.map((option) => (
+                    <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+              <Field label="Canal preferido">
+                <Select
+                  value={contactModalForm.preferred_contact ?? ''}
+                  onChange={(event) => {
+                    const value = event.currentTarget?.value ?? '';
+                    setContactModalForm((prev) => ({ ...prev, preferred_contact: value || undefined }));
+                  }}
+                >
+                  <option value="">Selecione</option>
+                  {preferredContactOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Horário preferido">
+                <Select
+                  value={contactModalForm.contact_time_preference ?? ''}
+                  onChange={(event) => {
+                    const value = event.currentTarget?.value ?? '';
+                    setContactModalForm((prev) => ({ ...prev, contact_time_preference: value || undefined }));
+                  }}
+                >
+                  <option value="">Selecione</option>
+                  {contactTimePreferenceOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+          </div>
+            <div className={styles.modalActions}>
+              <Button appearance="outline" onClick={closeContactModal}>
+                Cancelar
+              </Button>
+              <Button appearance="primary" onClick={handleContactModalSave} disabled={contactModalSaving}>
+                {contactModalSaving ? 'Salvando...' : 'Salvar contato'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isCareModalOpen && (
+        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
+          <div className={styles.modalBox}>
+            <div className={styles.modalHeader}>
+              <h3>Cadastrar profissional</h3>
+              <Button appearance="transparent" icon={<DismissRegular />} onClick={closeCareModal}>
+                Fechar
+              </Button>
+            </div>
+            <div className={styles.formGrid}>
+              <Field label="Nome" required>
+                <Input
+                  value={careModalForm.profissional_nome}
+                  onChange={(event) => setCareModalForm((prev) => ({ ...prev, profissional_nome: event.target.value }))}
+                />
+              </Field>
+              <Field label="Papel" required>
+                <Input
+                  value={careModalForm.role_in_case}
+                  onChange={(event) => setCareModalForm((prev) => ({ ...prev, role_in_case: event.target.value }))}
+                />
+              </Field>
+              <Field label="Telefone">
+                <Input
+                  value={careModalForm.contact_phone ?? ''}
+                  onChange={(event) => setCareModalForm((prev) => ({ ...prev, contact_phone: event.target.value }))}
+                />
+              </Field>
+              <Field label="Email">
+                <Input
+                  value={careModalForm.contact_email ?? ''}
+                  onChange={(event) => setCareModalForm((prev) => ({ ...prev, contact_email: event.target.value }))}
+                />
+              </Field>
+              <Field label="Status">
+                <Select
+                  value={careModalForm.status ?? 'Ativo'}
+                  onChange={(event) =>
+                    setCareModalForm((prev) => ({ ...prev, status: toOption(careTeamStatusOptions, event.currentTarget.value) ?? 'Ativo' }))
+                  }
+                >
+                  {careTeamStatusOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Regime">
+                <Select
+                  value={careModalForm.regime ?? ''}
+                  onChange={(event) =>
+                    setCareModalForm((prev) => ({ ...prev, regime: toOption(careTeamRegimeOptions, event.currentTarget.value) }))
+                  }
+                >
+                  <option value="">Selecione</option>
+                  {careTeamRegimeOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </Select>
+              </Field>
+              <Field label="Observações" style={{ gridColumn: '1 / -1' }}>
+                <Textarea
+                  value={careModalForm.notes ?? ''}
+                  onChange={(event) => setCareModalForm((prev) => ({ ...prev, notes: event.target.value }))}
+                />
+              </Field>
+            </div>
+            <div className={styles.modalActions}>
+              <Button appearance="outline" onClick={closeCareModal}>
+                Cancelar
+              </Button>
+              <Button appearance="primary" onClick={handleCareModalSave} disabled={careModalSaving}>
+                {careModalSaving ? 'Salvando...' : 'Salvar profissional'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 });
