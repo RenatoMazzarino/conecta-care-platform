@@ -36,7 +36,7 @@
 - Não há migrations, actions ou schemas específicos para Aba 03.
 
 ## 5) Estratégia por fases
-1. **Docs (esta etapa)**: escrever plano + contrato, capturar cobertura de legado e decisões abertas (Aba 03 vs Aba 04, portal etc.).
+1. **Docs**: contratos e plano estão consolidados — legados mapeados e escopo fechado; estamos prontos para atacar a implementação ponta a ponta.
 2. **Dados**: definir tabelas canônicas (ex.: `patient_related_persons`, `patient_household_members`, `care_team_members`, `patient_documents`, `patient_document_logs`, `patient_portal_access`) e novas colunas/constraints. Tabelas administrativas permanecem na Aba04.
 3. **Types**: gerar tipos Supabase baseados nas tabelas definidas.
 4. **Actions**: desenhar actions de get/list/save/setPrimary/invite/revoke, validações de documentos e audit trail.
@@ -55,11 +55,8 @@
 - Governança do portal (MVP) está especificada apenas como gestão e rastreabilidade, sem implementação de portal.
 
 **Em aberto (documentar no contrato + lista de perguntas no final):**
-- Como separar Aba 03 x Aba 04 (opções descritas no contrato).
-- Níveis de acesso do portal (quem recebe convite, o que visualiza/autoriza).
-- Status de documentos (curatela vs procuração) e checklist de validação automática + manual.
-- Definição do “principal contato” e flag de autorização para decisões clínicas/financeiras.
-
+- Permissões internas específicas com claim `can_manage_portal_access=true`.
+- Campo canônico para assinatura final da revisão (`approved_by`/`signed_by`) e onde ficará registrado.
 ## 7) Cobertura do legado (prévia)
 Tabulação das tabelas legadas que alimentam a Aba 03 e que serão detalhadas no contrato:
 - `patient_related_persons` (responsáveis/contatos, flags de autorização, preferências, informações de contato e endereços).

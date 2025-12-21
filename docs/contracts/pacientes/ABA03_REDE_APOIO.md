@@ -116,7 +116,31 @@ Combina acesso ao portal (usuário, convite, permissões) com evidência documen
 
 Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) e soft delete via `deleted_at`. `created_by/updated_by` replicam o padrão do módulo (references em actions). `is_primary` e `is_main_contact` são unique partial indexes por `patient_id` + `tenant_id` quando `deleted_at is null`.
 
-### 4.2 Fora do escopo (Aba04 Administrativa)
+### 4.2 Tabela: `public.patient_portal_access`
+
+| Campo | Tipo PG | Obrigatório | Default | Descrição |
+| --- | --- | --- | --- | --- |
+| id | uuid | Sim | `gen_random_uuid()` | PK |
+| tenant_id | uuid | Sim | - | Multi-tenant |
+| patient_id | uuid | Sim | - | Paciente associado |
+| related_person_id | uuid | Sim | - | Responsável legal vinculado |
+| portal_access_level | text | Sim | `viewer` | Enum {`viewer`, `communicator`, `decision_authorized`} |
+| invite_token | text | Sim | - | Hash/token do convite |
+| invite_expires_at | timestamptz | Não | - | Expiração por default (+72h) |
+| invited_at | timestamptz | Sim | `now()` | Timestamp da geração |
+| invited_by | uuid | Sim | - | Usuário que criou o convite |
+| revoked_at | timestamptz | Não | - | Timestamp de revogação |
+| revoked_by | uuid | Não | - | Usuário que revogou |
+| last_login_at | timestamptz | Não | - | Futuro uso para audit trail |
+| created_at | timestamptz | Sim | `now()` | Auditoria padrão |
+| updated_at | timestamptz | Sim | `now()` | Auditoria padrão |
+| created_by | uuid | Sim | - | Usuário criador |
+| updated_by | uuid | Sim | - | Usuário atualizador |
+| deleted_at | timestamptz | Não | - | Soft delete |
+
+> Essa tabela nova suporta geração/expiração de tokens, níveis de acesso e auditoria (gerar/revogar). A RLS associada deve usar `tenant_id` e claims `can_manage_portal_access=true`.
+
+### 4.3 Fora do escopo (Aba04 Administrativa)
 
 - Toda terminologia ligada a “gestor responsável”, “escalista”, “backoffice”, “financeiro”, “faturamento” ou “contrato financeiro” foi removida deste modelo e passa a ser tratada no escopo da Aba04 Administrativa. Os tabelas `patient_admin_info` e `patient_administrative_profiles` são referenciadas apenas para manter o mapa de legado, mas o processamento/documentação desses dados deve residir em Aba04.
 - Tabelas explicitamente fora do escopo desta aba: `patient_admin_info`, `patient_administrative_profiles` e demais entidades administrativas/financeiras correlatas.
