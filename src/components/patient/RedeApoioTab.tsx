@@ -285,8 +285,10 @@ function formatDocumentStatus(value?: string | null) {
   }
 }
 
-function guardianStatusFromDoc(status?: string | null) {
-  if (!status) return { label: 'Ausente', tone: 'danger' };
+function guardianStatusFromDoc(status?: string | null, hasGuardian = false) {
+  if (!status) {
+    return hasGuardian ? { label: 'Cadastro pendente', tone: 'warning' } : { label: 'Ausente', tone: 'danger' };
+  }
   if (status === 'manual_approved') return { label: 'OK', tone: 'success' };
   return { label: 'Pendente', tone: 'warning' };
 }
@@ -373,6 +375,8 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isContactSaving, setIsContactSaving] = useState(false);
+  const [isCareSaving, setIsCareSaving] = useState(false);
   const [contactDraft, setContactDraft] = useState<RelatedPersonUpsertInput | null>(null);
   const [careTeamDraft, setCareTeamDraft] = useState<CareTeamMemberInput | null>(null);
   const [portalAccessLevelDraft, setPortalAccessLevelDraft] = useState<PortalAccessInput['portal_access_level']>('viewer');
@@ -405,11 +409,12 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
 
   const latestLegalDoc = legalDocuments[0] ?? null;
 
-  const guardianStatus = guardianStatusFromDoc(
-    (legalGuardianSummary as { legal_doc_status?: string | null } | null)?.legal_doc_status ??
-      latestLegalDoc?.document_status ??
-      null,
-  );
+    const guardianStatus = guardianStatusFromDoc(
+      (legalGuardianSummary as { legal_doc_status?: string | null } | null)?.legal_doc_status ??
+        latestLegalDoc?.document_status ??
+        null,
+      Boolean(legalGuardian),
+    );
   const guardianColor = guardianStatus.tone === 'success' ? 'success' : guardianStatus.tone === 'warning' ? 'warning' : 'danger';
 
   useEffect(() => {
@@ -557,6 +562,60 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
       notes: '',
     });
   }, []);
+
+  const handleSaveContactInline = useCallback(async () => {
+    if (!contactDraft) return;
+
+    setIsContactSaving(true);
+    try {
+      await upsertRelatedPerson(patientId, contactDraft);
+      await reload();
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Contato salvo</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      setContactDraft(null);
+      setIsEditing(false);
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao salvar contato'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setIsContactSaving(false);
+    }
+  }, [contactDraft, dispatchToast, patientId, reload]);
+
+  const handleSaveCareInline = useCallback(async () => {
+    if (!careTeamDraft) return;
+
+    setIsCareSaving(true);
+    try {
+      await upsertCareTeamMember(patientId, careTeamDraft);
+      await reload();
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Profissional salvo</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      setCareTeamDraft(null);
+      setIsEditing(false);
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao salvar profissional'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setIsCareSaving(false);
+    }
+  }, [careTeamDraft, dispatchToast, patientId, reload]);
 
   const handleStartEdit = () => {
     setIsEditing(true);
@@ -1131,6 +1190,15 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                         </label>
                       </div>
                     </Field>
+                    <div className={styles.formActions}>
+                      <Button
+                        appearance="primary"
+                        onClick={() => void handleSaveContactInline()}
+                        disabled={isContactSaving}
+                      >
+                        {isContactSaving ? 'Salvando...' : 'Salvar contato'}
+                      </Button>
+                    </div>
                   </div>
                 )}
                 <div className={styles.cardFooter}>
@@ -1253,6 +1321,11 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                         }
                       />
                     </Field>
+                    <div className={styles.formActions}>
+                      <Button appearance="primary" onClick={() => void handleSaveCareInline()} disabled={isCareSaving}>
+                        {isCareSaving ? 'Salvando...' : 'Salvar profissional'}
+                      </Button>
+                    </div>
                   </div>
                 )}
                 <div className={styles.cardFooter}>
