@@ -1,7 +1,9 @@
 # PLANO_PACIENTES_ABA03_REDE_APOIO
 
 ## 0) Baseline
-- Branch / HEAD: `feat/pacientes-aba03-rede-apoio` / `16751a2784adea2f848c5ef5d62d2c2afdcf9cfa`
+- `git status -sb` → `## feat/pacientes-aba03-rede-apoio...origin/feat/pacientes-aba03-rede-apoio`
+- `git rev-parse --abbrev-ref HEAD` → `feat/pacientes-aba03-rede-apoio`
+- `git rev-parse HEAD` → `4a8417f9641890b78251debb6088575ebbbfc604`
 - `npm run docs:links` → ✅ OK (relatório em `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`)
 - `npm run docs:lint` → ✅ OK
 
@@ -46,6 +48,8 @@
 - Fluxo contrato-driven obrigatório.
 - Multi-tenant + RLS + soft delete (uso de `tenant_id` e `deleted_at`).
 - Modo leitura terá cards label/valor, modo edição com inputs como Aba01/Aba02.
+- Aba03 se restringe à rede de apoio: referências a gestor/escalista/admin financeiro saíram do contrato e foram deslocadas para a seção “Fora do escopo (Aba04 Administrativa)” do contrato.
+- O contrato agora documenta a enum `document_status` completa e a governança do portal (nivéis `viewer/communicator/decision_authorized`, geração de links, revogações e auditoria), para evitar ambiguidade com Aba04.
 
 **Em aberto (documentar no contrato + lista de perguntas no final):**
 - Como separar Aba 03 x Aba 04 (opções descritas no contrato).
@@ -62,7 +66,7 @@ Tabulação das tabelas legadas que alimentam a Aba 03 e que serão detalhadas n
 - `patient_document_logs` (auditoria de ações sobre documentos).
 - `patient_admin_info` e `patient_administrative_profiles` (dados administrativos/equipe interna com escalistas, supervisores, checklists legais).
 
-Cada tabela agora tem sua lista completa de colunas, tipos e constraints dentro de `docs/contracts/pacientes/ABA03_REDE_APOIO.md`, seguida do mapa legado→canônico e das decisões de domínio.
+- Cada tabela agora tem sua lista completa de colunas, tipos e constraints dentro de `docs/contracts/pacientes/ABA03_REDE_APOIO.md`, seguida do mapa legado→canônico. Os dados administrativos aparecem apenas para rastrear o legado e são explicitamente marcados como “Fora do escopo (Aba04 Administrativa)” para garantir cobertura total sem misturar escopo.
 
 ## 8) Validações (docs-only)
 - `npm run docs:links` (já executado) 
@@ -74,6 +78,7 @@ Se algum destes falhar, registrar erro acima e continuar apenas com docs (sem co
 - **Gaps de informações**: legados podem ter colunas não mapeadas; mitigação: incluir seção “mapa legado→canônico” e perguntas abertas. 
 - **Decisões de separação Aba03/Aba04** indefinidas: deixar opção recomendada + ancorar as perguntas ao contrato para decisão posterior. 
 - **Regra de acesso**: se o portal precisar de roles adicionais, documentar dependência de RLS e fluxos de auditoria.
+- **Audit trail**: garantir eventos de upload, mudança de status, geração/revogação de links e troca do responsável vigente; registrar que esses eventos existem mesmo que a infraestrutura venha depois.
 
 ## 10) Perguntas abertas (priorizadas)
 - Confirmar se a Aba 04 deve abrigar os profissionais internos ou se a Aba 03 cobre toda a rede e usa `type/origin` para separar.
