@@ -81,7 +81,7 @@ Exibe médicos, fisioterapeutas, enfermagem e terceiros associados.
 
 | Campo (label) | Nome técnico | Tipo PG | Obrigatório | Descrição curta |
 | --- | --- | --- | --- | --- |
-| Profissional | professional_id | uuid | Sim | Link para tabela de profissionais. |
+| Profissional | professional_id | uuid | Condicional | Link para tabela de profissionais (quando houver cadastro). |
 | Papel na jornada | role_in_case | enum | Sim | Ex.: Nutri, Médico, Técnico. |
 | Regime | regime | enum | Não | Fixo / variável / outro. |
 | Status | status | text | Sim | Controle Ativo/Afastado/Encerrado/Standby. |
@@ -91,28 +91,29 @@ Exibe médicos, fisioterapeutas, enfermagem e terceiros associados.
 
 ### Card: Portal & Documentos
 
-Combina acesso ao portal (usuário, convite, permissões) com evidência documental (curatela/procuração).
+Combina acesso ao portal (convite + nível) com evidência documental (curatela/procuração).
 
 | Campo (label) | Nome técnico | Tipo PG | Obrigatório | Descrição curta |
 | --- | --- | --- | --- | --- |
-| Portal habilitado | portal_active | boolean | Sim | Ativa/desativa acesso ao portal. |
-| Nivel de acesso | portal_access_level | text | Sim | Visualiza / Comunica / Autoriza. |
-| Convidar/Revogar | portal_invite_token | text | - | Token temporário enviado por email. |
+| Nível de acesso | portal_access_level | text | Sim | `viewer` / `communicator` / `decision_authorized`. |
+| Convite (token) | invite_token | text | Sim | Token/hash do convite (gerado via action). |
+| Expira em | invite_expires_at | timestamptz | Não | Expiração do convite (ex.: +72h). |
+| Revogado em | revoked_at | timestamptz | Não | Timestamp de revogação. |
 | Documento jurídico | patient_documents* | jsonb link | Sim para curatela | Referência ao upload com status e audit trail. |
 | Status de validação | document_status | enum | Sim | Workflow completo em `document_status` (manual obrigatório). |
 | Checklist de IA | document_validation_payload | jsonb | Não | Resultados do pipeline de análise automática. |
-| Última atualização | portals_refresh_at | timestamptz | Não | Timestamp do último convite ou atualização. |
+| Última atualização | invited_at | timestamptz | Não | Timestamp do último convite. |
 
 ## 4) Modelo de Dados (Banco)
 
 ### 4.1 Tabelas canônicas sugeridas
 
-1. `public.patient_responsible_parties` (reaproveita `patient_related_persons`): armazena responsáveis legais com flags, contatos e preferências.
-2. `public.patient_contacts` (subset de `patient_related_persons` / `patient_household_members`): contatos gerais com sinalização de principal e consentimentos.
-3. `public.patient_care_network` (baseado em `care_team_members`): profissionais clínicos/operacionais externos com regime e status.
-4. `public.patient_documents` (mantém a tabela legada): documentos jurídicos do responsável legal (curatela/procuração).
-5. `public.patient_document_logs` (legado) para auditoria de uploads/validações.
-6. `public.patient_portal_access` exclusivo para tokens e níveis de acesso ao portal.
+1. `public.patient_related_persons`: responsáveis legais + contatos/familiares com flags de autorização.
+2. `public.patient_household_members`: moradores/cuidadores vinculados ao paciente.
+3. `public.care_team_members`: rede de cuidados externa (profissionais).
+4. `public.patient_documents`: documentos jurídicos do responsável legal (curatela/procuração).
+5. `public.patient_document_logs`: auditoria de uploads/validações.
+6. `public.patient_portal_access`: tokens e níveis de acesso ao portal.
 
 Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) e soft delete via `deleted_at`. `created_by/updated_by` replicam o padrão do módulo (references em actions). `is_primary` e `is_main_contact` são unique partial indexes por `patient_id` + `tenant_id` quando `deleted_at is null`.
 
@@ -128,7 +129,7 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 | invite_token | text | Sim | - | Hash/token do convite |
 | invite_expires_at | timestamptz | Não | - | Expiração por default (+72h) |
 | invited_at | timestamptz | Sim | `now()` | Timestamp da geração |
-| invited_by | uuid | Sim | - | Usuário que criou o convite |
+| invited_by | uuid | Não | - | Usuário que criou o convite |
 | revoked_at | timestamptz | Não | - | Timestamp de revogação |
 | revoked_by | uuid | Não | - | Usuário que revogou |
 | last_login_at | timestamptz | Não | - | Futuro uso para audit trail |
@@ -149,7 +150,7 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 
 - RLS habilitado em todas as tabelas; policies replicam o padrão do módulo: `tenant_id` igual a `current_setting('request.jwt.claims', true)::jsonb ->> 'tenant_id'` ou `service_role`.
 - SELECT: pacientes vinculados ao tenant. INSERT/UPDATE/DELETE limitados a pessoas com role adequada (ex.: `authenticated` com permissão via claims, `service_role` para jobs).
-- `portal_access` deve respeitar adicionais: somente `service_role` e usuários com claim `can_manage_app_access=true` podem alterar tokens ou níveis de acesso.
+- `portal_access` deve respeitar adicionais: somente `service_role` e usuários com claim `can_manage_portal_access=true` podem alterar tokens ou níveis de acesso.
 
 ## 6) Derivações para UI
 
@@ -167,14 +168,15 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 
 ## 7) Operações / Actions do App
 
-- `getPatientResponsibleParty(patient_id)` retorna responsável principal com documentos validados.
-- `listPatientContacts(patient_id)` lista contatos secundários com flags de autorização.
-- `listCareTeam(patient_id)` traz profissionais ativos e regime.
-- `savePatientResponsibleParty(payload)` valida RG/CPF + checklist e persiste timestamps e campos auditáveis.
-- `savePatientContact(payload)` garante `is_main_contact` único.
-- `refreshDocumentValidation(document_id)` inicia pipeline IA (POST em action) e grava `document_validation_payload` + status.
-- `invitePortalAccess(patient_id)` gera token, envia email e grava `portal_invite_sent_at`.
-- `setPortalAccessLevel(patient_id, level)` define `portal_access_level` e dispara auditoria.
+- `getRedeApoioSummary(patient_id)` carrega resumo do responsável legal, contatos, rede de cuidados, documentos e portal.
+- `upsertRelatedPerson(payload)` cria/edita contato ou responsável legal.
+- `setLegalGuardian(related_person_id)` marca responsável legal vigente e aplica regra de exclusividade.
+- `uploadLegalDocument(payload)` cria `patient_documents` + log `uploaded`.
+- `approveLegalDocumentManual(document_id)` define `document_status=manual_approved` + log.
+- `requestLegalDocAiCheck(document_id)` executa pré-análise IA (quando habilitada) e grava `document_validation_payload`.
+- `createPortalInvite(payload)` gera token/expiração e grava auditoria.
+- `revokePortalInvite(portal_access_id)` revoga acesso e grava auditoria.
+- `setPortalAccessLevel(portal_access_id, level)` altera nível e grava auditoria.
 
 ## 8) Gestão de acesso ao Portal do Paciente (MVP — governança)
 
@@ -184,12 +186,12 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 - `communicator`: além de visualizar, pode receber/enviar comunicados (WhatsApp/email) desde que o contato tenha opt-in.
 - `decision_authorized`: além dos anteriores, pode autorizar decisões definidas no contrato (ex.: aceitar curatela) e visualizar links sensíveis.
 
-`portal_access_level` deve ser armazenado em metadata (enum com os valores acima) e aparecer em históricos de `portal_access_change`.
+`portal_access_level` deve ser armazenado em `patient_portal_access` (enum com os valores acima) e aparecer em históricos de `portal_access_change`.
 
 ### 8.1.2) Quem pode alterar/revogar
 
 - Somente perfis internos com claim `can_manage_portal_access=true` (ex.: equipe administrativa ou patient admin) podem alterar `portal_access_level`, gerar novos links ou revogar acessos existentes. Esse controle deve ser implementado via RLS/claims e audit_events.
-- Revogação também deve marcar `portal_access_revoked_at` e `portal_access_revoked_by`.
+- Revogação também deve marcar `revoked_at` e `revoked_by`.
 
 ### 8.1.3) Ação “Gerar link de acesso”
 
@@ -222,12 +224,11 @@ Nota: o portal não é implementado nesta etapa; a Aba03 descreve apenas a gover
 - Email: domínio verificado contra whitelist interna.
 - Documentos jurídicos: exigem `file_hash`, `document_status` e `uploaded_at`; checklists predefinidos dependem de `category` (curatela vs procuração).
 - Preferências de contato: catálogos (Manhã/Tarde/Noite/Comercial/Qualquer) são validados por constraint check.
-- Portal access level: enum {visualizar, comunicar, autorizar}; atualizações registram `portal_access_changed_by` e `portal_access_changed_at`.
+- Portal access level: enum {viewer, communicator, decision_authorized}; atualizações registram `portal_access_changed_by` e `portal_access_changed_at` (log/app).
 
 ## 11) Migrações previstas
 
-- `supabase/migrations/20251221XXXX_pacientes_aba03_rede_apoio.sql` (placeholder): cria tabelas canônicas listadas em 4.1, indexes parciais para `is_primary` e `is_main_contact`, RLS e audit triggers.
-- `supabase/migrations/20251221XXXX_pacientes_aba03_document_validation.sql`: adiciona campos `document_validation_payload`, `document_status`, `portal_access_level`, `portal_invite_token` nas tabelas referidas.
+- `supabase/migrations/202512211507_pacientes_aba03_rede_apoio.sql`: cria tabelas canônicas listadas em 4.1, indexes parciais para responsável legal, RLS e audit triggers.
 
 ## 12) Definição de Pronto (DoD)
 
@@ -250,7 +251,7 @@ Nota: o portal não é implementado nesta etapa; a Aba03 descreve apenas a gover
 - `patient_household_members` — 7 colunas (contatos conviventes).
 - `patient_documents` — 64 colunas (recorte jurídico: curatela/procuração).
 - `patient_document_logs` — 8 colunas (auditoria dos documentos).
-- `view_patient_legal_guardian_summary` — 6 colunas (view legado; referência para UI).
+- `view_patient_legal_guardian_summary` — 8 colunas (view derivada; referência para UI).
 
 **OUT-OF-SCOPE (Aba04 Administrativa/Financeira):**
 
@@ -429,16 +430,18 @@ Nota: o portal não é implementado nesta etapa; a Aba03 descreve apenas a gover
 | details | jsonb | payload |
 | created_at | timestamptz | default now() |
 
-### View legado: `public.view_patient_legal_guardian_summary`
+### View derivada: `public.view_patient_legal_guardian_summary`
 
 | Coluna | Tipo | Observações |
 | --- | --- | --- |
 | patient_id | uuid | |
 | related_person_id | uuid | |
-| responsavellegalnome | text | |
-| responsavellegalparentesco | text | |
-| responsavellegaltelefoneprincipal | text | |
-| hasresponsavellegal | boolean | |
+| legal_guardian_name | text | |
+| legal_guardian_relationship | text | |
+| legal_guardian_phone | text | |
+| has_legal_guardian | boolean | |
+| legal_doc_status | text | Último status de documento associado |
+| updated_at | timestamptz | Reflete atualização do responsável ou do doc |
 
 > **Nota:** esta view é apenas referência para UI; na Aba03 ela deve ser tratada como VIEW derivada, não como tabela canônica.
 
@@ -446,18 +449,18 @@ Nota: o portal não é implementado nesta etapa; a Aba03 descreve apenas a gover
 
 | Domínio | Campo canônico | Origem legado | Regra / Observação |
 | --- | --- | --- | --- |
-| Responsável legal | patient_responsible_parties.name | patient_related_persons.name | Mesmo campo; cards de leitura/edição compartilham label. |
-| Responsável legal | patient_responsible_parties.relationship_degree | patient_related_persons.relationship_degree | Mantém enum para curatela/procuração. |
-| Responsável legal | patient_responsible_parties.contact_type | patient_related_persons.contact_type | Constraint já existente aplicada. |
-| Responsável legal | patient_responsible_parties.flags | vários campos booleanos | Campos (is_legal_guardian, is_financial_responsible, is_emergency_contact) agrupados e auditados. |
-| Contatos | `patient_contacts.*` | `patient_related_persons.*` | Reaproveita columns e adiciona `is_main_contact` partial unique contra `patient_id`. |
-| Contatos | patient_contacts.preferred_contact | patient_related_persons.preferred_contact | Constraint (WhatsApp/Telefone/SMS/Email/Outro). |
-| Contatos | patient_contacts.priority_order | patient_related_persons.priority_order | Usa weight default 99 para ordenação. |
-| Rede de cuidados | `patient_care_network.*` | care_team_members.* | Copy of columns with canonical naming (regime/status/role). |
+| Responsável legal | patient_related_persons.name | patient_related_persons.name | Mesmo campo; cards de leitura/edição compartilham label. |
+| Responsável legal | patient_related_persons.relationship_degree | patient_related_persons.relationship_degree | Mantém enum para curatela/procuração. |
+| Responsável legal | patient_related_persons.contact_type | patient_related_persons.contact_type | Constraint já existente aplicada. |
+| Responsável legal | patient_related_persons.flags | vários campos booleanos | Campos (is_legal_guardian, is_financial_responsible, is_emergency_contact) agrupados e auditados. |
+| Contatos | `patient_related_persons.*` | `patient_related_persons.*` | Reaproveita columns e adiciona `is_main_contact` partial unique contra `patient_id`. |
+| Contatos | patient_related_persons.preferred_contact | patient_related_persons.preferred_contact | Constraint (WhatsApp/Telefone/SMS/Email/Outro). |
+| Contatos | patient_related_persons.priority_order | patient_related_persons.priority_order | Usa weight default 99 para ordenação. |
+| Rede de cuidados | `care_team_members.*` | care_team_members.* | Copy of columns com naming canônico (regime/status/role). |
 | Documentos | `patient_documents.*` | `patient_documents.*` | Mantém columns; novas fields (document_status, document_validation_payload) ficam derived. |
 | Auditoria | `patient_document_logs.*` | `patient_document_logs.*` | Legado direto. |
 | Resumo (view) | `view_patient_legal_guardian_summary.*` | `view_patient_legal_guardian_summary.*` | View legado usada como atalho de leitura, sem criar tabela canônica. |
-| Portal | `patient_portal_access.*` | patient_documents / patient_related_persons | Documentos legais alimentam tokens; `portal_access_level` derived. |
+| Portal | `patient_portal_access.*` | patient_documents / patient_related_persons | Documentos legais alimentam tokens; `portal_access_level` persistido. |
 
 ## 15) Separação Aba03 x Aba04 (decisão fechada)
 

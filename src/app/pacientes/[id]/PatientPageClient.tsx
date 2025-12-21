@@ -14,6 +14,7 @@ import {
 import { Header } from '@/components/layout';
 import { DadosPessoaisTab, type DadosPessoaisTabHandle } from '@/components/patient/DadosPessoaisTab';
 import { EnderecoLogisticaTab, type EnderecoLogisticaTabHandle } from '@/components/patient/EnderecoLogisticaTab';
+import { RedeApoioTab, type RedeApoioTabHandle } from '@/components/patient/RedeApoioTab';
 import { getPatientById, type PatientRow } from '@/features/pacientes/actions/getPatientById';
 import { getSupabaseClient } from '@/lib/supabase/client';
 
@@ -268,18 +269,6 @@ type PatientTab =
   | 'documentos'
   | 'historico';
 
-interface RedeApoio {
-  id: string;
-  paciente_id: string;
-  nome: string;
-  parentesco: string;
-  telefone: string;
-  email?: string;
-  is_responsavel_legal: boolean;
-  is_contato_emergencia: boolean;
-  observacoes?: string;
-}
-
 interface Administrativo {
   id: string;
   paciente_id: string;
@@ -293,30 +282,6 @@ interface Administrativo {
   created_at: string;
   updated_at: string;
 }
-
-const mockRedeApoio: RedeApoio[] = [
-  {
-    id: '1',
-    paciente_id: '1',
-    nome: 'Ana Silva',
-    parentesco: 'Filha',
-    telefone: '(11) 99999-7777',
-    email: 'ana.silva@email.com',
-    is_responsavel_legal: true,
-    is_contato_emergencia: true,
-    observacoes: 'Disponível após 18h',
-  },
-  {
-    id: '2',
-    paciente_id: '1',
-    nome: 'Carlos Silva',
-    parentesco: 'Filho',
-    telefone: '(11) 98888-6666',
-    email: 'carlos.silva@email.com',
-    is_responsavel_legal: false,
-    is_contato_emergencia: true,
-  },
-];
 
 const mockAdministrativo: Administrativo = {
   id: '1',
@@ -352,8 +317,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const router = useRouter();
   const dadosPessoaisRef = useRef<DadosPessoaisTabHandle | null>(null);
   const enderecoLogisticaRef = useRef<EnderecoLogisticaTabHandle | null>(null);
+  const redeApoioRef = useRef<RedeApoioTabHandle | null>(null);
   const [dadosPessoaisUi, setDadosPessoaisUi] = useState({ isEditing: false, isSaving: false });
   const [enderecoLogisticaUi, setEnderecoLogisticaUi] = useState({ isEditing: false, isSaving: false });
+  const [redeApoioUi, setRedeApoioUi] = useState({ isEditing: false, isSaving: false });
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedTab, setSelectedTab] = useState<PatientTab>('dados-pessoais');
@@ -361,8 +328,8 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const [patientLoading, setPatientLoading] = useState(false);
   const [patientError, setPatientError] = useState<string | null>(null);
   const [addressSummary, setAddressSummary] = useState<{ city?: string | null; state?: string | null } | null>(null);
+  const [legalGuardianSummary, setLegalGuardianSummary] = useState<{ name?: string | null; status: string } | null>(null);
 
-  const redeApoio = mockRedeApoio;
   const administrativo = mockAdministrativo;
 
   useEffect(() => {
@@ -427,7 +394,7 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
 
   const cidadeUf =
     addressSummary?.city && addressSummary?.state ? `${addressSummary.city}/${addressSummary.state}` : addressSummary?.city;
-  const responsavelLegal = redeApoio.find((item) => item.is_responsavel_legal)?.nome ?? 'Não informado';
+  const responsavelLegal = legalGuardianSummary?.name ?? 'Não informado';
 
   const initials = useMemo(() => {
     const name = patient?.full_name?.trim();
@@ -440,6 +407,9 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const statusLabel = patient ? (patient.is_active ? 'Ativo' : 'Cadastro') : '—';
   const recordTitle = patient?.full_name ?? 'Paciente';
   const subtitle = `Paciente${cidadeUf ? ` • ${cidadeUf}` : ''}`;
+  const legalGuardianMeta = legalGuardianSummary
+    ? `${legalGuardianSummary.status}${legalGuardianSummary.name ? ` · ${legalGuardianSummary.name}` : ''}`
+    : 'Ausente';
 
   const renderDefinitionList = (items: { label: string; value?: string | number | null }[]) => (
     <dl className={styles.definitionList}>
@@ -463,47 +433,12 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   );
 
   const renderRedeApoio = () => (
-    <div className={styles.tabGrid}>
-      <div className={styles.tabLeftCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Responsáveis & contatos</div>
-          </div>
-          <div className={styles.cardBody}>
-            {redeApoio.map((contato) => (
-              <div key={contato.id} style={{ padding: '10px 0', borderBottom: `1px solid ${tokens.colorNeutralStroke2}` }}>
-                <div style={{ fontWeight: 700 }}>{contato.nome}</div>
-                <p className={styles.muted}>
-                  {contato.parentesco} · {contato.telefone}
-                  {contato.email ? ` · ${contato.email}` : ''}
-                </p>
-                {contato.observacoes && <p className={styles.muted}>{contato.observacoes}</p>}
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Rede informal</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>Placeholder para futura implementação da aba “Rede de apoio”.</p>
-          </div>
-        </section>
-      </div>
-
-      <aside className={styles.tabRightCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Responsável legal</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p style={{ margin: 0, fontWeight: 700 }}>{responsavelLegal}</p>
-          </div>
-        </section>
-      </aside>
-    </div>
+    <RedeApoioTab
+      ref={redeApoioRef}
+      patientId={patientId}
+      onStatusChange={setRedeApoioUi}
+      onLegalGuardianSummary={setLegalGuardianSummary}
+    />
   );
 
   const renderAdministrativo = () => (
@@ -695,8 +630,15 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
 
   const isDadosPessoaisTabSelected = selectedTab === 'dados-pessoais';
   const isEnderecoLogisticaTabSelected = selectedTab === 'endereco-logistica';
-  const isEditableTabSelected = isDadosPessoaisTabSelected || isEnderecoLogisticaTabSelected;
-  const activeTabUi = isDadosPessoaisTabSelected ? dadosPessoaisUi : isEnderecoLogisticaTabSelected ? enderecoLogisticaUi : null;
+  const isRedeApoioTabSelected = selectedTab === 'rede-apoio';
+  const isEditableTabSelected = isDadosPessoaisTabSelected || isEnderecoLogisticaTabSelected || isRedeApoioTabSelected;
+  const activeTabUi = isDadosPessoaisTabSelected
+    ? dadosPessoaisUi
+    : isEnderecoLogisticaTabSelected
+      ? enderecoLogisticaUi
+      : isRedeApoioTabSelected
+        ? redeApoioUi
+        : null;
   const isEditingActiveTab = Boolean(activeTabUi?.isEditing);
   const isSavingActiveTab = Boolean(activeTabUi?.isSaving);
 
@@ -707,6 +649,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
     if (isEnderecoLogisticaTabSelected) {
       enderecoLogisticaRef.current?.save();
+      return;
+    }
+    if (isRedeApoioTabSelected) {
+      redeApoioRef.current?.save();
     }
   };
 
@@ -717,6 +663,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
     if (isEnderecoLogisticaTabSelected) {
       enderecoLogisticaRef.current?.startEdit();
+      return;
+    }
+    if (isRedeApoioTabSelected) {
+      redeApoioRef.current?.startEdit();
     }
   };
 
@@ -727,6 +677,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
     if (isEnderecoLogisticaTabSelected) {
       enderecoLogisticaRef.current?.cancelEdit();
+      return;
+    }
+    if (isRedeApoioTabSelected) {
+      redeApoioRef.current?.cancelEdit();
     }
   };
 
@@ -737,6 +691,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
     if (isEnderecoLogisticaTabSelected) {
       enderecoLogisticaRef.current?.reload();
+      return;
+    }
+    if (isRedeApoioTabSelected) {
+      redeApoioRef.current?.reload();
     }
   };
 
@@ -815,6 +773,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
                 <span className={styles.dot} />
                 {statusLabel}
               </div>
+            </div>
+            <div className={styles.meta}>
+              <div className={styles.metaKey}>Responsável legal</div>
+              <div className={styles.metaValue}>{legalGuardianMeta}</div>
             </div>
             <div className={styles.meta}>
               <div className={styles.metaKey}>Proprietário</div>

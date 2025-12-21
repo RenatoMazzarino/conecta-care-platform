@@ -555,9 +555,654 @@ export type Database = {
           },
         ]
       }
+      patient_related_persons: {
+        Row: {
+          access_to_home: boolean
+          address_city: string | null
+          address_full: string | null
+          address_number: string | null
+          address_state: string | null
+          address_street: string | null
+          address_summary: string | null
+          allow_admin_notif: boolean
+          allow_clinical_updates: boolean
+          birth_date: string | null
+          block_marketing: boolean
+          can_authorize_clinical: boolean
+          can_authorize_financial: boolean
+          contact_time_preference: string | null
+          contact_type: string | null
+          cpf: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          email: string | null
+          id: string
+          is_emergency_contact: boolean
+          is_financial_responsible: boolean
+          is_legal_guardian: boolean
+          is_main_contact: boolean
+          is_whatsapp: boolean
+          lives_with_patient: string | null
+          name: string
+          observacoes_lgpd: string | null
+          observations: string | null
+          patient_id: string
+          phone_primary: string | null
+          phone_secondary: string | null
+          preferred_contact: string | null
+          priority_order: number
+          relation_description: string | null
+          relationship_degree: string | null
+          rg: string | null
+          rg_issuer: string | null
+          rg_state: string | null
+          role_type: string | null
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+          visit_frequency: string | null
+        }
+        Insert: {
+          access_to_home?: boolean
+          address_city?: string | null
+          address_full?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_summary?: string | null
+          allow_admin_notif?: boolean
+          allow_clinical_updates?: boolean
+          birth_date?: string | null
+          block_marketing?: boolean
+          can_authorize_clinical?: boolean
+          can_authorize_financial?: boolean
+          contact_time_preference?: string | null
+          contact_type?: string | null
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          is_emergency_contact?: boolean
+          is_financial_responsible?: boolean
+          is_legal_guardian?: boolean
+          is_main_contact?: boolean
+          is_whatsapp?: boolean
+          lives_with_patient?: string | null
+          name: string
+          observacoes_lgpd?: string | null
+          observations?: string | null
+          patient_id: string
+          phone_primary?: string | null
+          phone_secondary?: string | null
+          preferred_contact?: string | null
+          priority_order?: number
+          relation_description?: string | null
+          relationship_degree?: string | null
+          rg?: string | null
+          rg_issuer?: string | null
+          rg_state?: string | null
+          role_type?: string | null
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          visit_frequency?: string | null
+        }
+        Update: {
+          access_to_home?: boolean
+          address_city?: string | null
+          address_full?: string | null
+          address_number?: string | null
+          address_state?: string | null
+          address_street?: string | null
+          address_summary?: string | null
+          allow_admin_notif?: boolean
+          allow_clinical_updates?: boolean
+          birth_date?: string | null
+          block_marketing?: boolean
+          can_authorize_clinical?: boolean
+          can_authorize_financial?: boolean
+          contact_time_preference?: string | null
+          contact_type?: string | null
+          cpf?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          email?: string | null
+          id?: string
+          is_emergency_contact?: boolean
+          is_financial_responsible?: boolean
+          is_legal_guardian?: boolean
+          is_main_contact?: boolean
+          is_whatsapp?: boolean
+          lives_with_patient?: string | null
+          name?: string
+          observacoes_lgpd?: string | null
+          observations?: string | null
+          patient_id?: string
+          phone_primary?: string | null
+          phone_secondary?: string | null
+          preferred_contact?: string | null
+          priority_order?: number
+          relation_description?: string | null
+          relationship_degree?: string | null
+          rg?: string | null
+          rg_issuer?: string | null
+          rg_state?: string | null
+          role_type?: string | null
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          visit_frequency?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_related_persons_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_household_members: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          name: string
+          patient_id: string
+          role: string
+          schedule_note: string | null
+          tenant_id: string
+          type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name: string
+          patient_id: string
+          role: string
+          schedule_note?: string | null
+          tenant_id?: string
+          type: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          name?: string
+          patient_id?: string
+          role?: string
+          schedule_note?: string | null
+          tenant_id?: string
+          type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_household_members_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      care_team_members: {
+        Row: {
+          contact_email: string | null
+          contact_info_override: string | null
+          contact_phone: string | null
+          corporate_cell: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          employment_type: string | null
+          end_date: string | null
+          id: string
+          internal_extension: string | null
+          is_family_focal_point: boolean
+          is_reference_professional: boolean
+          is_technical_responsible: boolean
+          notes: string | null
+          patient_id: string
+          professional_category: string | null
+          professional_id: string | null
+          profissional_nome: string | null
+          regime: string | null
+          role_in_case: string
+          start_date: string
+          status: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+          user_profile_id: string | null
+          work_window: string | null
+          work_window_summary: string | null
+        }
+        Insert: {
+          contact_email?: string | null
+          contact_info_override?: string | null
+          contact_phone?: string | null
+          corporate_cell?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          employment_type?: string | null
+          end_date?: string | null
+          id?: string
+          internal_extension?: string | null
+          is_family_focal_point?: boolean
+          is_reference_professional?: boolean
+          is_technical_responsible?: boolean
+          notes?: string | null
+          patient_id: string
+          professional_category?: string | null
+          professional_id?: string | null
+          profissional_nome?: string | null
+          regime?: string | null
+          role_in_case: string
+          start_date?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_profile_id?: string | null
+          work_window?: string | null
+          work_window_summary?: string | null
+        }
+        Update: {
+          contact_email?: string | null
+          contact_info_override?: string | null
+          contact_phone?: string | null
+          corporate_cell?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          employment_type?: string | null
+          end_date?: string | null
+          id?: string
+          internal_extension?: string | null
+          is_family_focal_point?: boolean
+          is_reference_professional?: boolean
+          is_technical_responsible?: boolean
+          notes?: string | null
+          patient_id?: string
+          professional_category?: string | null
+          professional_id?: string | null
+          profissional_nome?: string | null
+          regime?: string | null
+          role_in_case?: string
+          start_date?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_profile_id?: string | null
+          work_window?: string | null
+          work_window_summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_team_members_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_documents: {
+        Row: {
+          admin_contract_id: string | null
+          admin_fin_visible: boolean
+          category: string
+          clinical_event_id: string | null
+          clinical_evolution_id: string | null
+          clinical_visit_id: string | null
+          clinical_visible: boolean
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string | null
+          document_status: string
+          document_validation_payload: Json | null
+          domain_type: string | null
+          extension: string | null
+          external_ref: string | null
+          external_signature_id: string | null
+          file_extension: string | null
+          file_hash: string | null
+          file_name: string
+          file_name_original: string | null
+          file_path: string
+          file_size_bytes: number | null
+          finance_entry_id: string | null
+          financial_record_id: string | null
+          id: string
+          internal_notes: string | null
+          is_confidential: boolean
+          is_verified: boolean
+          is_visible_admin: boolean
+          is_visible_clinical: boolean
+          last_updated_at: string
+          last_updated_by: string | null
+          mime_type: string | null
+          min_access_role: string | null
+          min_role_level: string | null
+          origin_module: string | null
+          original_file_name: string | null
+          patient_id: string
+          previous_document_id: string | null
+          prescription_id: string | null
+          public_notes: string | null
+          related_object_id: string | null
+          signature_date: string | null
+          signature_summary: string | null
+          signature_type: string | null
+          signed_at: string | null
+          signers_summary: string | null
+          source_module: string | null
+          status: string | null
+          storage_path: string | null
+          storage_provider: string | null
+          subcategory: string | null
+          tags: string[] | null
+          tenant_id: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+          uploaded_at: string
+          uploaded_by: string | null
+          version: number
+          verified_at: string | null
+          verified_by: string | null
+          expires_at: string | null
+        }
+        Insert: {
+          admin_contract_id?: string | null
+          admin_fin_visible?: boolean
+          category: string
+          clinical_event_id?: string | null
+          clinical_evolution_id?: string | null
+          clinical_visit_id?: string | null
+          clinical_visible?: boolean
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          document_status?: string
+          document_validation_payload?: Json | null
+          domain_type?: string | null
+          extension?: string | null
+          external_ref?: string | null
+          external_signature_id?: string | null
+          file_extension?: string | null
+          file_hash?: string | null
+          file_name: string
+          file_name_original?: string | null
+          file_path: string
+          file_size_bytes?: number | null
+          finance_entry_id?: string | null
+          financial_record_id?: string | null
+          id?: string
+          internal_notes?: string | null
+          is_confidential?: boolean
+          is_verified?: boolean
+          is_visible_admin?: boolean
+          is_visible_clinical?: boolean
+          last_updated_at?: string
+          last_updated_by?: string | null
+          mime_type?: string | null
+          min_access_role?: string | null
+          min_role_level?: string | null
+          origin_module?: string | null
+          original_file_name?: string | null
+          patient_id: string
+          previous_document_id?: string | null
+          prescription_id?: string | null
+          public_notes?: string | null
+          related_object_id?: string | null
+          signature_date?: string | null
+          signature_summary?: string | null
+          signature_type?: string | null
+          signed_at?: string | null
+          signers_summary?: string | null
+          source_module?: string | null
+          status?: string | null
+          storage_path?: string | null
+          storage_provider?: string | null
+          subcategory?: string | null
+          tags?: string[] | null
+          tenant_id?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+          verified_at?: string | null
+          verified_by?: string | null
+          expires_at?: string | null
+        }
+        Update: {
+          admin_contract_id?: string | null
+          admin_fin_visible?: boolean
+          category?: string
+          clinical_event_id?: string | null
+          clinical_evolution_id?: string | null
+          clinical_visit_id?: string | null
+          clinical_visible?: boolean
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          description?: string | null
+          document_status?: string
+          document_validation_payload?: Json | null
+          domain_type?: string | null
+          extension?: string | null
+          external_ref?: string | null
+          external_signature_id?: string | null
+          file_extension?: string | null
+          file_hash?: string | null
+          file_name?: string
+          file_name_original?: string | null
+          file_path?: string
+          file_size_bytes?: number | null
+          finance_entry_id?: string | null
+          financial_record_id?: string | null
+          id?: string
+          internal_notes?: string | null
+          is_confidential?: boolean
+          is_verified?: boolean
+          is_visible_admin?: boolean
+          is_visible_clinical?: boolean
+          last_updated_at?: string
+          last_updated_by?: string | null
+          mime_type?: string | null
+          min_access_role?: string | null
+          min_role_level?: string | null
+          origin_module?: string | null
+          original_file_name?: string | null
+          patient_id?: string
+          previous_document_id?: string | null
+          prescription_id?: string | null
+          public_notes?: string | null
+          related_object_id?: string | null
+          signature_date?: string | null
+          signature_summary?: string | null
+          signature_type?: string | null
+          signed_at?: string | null
+          signers_summary?: string | null
+          source_module?: string | null
+          status?: string | null
+          storage_path?: string | null
+          storage_provider?: string | null
+          subcategory?: string | null
+          tags?: string[] | null
+          tenant_id?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          uploaded_at?: string
+          uploaded_by?: string | null
+          version?: number
+          verified_at?: string | null
+          verified_by?: string | null
+          expires_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_documents_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_document_logs: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          document_id: string
+          happened_at: string
+          id: string
+          tenant_id: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          document_id: string
+          happened_at?: string
+          id?: string
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          document_id?: string
+          happened_at?: string
+          id?: string
+          tenant_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_document_logs_document_id_fkey"
+            columns: ["document_id"]
+            referencedRelation: "patient_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_portal_access: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          id: string
+          invite_expires_at: string | null
+          invite_token: string
+          invited_at: string
+          invited_by: string | null
+          last_login_at: string | null
+          patient_id: string
+          portal_access_level: string
+          related_person_id: string
+          revoked_at: string | null
+          revoked_by: string | null
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          invite_expires_at?: string | null
+          invite_token: string
+          invited_at?: string
+          invited_by?: string | null
+          last_login_at?: string | null
+          patient_id: string
+          portal_access_level?: string
+          related_person_id: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          id?: string
+          invite_expires_at?: string | null
+          invite_token?: string
+          invited_at?: string
+          invited_by?: string | null
+          last_login_at?: string | null
+          patient_id?: string
+          portal_access_level?: string
+          related_person_id?: string
+          revoked_at?: string | null
+          revoked_by?: string | null
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_portal_access_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_portal_access_related_person_id_fkey"
+            columns: ["related_person_id"]
+            referencedRelation: "patient_related_persons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      view_patient_legal_guardian_summary: {
+        Row: {
+          has_legal_guardian: boolean
+          legal_doc_status: string | null
+          legal_guardian_name: string
+          legal_guardian_phone: string | null
+          legal_guardian_relationship: string | null
+          patient_id: string
+          related_person_id: string
+          updated_at: string
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

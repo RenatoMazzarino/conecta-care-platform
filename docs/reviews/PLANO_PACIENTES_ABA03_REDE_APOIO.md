@@ -1,26 +1,26 @@
 # PLANO_PACIENTES_ABA03_REDE_APOIO
 
 ## 0) Baseline
-- `git status -sb` → `## feat/pacientes-aba03-rede-apoio...origin/feat/pacientes-aba03-rede-apoio [ahead 1]` (com alterações em docs)
+- `git status -sb` → `## feat/pacientes-aba03-rede-apoio...origin/feat/pacientes-aba03-rede-apoio` (com alterações locais)
 - `git rev-parse --abbrev-ref HEAD` → `feat/pacientes-aba03-rede-apoio`
-- `git rev-parse HEAD` → `a66068d7ad8238cf548876014ad9023f14cab052`
+- `git rev-parse HEAD` → `be93c2a900a94fef8f5e24ea1a975d31fc4c8aca`
 - `npm run docs:links` → ✅ OK (relatório em `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`)
 - `npm run docs:lint` → ✅ OK
 
 ## 1) Objetivo
-- Documentar o contrato e plano da Aba 03 (Rede de Apoio) usando o fluxo contrato → migrations → types → actions → UI, com foco nas três frentes centrais (responsáveis legais, contatos e rede de cuidados) e na operação do portal do paciente antes de tocar em banco/interfaces.
-- Criar o contrato oficial em `docs/contracts/pacientes/ABA03_REDE_APOIO.md`, incorporando cobertura total do legado, mapa legado→canônico e as perguntas abertas que exigem decisão.
+- Implementar a Aba 03 (Rede de Apoio) ponta a ponta seguindo o fluxo contrato → migrations → types → actions → UI.
+- Consolidar o contrato oficial em `docs/contracts/pacientes/ABA03_REDE_APOIO.md`, com cobertura total do legado e decisões fechadas, para guiar a implementação sem drift.
 
 ## 2) Escopo
 **IN:**
-- Plano detalhado da evolução multi-fase (docs → data → runtime). 
+- Implementação end-to-end (migrations, types, actions e UI) conforme contrato da Aba 03.
 - Contrato completo com UI, campos/validações, workflows, legado (tabelas e colunas) e mapa legado→canônico.
-- Registro das decisões tomadas e das perguntas abertas.
-- Atualização de `docs/contracts/pacientes/INDEX.md` e `docs/contracts/pacientes/README.md` para incluir a Aba 03 em Draft.
+- Registro das decisões tomadas e das pendências realmente futuras.
+- Atualização de `docs/contracts/pacientes/INDEX.md` e `docs/contracts/pacientes/README.md` para registrar o status da Aba 03.
 
 **OUT:**
-- Migrações, tipos TS, actions, componentes de UI ou runtime de IA.
-- Qualquer arquivo extra além de `docs/reviews/PLANO_PACIENTES_ABA03_REDE_APOIO.md` e `docs/contracts/pacientes/ABA03_REDE_APOIO.md` (exceto os dois índices obrigatórios).
+- Qualquer implementação administrativa/financeira (Aba04).
+- Runtime de IA (somente documentação de pipeline/flag).
 
 ## 3) Referências obrigatórias
 - `AGENT.md` (governança) 
@@ -36,12 +36,12 @@
 - Não há migrations, actions ou schemas específicos para Aba 03.
 
 ## 5) Estratégia por fases
-1. **Docs**: contratos e plano estão consolidados — legados mapeados e escopo fechado; estamos prontos para atacar a implementação ponta a ponta.
-2. **Dados**: definir tabelas canônicas (ex.: `patient_related_persons`, `patient_household_members`, `care_team_members`, `patient_documents`, `patient_document_logs`, `patient_portal_access`) e novas colunas/constraints. Tabelas administrativas permanecem na Aba04.
-3. **Types**: gerar tipos Supabase baseados nas tabelas definidas.
-4. **Actions**: desenhar actions de get/list/save/setPrimary/invite/revoke, validações de documentos e audit trail.
-5. **UI**: implementar tabs (view/edit) com cards/leitura/edição e fichas das três frentes.
-6. **Testes/Validations**: checklist de QA manual e docs (links + lint) novamente antes do merge.
+1. **Docs**: contrato e plano consolidados — legados mapeados e escopo fechado.
+2. **Dados**: criar tabelas canônicas (`patient_related_persons`, `patient_household_members`, `care_team_members`, `patient_documents`, `patient_document_logs`, `patient_portal_access`) + constraints/RLS.
+3. **Types**: gerar tipos Supabase baseados no schema atualizado.
+4. **Actions**: implementar actions de get/save/setGuardian/invite/revoke e auditoria.
+5. **UI**: implementar RedeApoioTab em modo leitura/edição, e integrar command bar.
+6. **Testes/Validations**: rodar `npm run verify` + checklist manual mínimo.
 
 ## 6) Decisões já tomadas / aberto
 **Fechadas (Renato):**
@@ -69,11 +69,12 @@ Tabulação das tabelas legadas que alimentam a Aba 03 e que serão detalhadas n
 
 - Cada tabela agora tem sua lista completa de colunas, tipos e constraints dentro de `docs/contracts/pacientes/ABA03_REDE_APOIO.md`, seguida do mapa legado→canônico. Os dados administrativos aparecem apenas para rastrear o legado e são explicitamente marcados como “Fora do escopo (Aba04 Administrativa)” para garantir cobertura total sem misturar escopo.
 
-## 8) Validações (docs-only)
-- `npm run docs:links` (já executado) 
-- `npm run docs:lint` (já executado)
+## 8) Validações
+- `npm run docs:links`
+- `npm run docs:lint`
+- `npm run verify` (ao final da implementação)
 
-Se algum destes falhar, registrar erro acima e continuar apenas com docs (sem corrigir o erro nesta etapa). 
+Se algum destes falhar, registrar o erro e continuar com evidência no PR.
 
 ## 9) Riscos e mitigação
 - **Gaps de informações**: legados podem ter colunas não mapeadas; mitigação: incluir seção “mapa legado→canônico” e perguntas abertas. 
