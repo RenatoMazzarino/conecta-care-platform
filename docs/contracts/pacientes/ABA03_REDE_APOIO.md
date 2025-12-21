@@ -154,7 +154,7 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 
 ## 8) Gestão de acesso ao Portal do Paciente (MVP — governança)
 
-### 5.1.1) Níveis de acesso
+### 8.1.1) Níveis de acesso
 
 - `viewer`: apenas visualizar dados da rede de apoio e documentos associados.
 - `communicator`: além de visualizar, pode receber/enviar comunicados (WhatsApp/email) desde que o contato tenha opt-in.
@@ -162,12 +162,12 @@ Todas as tabelas seguem multi-tenant (`tenant_id` via `auth.jwt()->>tenant_id`) 
 
 `portal_access_level` deve ser armazenado em metadata (enum com os valores acima) e aparecer em históricos de `portal_access_change`.
 
-### 5.1.2) Quem pode alterar/revogar
+### 8.1.2) Quem pode alterar/revogar
 
 - Somente perfis internos com claim `can_manage_portal_access=true` (ex.: equipe administrativa ou patient admin) podem alterar `portal_access_level`, gerar novos links ou revogar acessos existentes. Esse controle deve ser implementado via RLS/claims e audit_events.
 - Revogação também deve marcar `portal_access_revoked_at` e `portal_access_revoked_by`.
 
-### 5.1.3) Ação “Gerar link de acesso”
+### 8.1.3) Ação “Gerar link de acesso”
 
 - O botão “Gerar link de acesso ao portal” no card de responsável legal envia `responsible_party_id`, `portal_access_level`, `expires_at` (ex.: +72h) e `created_by`.
 - Cada geração cria log/audit event (`portal_link_generated`) com payload resumido (`link_id`, `responsible_party_id`, `expires_at`, `created_by`, `status`), e o token pode ser revogado via `portal_link_revoked`.
@@ -202,7 +202,7 @@ Nota: o portal não é implementado nesta etapa; a Aba03 descreve apenas a gover
 
 ## 11) Migrações previstas
 
-- `supabase/migrations/20251221XXXX_pacientes_aba03_rede_apoio.sql` (placeholder): cria tabelas canônicas listadas em 3.1, indexes parciais para `is_primary` e `is_main_contact`, RLS e audit triggers.
+- `supabase/migrations/20251221XXXX_pacientes_aba03_rede_apoio.sql` (placeholder): cria tabelas canônicas listadas em 4.1, indexes parciais para `is_primary` e `is_main_contact`, RLS e audit triggers.
 - `supabase/migrations/20251221XXXX_pacientes_aba03_document_validation.sql`: adiciona campos `document_validation_payload`, `document_status`, `portal_access_level`, `portal_invite_token` nas tabelas referidas.
 
 ## 12) Definição de Pronto (DoD)

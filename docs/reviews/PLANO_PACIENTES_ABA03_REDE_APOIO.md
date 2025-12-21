@@ -1,9 +1,9 @@
 # PLANO_PACIENTES_ABA03_REDE_APOIO
 
 ## 0) Baseline
-- `git status -sb` → `## feat/pacientes-aba03-rede-apoio...origin/feat/pacientes-aba03-rede-apoio`
+- `git status -sb` → `## feat/pacientes-aba03-rede-apoio...origin/feat/pacientes-aba03-rede-apoio [ahead 1]` (com alterações em docs)
 - `git rev-parse --abbrev-ref HEAD` → `feat/pacientes-aba03-rede-apoio`
-- `git rev-parse HEAD` → `73ca855ba6e98d233a78469c538be5afa624caa8`
+- `git rev-parse HEAD` → `a66068d7ad8238cf548876014ad9023f14cab052`
 - `npm run docs:links` → ✅ OK (relatório em `docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md`)
 - `npm run docs:lint` → ✅ OK
 
