@@ -134,7 +134,12 @@ Além de docs:
   > "Por favor, rode `npm run verify` e cole o output aqui."
 - Se o ambiente bloquear, registre: **"Validação pendente (restrição de ambiente)"**.
 
-### 6.2 Nunca relaxar segurança “por conveniência”
+### 6.2 Leitura de Arquivos Grandes (Snapshots Legado)
+- **NUNCA** usar `grep` ou `cat` em arquivos gigantes (dumps de banco).
+- **SEMPRE** usar `search_file_content` para achar offsets e `read_file` com `limit/offset` para extrair trechos com segurança.
+- **MOTIVO:** Comandos de shell podem falhar silenciosamente ou estourar buffer em dumps grandes.
+
+### 6.3 Nunca relaxar segurança “por conveniência”
 Ex.: RLS/Storage Policies
 - Não criar policy “allow all” sem pedido explícito
 - Sempre preferir o padrão produção (mínimo necessário) e documentar
@@ -239,6 +244,7 @@ Se você tiver dúvida entre “rápido” e “robusto”, escolha **robusto** 
 ### 13.3 Proibido "Alucinar" (Sem Âncora)
 - **Nunca** afirme que um campo é "obrigatório", "imutável" ou tem certo comportamento sem provar (snapshot legado, migration anterior ou regra de negócio explícita).
 - Sempre cite a fonte: `tabela_legado.coluna_x` ou `Regra de Negócio Y`.
+- **Snapshots Legado** (`db/snapshots_legado/*.sql`) são a fonte primária para engenharia reversa.
 
 ### 13.4 Proibido Falsos Positivos
 - **Nunca** diga que "os testes passaram" ou "docs verificados" se você não viu o output do comando.

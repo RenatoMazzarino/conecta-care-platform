@@ -1,0 +1,70 @@
+# =========================================================
+# Conecta Care - AI Exclude
+# Objetivo: reduzir contexto pesado (quota) SEM excluir
+# fontes usadas para contratos/mapeamento (legado/snapshots/migrations).
+# =========================================================
+
+# -------------------------
+# Dependências e build
+# -------------------------
+node_modules/
+.next/
+dist/
+build/
+.tmp/
+.cache/
+coverage/
+
+# -------------------------
+# IDE / SO
+# -------------------------
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# -------------------------
+# Git interno / histórico local
+# (NÃO excluir .github — contém regras/workflows/instruções úteis)
+# -------------------------
+.git/
+.shelf/
+
+# -------------------------
+# Supabase temporários e internos
+# -------------------------
+supabase/.temp/
+supabase/.branches/
+
+# -------------------------
+# Pastas que costumam ser grandes e raramente ajudam o raciocínio
+# (MANTENHA se você realmente usa como fonte)
+# -------------------------
+public/
+html/
+
+# -------------------------
+# Arquivos grandes/ruidosos (excluir por padrão)
+# -------------------------
+*.zip
+*.log
+
+# SQL e PDF: EXCLUIR por padrão para evitar estouro de tokens...
+*.sql
+*.pdf
+
+# ...MAS re-incluir as fontes necessárias para contratos/migrations
+!supabase/migrations/**/*.sql
+!db/snapshots/**/*.sql
+!db/snapshots_legado/**/*.sql
+
+# Se você usa PDFs dentro de /db como referência, re-inclua:
+!db/**/*.pdf
+
+# -------------------------
+# NÃO excluir fontes de legado/documentação antiga se fazem parte do trabalho
+# (removido: db/snapshots, db/snapshots_legado, docs/repo_antigo)
+# -------------------------
+# db/snapshots/          <-- NÃO EXCLUIR
+# db/snapshots_legado/   <-- NÃO EXCLUIR
+# docs/repo_antigo/      <-- NÃO EXCLUIR
