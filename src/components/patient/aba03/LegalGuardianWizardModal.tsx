@@ -11,6 +11,7 @@ import {
   Toaster,
   Toast,
   ToastTitle,
+  ProgressBar,
   makeStyles,
   tokens,
   useId,
@@ -25,7 +26,7 @@ import {
   CallRegular,
   MailRegular,
 } from '@fluentui/react-icons';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { approveLegalDocumentAi } from '@/features/pacientes/actions/aba03/approveLegalDocumentAi';
 import { approveLegalDocumentManual } from '@/features/pacientes/actions/aba03/approveLegalDocumentManual';
 import { saveLegalDocumentManualDraft } from '@/features/pacientes/actions/aba03/saveLegalDocumentManualDraft';
@@ -101,6 +102,14 @@ const useStyles = makeStyles({
 type LegalGuardianWizardModalProps = {
   open: boolean;
   patientId: string;
+  initialGuardian?: {
+    id: string;
+    name?: string | null;
+    relationship_degree?: string | null;
+    phone_primary?: string | null;
+    email?: string | null;
+    observations?: string | null;
+  } | null;
   onClose: () => void;
   onCompleted?: () => void;
 };
@@ -139,7 +148,13 @@ const documentTypes = [
   { value: 'outro', label: 'Outro' },
 ];
 
-export function LegalGuardianWizardModal({ open, patientId, onClose, onCompleted }: LegalGuardianWizardModalProps) {
+export function LegalGuardianWizardModal({
+  open,
+  patientId,
+  initialGuardian,
+  onClose,
+  onCompleted,
+}: LegalGuardianWizardModalProps) {
   const styles = useStyles();
   const toasterId = useId('legal-wizard-toaster');
   const { dispatchToast } = useToastController(toasterId);
@@ -204,10 +219,32 @@ export function LegalGuardianWizardModal({ open, patientId, onClose, onCompleted
     setManualNotes('');
   }, []);
 
+  const seedFromInitial = useCallback(
+    (initial?: LegalGuardianWizardModalProps['initialGuardian'] | null) => {
+      if (!initial) return;
+      setGuardianId(initial.id);
+      setLegalForm({
+        name: initial.name ?? '',
+        relationship: initial.relationship_degree ?? '',
+        phone: initial.phone_primary ?? '',
+        email: initial.email ?? '',
+        notes: initial.observations ?? '',
+      });
+    },
+    [],
+  );
+
   const closeWizard = useCallback(() => {
     resetWizard();
     onClose();
   }, [onClose, resetWizard]);
+
+  useEffect(() => {
+    if (open) {
+      resetWizard();
+      seedFromInitial(initialGuardian);
+    }
+  }, [initialGuardian, open, resetWizard, seedFromInitial]);
 
   const handleStep1Save = useCallback(
     async (advance: boolean) => {
@@ -465,6 +502,7 @@ export function LegalGuardianWizardModal({ open, patientId, onClose, onCompleted
           <Badge appearance={step === 3 ? 'filled' : 'outline'}>IA</Badge>
           <Badge appearance={step === 4 ? 'filled' : 'outline'}>Manual</Badge>
         </div>
+        <ProgressBar max={4} value={step} />
 
         {step === 1 && (
           <>

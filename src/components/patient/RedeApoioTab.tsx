@@ -46,6 +46,7 @@ import { revokePortalInvite } from '@/features/pacientes/actions/aba03/revokePor
 import { setPortalAccessLevel } from '@/features/pacientes/actions/aba03/setPortalAccessLevel';
 import { upsertCareTeamMember } from '@/features/pacientes/actions/aba03/upsertCareTeamMember';
 import { upsertRelatedPerson } from '@/features/pacientes/actions/aba03/upsertRelatedPerson';
+import { deleteRelatedPerson } from '@/features/pacientes/actions/aba03/deleteRelatedPerson';
 import { LegalGuardianWizardModal } from '@/components/patient/aba03/LegalGuardianWizardModal';
 
 const useStyles = makeStyles({
@@ -284,6 +285,23 @@ function formatDocumentStatus(value?: string | null) {
   }
 }
 
+function formatUpdatedMeta(updatedAt?: string | null, updatedBy?: string | null) {
+  if (!updatedAt && !updatedBy) return '—';
+  const date = updatedAt ? new Date(updatedAt) : null;
+  const formatted =
+    date && !Number.isNaN(date.getTime())
+      ? new Intl.DateTimeFormat('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).format(date)
+      : null;
+  const by = updatedBy ?? '—';
+  return formatted ? `Atualizado em ${formatted} por ${by}` : `Atualizado por ${by}`;
+}
+
 function guardianStatusFromDoc(status?: string | null, hasGuardian = false) {
   if (!status) {
     return hasGuardian ? { label: 'Em revisão', tone: 'warning' } : { label: 'Ausente', tone: 'danger' };
@@ -325,6 +343,8 @@ type RelatedPersonRow = {
   contact_time_preference?: string | null;
   preferred_contact?: string | null;
   observations?: string | null;
+  updated_at?: string | null;
+  updated_by?: string | null;
   is_legal_guardian?: boolean | null;
   is_emergency_contact?: boolean | null;
   is_financial_responsible?: boolean | null;
@@ -384,6 +404,7 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
   const [portalAccessLevelDraft, setPortalAccessLevelDraft] = useState<PortalAccessInput['portal_access_level']>('viewer');
   const [latestInviteLink, setLatestInviteLink] = useState<string | null>(null);
   const [isLegalWizardOpen, setIsLegalWizardOpen] = useState(false);
+  const [legalWizardSeed, setLegalWizardSeed] = useState<RelatedPersonRow | null>(null);
   const [isPortalPanelOpen, setIsPortalPanelOpen] = useState(false);
 
   const relatedPersons = useMemo(
@@ -527,6 +548,39 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
       notes: '',
     });
   }, []);
+
+  const handleCreateLegalGuardian = useCallback(() => {
+    setLegalWizardSeed(null);
+    setIsLegalWizardOpen(true);
+  }, []);
+
+  const handleEditLegalGuardian = useCallback(() => {
+    if (!legalGuardian) return;
+    setLegalWizardSeed(legalGuardian);
+    setIsLegalWizardOpen(true);
+  }, [legalGuardian]);
+
+  const handleDeleteLegalGuardian = useCallback(async () => {
+    if (!legalGuardian) return;
+    if (!window.confirm('Deseja remover o responsável legal atual?')) return;
+    try {
+      await deleteRelatedPerson(legalGuardian.id);
+      await reload();
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Responsável legal removido</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao remover responsável legal'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    }
+  }, [dispatchToast, legalGuardian, reload]);
 
   const handleSaveContactInline = useCallback(async () => {
     if (!contactDraft) return;
@@ -853,11 +907,26 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                   </div>
                 )}
                 <p className={styles.muted}>Válido somente após aprovação manual.</p>
+                {legalGuardian && (
+                  <p className={styles.muted}>
+                    {formatUpdatedMeta(legalGuardian.updated_at ?? null, legalGuardian.updated_by ?? null)}
+                  </p>
+                )}
 
                 <div className={styles.cardFooter}>
-                  <Button appearance="outline" icon={<AddRegular />} onClick={() => setIsLegalWizardOpen(true)}>
+                  <Button appearance="outline" icon={<AddRegular />} onClick={handleCreateLegalGuardian}>
                     Cadastrar responsável legal
                   </Button>
+                  {legalGuardian && (
+                    <>
+                      <Button appearance="outline" icon={<EditRegular />} onClick={handleEditLegalGuardian}>
+                        Editar responsável
+                      </Button>
+                      <Button appearance="outline" icon={<DismissRegular />} onClick={() => void handleDeleteLegalGuardian()}>
+                        Remover responsável
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </section>
@@ -1402,7 +1471,22 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
       <LegalGuardianWizardModal
         open={isLegalWizardOpen}
         patientId={patientId}
-        onClose={() => setIsLegalWizardOpen(false)}
+        initialGuardian={
+          legalWizardSeed
+            ? {
+                id: legalWizardSeed.id,
+                name: legalWizardSeed.name ?? null,
+                relationship_degree: legalWizardSeed.relationship_degree ?? null,
+                phone_primary: legalWizardSeed.phone_primary ?? null,
+                email: legalWizardSeed.email ?? null,
+                observations: legalWizardSeed.observations ?? null,
+              }
+            : null
+        }
+        onClose={() => {
+          setIsLegalWizardOpen(false);
+          setLegalWizardSeed(null);
+        }}
         onCompleted={() => void reload()}
       />
     </>
