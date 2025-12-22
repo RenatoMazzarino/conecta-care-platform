@@ -33,6 +33,7 @@ import { saveLegalDocumentManualDraft } from '@/features/pacientes/actions/aba03
 import { setLegalGuardian } from '@/features/pacientes/actions/aba03/setLegalGuardian';
 import { uploadLegalDocument } from '@/features/pacientes/actions/aba03/uploadLegalDocument';
 import { upsertRelatedPerson } from '@/features/pacientes/actions/aba03/upsertRelatedPerson';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 const useStyles = makeStyles({
   overlay: {
@@ -307,6 +308,20 @@ export function LegalGuardianWizardModal({
 
   const handleStep2Save = useCallback(
     async (advance: boolean) => {
+      const supabase = getSupabaseClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        dispatchToast(
+          <Toast>
+            <ToastTitle>Você precisa estar logado para anexar documento</ToastTitle>
+          </Toast>,
+          { intent: 'warning' },
+        );
+        return;
+      }
+
       if (!guardianId) {
         dispatchToast(
           <Toast>
