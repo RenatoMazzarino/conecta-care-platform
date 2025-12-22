@@ -30,10 +30,9 @@
 - `html/modelo_final_aparencia_pagina_do_paciente.htm` (UI Dynamics)
 
 ## 4) Estado atual / inventário
-- `src/components/patient/RedeApoioTab.tsx`: componente stub com dados mock e layout de tabela/cards, sem conexão a nenhuma action ou UI dinâmica.
-- `src/app/pacientes/[id]/PatientPageClient.tsx`: aba registrada (label “Rede de apoio”) e exibe `RedeApoioTab` com mock; há mensagem placeholder sugerindo ainda não implementado.
-- Tipos provisórios em `src/types/patient.ts` definem `RedeApoio` (nome, parentesco, telefone, etc.).
-- Não há migrations, actions ou schemas específicos para Aba 03.
+- Aba 03 implementada com migrations, types, actions e UI, seguindo o contrato.
+- `src/components/patient/RedeApoioTab.tsx`: cards em modo leitura/edição, integração com actions e wizard do responsável legal.
+- `src/app/pacientes/[id]/PatientPageClient.tsx`: aba registrada e integrada ao command bar.
 
 ## 5) Estratégia por fases
 1. **Docs**: contrato e plano consolidados — legados mapeados e escopo fechado.
@@ -51,12 +50,13 @@
 - Aba03 se restringe à rede de apoio: referências a gestor/escalista/admin financeiro foram removidas e registradas como fora do escopo (Aba04 Administrativa).
 - Profissionais de saúde externos permanecem na Aba03; administração/backoffice permanece na Aba04.
 - IA para validação legal preparada, mas desligada por padrão (`LEGAL_DOC_AI_ENABLED=false`).
+- IA simulada no fluxo dev via botão “Concluir análise IA”; pipeline permanece pronto, provider real continua OFF.
 - Aprovação manual é obrigatória para validar o responsável legal (`document_status = manual_approved`).
 - Governança do portal (MVP) está especificada apenas como gestão e rastreabilidade, sem implementação de portal.
+- Registro canônico de aprovação manual fica em `patient_document_logs` (`action=manual_approved`) com `user_id` e `details.actor_snapshot` + checklist.
 
 **Em aberto (documentar no contrato + lista de perguntas no final):**
 - Permissões internas específicas com claim `can_manage_portal_access=true`.
-- Campo canônico para assinatura final da revisão (`approved_by`/`signed_by`) e onde ficará registrado.
 ## 7) Cobertura do legado (prévia)
 Tabulação das tabelas legadas que alimentam a Aba 03 e que serão detalhadas no contrato:
 - `patient_related_persons` (responsáveis/contatos, flags de autorização, preferências, informações de contato e endereços).
@@ -84,4 +84,3 @@ Se algum destes falhar, registrar o erro e continuar com evidência no PR.
 
 ## 10) Perguntas abertas (priorizadas)
 - Confirmar quais perfis internos terão a permissão `can_manage_portal_access=true` (alteração/revogação de acesso).
-- Validar quem assina a revisão final (campo `approved_by`/`signed_by`) e onde esse registro ficará no modelo canônico.

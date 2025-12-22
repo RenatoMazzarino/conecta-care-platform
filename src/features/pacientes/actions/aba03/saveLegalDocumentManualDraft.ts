@@ -4,12 +4,12 @@ import { ensureSession, isTenantMissingError, makeActionError, safeUserId } from
 
 const documentIdSchema = z.string().uuid();
 
-type ManualApprovalPayload = {
+type ManualDraftPayload = {
   checklist?: Record<string, boolean>;
   review_notes?: string | null;
 };
 
-export async function approveLegalDocumentManual(documentId: string, payload?: ManualApprovalPayload) {
+export async function saveLegalDocumentManualDraft(documentId: string, payload: ManualDraftPayload) {
   const parsed = documentIdSchema.safeParse(documentId);
   if (!parsed.success) {
     throw new Error('ID do documento invalido (esperado UUID)');
@@ -34,16 +34,10 @@ export async function approveLegalDocumentManual(documentId: string, payload?: M
     throw new Error(existingError.message);
   }
 
-  const actorSnapshot = {
-    id: userId,
-    email: session?.user?.email ?? null,
-  };
-
   const manualPayload = {
-    checklist: payload?.checklist ?? {},
-    review_notes: payload?.review_notes ?? null,
-    approved_at: new Date().toISOString(),
-    actor_snapshot: actorSnapshot,
+    checklist: payload.checklist ?? {},
+    review_notes: payload.review_notes ?? null,
+    saved_at: new Date().toISOString(),
   };
 
   const mergedPayload = {
@@ -53,45 +47,31 @@ export async function approveLegalDocumentManual(documentId: string, payload?: M
     manual: manualPayload,
   };
 
-  const { data: document, error } = await supabase
+  const { error: updateError } = await supabase
     .from('patient_documents')
     .update({
-      document_status: 'manual_approved',
       document_validation_payload: mergedPayload,
       updated_by: userId,
     })
     .eq('id', parsed.data)
-    .is('deleted_at', null)
-    .select('*')
-    .maybeSingle();
+    .is('deleted_at', null);
 
-  if (error) {
-    if (isTenantMissingError(error)) {
-      console.error('[patients] tenant_id ausente', error);
+  if (updateError) {
+    if (isTenantMissingError(updateError)) {
+      console.error('[patients] tenant_id ausente', updateError);
       throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
     }
-    throw new Error(error.message);
+    throw new Error(updateError.message);
   }
 
-  if (!document) {
-    throw new Error('Documento nao encontrado');
-  }
-
-  const { data: log, error: logError } = await supabase
+  const { error: logError } = await supabase
     .from('patient_document_logs')
     .insert({
-      document_id: document.id,
-      action: 'manual_approved',
+      document_id: parsed.data,
+      action: 'manual_draft_saved',
       user_id: userId,
-      details: {
-        document_status: 'manual_approved',
-        checklist: manualPayload.checklist,
-        review_notes: manualPayload.review_notes,
-        actor_snapshot: actorSnapshot,
-      },
-    })
-    .select('*')
-    .maybeSingle();
+      details: manualPayload,
+    });
 
   if (logError) {
     if (isTenantMissingError(logError)) {
@@ -101,5 +81,5 @@ export async function approveLegalDocumentManual(documentId: string, payload?: M
     throw new Error(logError.message);
   }
 
-  return { document, log };
+  return { ok: true };
 }

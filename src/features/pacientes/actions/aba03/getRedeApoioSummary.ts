@@ -8,6 +8,7 @@ export interface RedeApoioSummary {
   relatedPersons: Record<string, unknown>[];
   careTeamMembers: Record<string, unknown>[];
   legalDocuments: Record<string, unknown>[];
+  documentLogs: Record<string, unknown>[];
   portalAccess: Record<string, unknown> | null;
   legalGuardianSummary: Record<string, unknown> | null;
 }
@@ -77,10 +78,32 @@ export async function getRedeApoioSummary(patientId: string): Promise<RedeApoioS
     }
   }
 
+  const latestDocumentId = legalDocuments.data?.[0]?.id ?? null;
+  let documentLogs: Record<string, unknown>[] = [];
+
+  if (latestDocumentId) {
+    const logsResult = await supabase
+      .from('patient_document_logs')
+      .select('*')
+      .eq('document_id', latestDocumentId)
+      .order('happened_at', { ascending: true });
+
+    if (logsResult.error) {
+      if (isTenantMissingError(logsResult.error)) {
+        console.error('[patients] tenant_id ausente', logsResult.error);
+        throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
+      }
+      throw new Error(logsResult.error.message);
+    }
+
+    documentLogs = logsResult.data ?? [];
+  }
+
   return {
     relatedPersons: relatedPersons.data ?? [],
     careTeamMembers: careTeamMembers.data ?? [],
     legalDocuments: legalDocuments.data ?? [],
+    documentLogs,
     portalAccess: portalAccess.data ?? null,
     legalGuardianSummary: legalGuardianSummary.data ?? null,
   };

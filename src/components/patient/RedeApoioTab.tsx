@@ -19,11 +19,12 @@ import {
 import {
   AddRegular,
   ArrowClockwiseRegular,
-  CheckmarkRegular,
   EditRegular,
   LinkRegular,
   DismissRegular,
-  ShieldLockRegular,
+  ChatRegular,
+  CallRegular,
+  MailRegular,
 } from '@fluentui/react-icons';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react';
 import type {
@@ -39,16 +40,13 @@ import {
   portalAccessLevelOptions,
   preferredContactOptions,
 } from '@/features/pacientes/schemas/aba03RedeApoio.schema';
-import { approveLegalDocumentManual } from '@/features/pacientes/actions/aba03/approveLegalDocumentManual';
 import { createPortalInvite } from '@/features/pacientes/actions/aba03/createPortalInvite';
 import { getRedeApoioSummary } from '@/features/pacientes/actions/aba03/getRedeApoioSummary';
-import { approveLegalDocumentAi } from '@/features/pacientes/actions/aba03/approveLegalDocumentAi';
 import { revokePortalInvite } from '@/features/pacientes/actions/aba03/revokePortalInvite';
-import { setLegalGuardian } from '@/features/pacientes/actions/aba03/setLegalGuardian';
 import { setPortalAccessLevel } from '@/features/pacientes/actions/aba03/setPortalAccessLevel';
-import { uploadLegalDocument } from '@/features/pacientes/actions/aba03/uploadLegalDocument';
 import { upsertCareTeamMember } from '@/features/pacientes/actions/aba03/upsertCareTeamMember';
 import { upsertRelatedPerson } from '@/features/pacientes/actions/aba03/upsertRelatedPerson';
+import { LegalGuardianWizardModal } from '@/components/patient/aba03/LegalGuardianWizardModal';
 
 const useStyles = makeStyles({
   container: {
@@ -98,14 +96,6 @@ const useStyles = makeStyles({
     flexDirection: 'column',
     gap: '12px',
   },
-  fileInput: {
-    width: '100%',
-    padding: '8px 10px',
-    borderRadius: tokens.borderRadiusMedium,
-    border: `1px solid ${tokens.colorNeutralStroke1}`,
-    backgroundColor: tokens.colorNeutralBackground1,
-    color: tokens.colorNeutralForeground1,
-  },
   definitionList: {
     display: 'grid',
     gridTemplateColumns: '160px 1fr',
@@ -141,6 +131,12 @@ const useStyles = makeStyles({
     gap: '8px',
     flexWrap: 'wrap',
   },
+  contactActions: {
+    display: 'flex',
+    gap: '6px',
+    alignItems: 'center',
+    marginTop: '6px',
+  },
   list: {
     display: 'flex',
     flexDirection: 'column',
@@ -174,44 +170,30 @@ const useStyles = makeStyles({
   linkInput: {
     fontSize: '12px',
   },
+  timeline: {
+    display: 'grid',
+    gap: '6px',
+    marginTop: '8px',
+  },
+  timelineItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '12px',
+    color: tokens.colorNeutralForeground2,
+  },
+  timelineDot: {
+    width: '8px',
+    height: '8px',
+    borderRadius: '50%',
+    backgroundColor: tokens.colorNeutralStroke1,
+  },
   cardFooter: {
     borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     paddingTop: '12px',
     display: 'flex',
     justifyContent: 'flex-end',
     gap: '8px',
-  },
-  modalOverlay: {
-    position: 'fixed',
-    inset: 0,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 999,
-    padding: '24px',
-  },
-  modalBox: {
-    backgroundColor: tokens.colorNeutralBackground1,
-    borderRadius: tokens.borderRadiusLarge,
-    boxShadow: tokens.shadow8,
-    width: '100%',
-    maxWidth: '560px',
-    padding: '24px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  modalHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '16px',
-  },
-  modalActions: {
-    display: 'flex',
-    gap: '8px',
-    justifyContent: 'flex-end',
   },
 });
 
@@ -260,6 +242,23 @@ function formatPhone(value?: string | null) {
   return value;
 }
 
+function maskPhoneInput(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 6) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  }
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function normalizePhoneDigits(value?: string | null) {
+  if (!value) return '';
+  return value.replace(/\D/g, '');
+}
+
 function formatDocumentStatus(value?: string | null) {
   switch (value) {
     case 'manual_approved':
@@ -287,7 +286,7 @@ function formatDocumentStatus(value?: string | null) {
 
 function guardianStatusFromDoc(status?: string | null, hasGuardian = false) {
   if (!status) {
-    return hasGuardian ? { label: 'Cadastro pendente', tone: 'warning' } : { label: 'Ausente', tone: 'danger' };
+    return hasGuardian ? { label: 'Em revisão', tone: 'warning' } : { label: 'Ausente', tone: 'danger' };
   }
   if (status === 'manual_approved') return { label: 'OK', tone: 'success' };
   return { label: 'Pendente', tone: 'warning' };
@@ -296,6 +295,24 @@ function guardianStatusFromDoc(status?: string | null, hasGuardian = false) {
 function toOption<T extends readonly string[]>(options: T, value?: string | null) {
   if (!value) return undefined;
   return options.includes(value as T[number]) ? (value as T[number]) : undefined;
+}
+
+function buildTimeline(logs: DocumentLogRow[], status?: string | null) {
+  const actions = new Set(logs.map((log) => log.action).filter(Boolean));
+  const uploaded = actions.has('uploaded') || Boolean(status);
+  const ai =
+    actions.has('ai_passed') ||
+    actions.has('ai_failed') ||
+    actions.has('ai_disabled') ||
+    status === 'ai_passed' ||
+    status === 'ai_failed';
+  const manual = actions.has('manual_approved') || actions.has('manual_rejected') || status === 'manual_approved';
+
+  return [
+    { key: 'upload', label: 'Upload', done: uploaded },
+    { key: 'ai', label: 'IA', done: ai },
+    { key: 'manual', label: 'Manual', done: manual },
+  ];
 }
 
 type RelatedPersonRow = {
@@ -343,24 +360,9 @@ type LegalDocumentRow = {
   document_status?: string | null;
 };
 
-type LegalGuardianForm = {
-  name: string;
-  relationship: string;
-  phone: string;
-  email: string;
-  contact_time_preference?: string | null;
-  preferred_contact?: string | null;
-  observations?: string;
-};
-
-const initialLegalForm: LegalGuardianForm = {
-  name: '',
-  relationship: '',
-  phone: '',
-  email: '',
-  contact_time_preference: undefined,
-  preferred_contact: undefined,
-  observations: '',
+type DocumentLogRow = {
+  action?: string | null;
+  happened_at?: string | null;
 };
 
 export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(function RedeApoioTab(
@@ -380,17 +382,17 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
   const [contactDraft, setContactDraft] = useState<RelatedPersonUpsertInput | null>(null);
   const [careTeamDraft, setCareTeamDraft] = useState<CareTeamMemberInput | null>(null);
   const [portalAccessLevelDraft, setPortalAccessLevelDraft] = useState<PortalAccessInput['portal_access_level']>('viewer');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [latestInviteLink, setLatestInviteLink] = useState<string | null>(null);
-  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
-  const [legalModalSaving, setLegalModalSaving] = useState(false);
-  const [legalForm, setLegalForm] = useState<LegalGuardianForm>(initialLegalForm);
-  const [legalDocumentFile, setLegalDocumentFile] = useState<File | null>(null);
+  const [isLegalWizardOpen, setIsLegalWizardOpen] = useState(false);
   const [isPortalPanelOpen, setIsPortalPanelOpen] = useState(false);
 
   const relatedPersons = useMemo(
     () => (summary?.relatedPersons ?? []) as RelatedPersonRow[],
     [summary?.relatedPersons],
+  );
+  const nonLegalRelatedPersons = useMemo(
+    () => relatedPersons.filter((person) => !person.is_legal_guardian),
+    [relatedPersons],
   );
   const careTeamMembers = useMemo(
     () => (summary?.careTeamMembers ?? []) as CareTeamMemberRow[],
@@ -399,6 +401,10 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
   const legalDocuments = useMemo(
     () => (summary?.legalDocuments ?? []) as LegalDocumentRow[],
     [summary?.legalDocuments],
+  );
+  const documentLogs = useMemo(
+    () => (summary?.documentLogs ?? []) as DocumentLogRow[],
+    [summary?.documentLogs],
   );
   const portalAccess = (summary?.portalAccess ?? null) as PortalAccessRow | null;
   const legalGuardianSummary = summary?.legalGuardianSummary ?? null;
@@ -409,13 +415,17 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
 
   const latestLegalDoc = legalDocuments[0] ?? null;
 
-    const guardianStatus = guardianStatusFromDoc(
-      (legalGuardianSummary as { legal_doc_status?: string | null } | null)?.legal_doc_status ??
-        latestLegalDoc?.document_status ??
-        null,
-      Boolean(legalGuardian),
-    );
+  const guardianStatus = guardianStatusFromDoc(
+    (legalGuardianSummary as { legal_doc_status?: string | null } | null)?.legal_doc_status ??
+      latestLegalDoc?.document_status ??
+      null,
+    Boolean(legalGuardian),
+  );
   const guardianColor = guardianStatus.tone === 'success' ? 'success' : guardianStatus.tone === 'warning' ? 'warning' : 'danger';
+  const timeline = useMemo(
+    () => buildTimeline(documentLogs, latestLegalDoc?.document_status ?? null),
+    [documentLogs, latestLegalDoc?.document_status],
+  );
 
   useEffect(() => {
     onLegalGuardianSummary?.({
@@ -453,83 +463,39 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
     void reload();
   }, [reload]);
 
-  const openLegalModal = useCallback(() => {
-    setLegalForm(initialLegalForm);
-    setLegalDocumentFile(null);
-    setIsLegalModalOpen(true);
-  }, []);
-
-  const closeLegalModal = useCallback(() => setIsLegalModalOpen(false), []);
-
-  const handleLegalModalSave = useCallback(async () => {
-    if (!legalForm.name.trim()) {
-      dispatchToast(
-        <Toast>
-          <ToastTitle>Informe o nome do responsável legal</ToastTitle>
-        </Toast>,
-        { intent: 'warning' },
-      );
-      return;
-    }
-
-    setLegalModalSaving(true);
-    try {
-      const related = await upsertRelatedPerson(patientId, {
-        name: legalForm.name,
-        relationship_degree: legalForm.relationship,
-        phone_primary: legalForm.phone,
-        email: legalForm.email,
-        contact_time_preference: toOption(contactTimePreferenceOptions, legalForm.contact_time_preference) ?? undefined,
-        preferred_contact: toOption(preferredContactOptions, legalForm.preferred_contact) ?? undefined,
-        is_legal_guardian: true,
-        contact_type: 'ResponsavelLegal',
-        observations: legalForm.observations,
-      });
-
-      if (!related.id) {
-        throw new Error('Falha ao cadastrar responsável legal');
-      }
-
-      const relatedId = typeof related.id === 'string' ? related.id : null;
-      if (!relatedId) {
-        throw new Error('Falha ao obter ID do responsável legal');
-      }
-
-      await setLegalGuardian(patientId, relatedId);
-
-      if (legalDocumentFile) {
-        await uploadLegalDocument(patientId, relatedId, legalDocumentFile, {
-          title: legalDocumentFile.name,
-          category: 'legal',
-        });
-      }
-
-      await reload();
-      dispatchToast(
-        <Toast>
-          <ToastTitle>Responsável legal cadastrado</ToastTitle>
-        </Toast>,
-        { intent: 'success' },
-      );
-      closeLegalModal();
-    } catch (error) {
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao cadastrar responsável legal'}</ToastTitle>
-        </Toast>,
-        { intent: 'error' },
-      );
-    } finally {
-      setLegalModalSaving(false);
-    }
-  }, [closeLegalModal, dispatchToast, legalDocumentFile, legalForm, patientId, reload]);
-
   const togglePortalPanel = useCallback(() => {
     setIsPortalPanelOpen((prev) => !prev);
   }, []);
 
+  const handleWhatsApp = useCallback(
+    (phone?: string | null) => {
+      const digits = normalizePhoneDigits(phone);
+      if (!digits) return;
+      const normalized = digits.startsWith('55') ? digits : `55${digits}`;
+      window.open(`https://wa.me/${normalized}`, '_blank', 'noopener,noreferrer');
+    },
+    [],
+  );
+
+  const handleCall = useCallback(
+    (phone?: string | null) => {
+      if (!normalizePhoneDigits(phone)) return;
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Discagem em desenvolvimento</ToastTitle>
+        </Toast>,
+        { intent: 'info' },
+      );
+    },
+    [dispatchToast],
+  );
+
+  const handleEmailAction = useCallback((email?: string | null) => {
+    if (!email) return;
+    window.location.href = `mailto:${email}`;
+  }, []);
+
   const handleNewContact = useCallback(() => {
-    setIsEditing(true);
     setContactDraft({
       name: '',
       relationship_degree: '',
@@ -550,7 +516,6 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
   }, []);
 
   const handleNewCareTeam = useCallback(() => {
-    setIsEditing(true);
     setCareTeamDraft({
       professional_id: undefined,
       profissional_nome: '',
@@ -577,7 +542,6 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
         { intent: 'success' },
       );
       setContactDraft(null);
-      setIsEditing(false);
     } catch (error) {
       dispatchToast(
         <Toast>
@@ -604,7 +568,6 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
         { intent: 'success' },
       );
       setCareTeamDraft(null);
-      setIsEditing(false);
     } catch (error) {
       dispatchToast(
         <Toast>
@@ -628,7 +591,6 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
     setIsEditing(false);
     setContactDraft(null);
     setCareTeamDraft(null);
-    setSelectedFile(null);
     setLatestInviteLink(null);
   };
 
@@ -718,93 +680,6 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
       contact_phone: member.contact_phone ?? '',
       notes: member.notes ?? '',
     });
-  };
-
-  const handleSetGuardian = async (personId: string) => {
-    try {
-      await setLegalGuardian(patientId, personId);
-      await reload();
-      dispatchToast(
-        <Toast>
-          <ToastTitle>Responsável legal atualizado</ToastTitle>
-        </Toast>,
-        { intent: 'success' },
-      );
-    } catch (error) {
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao definir responsável'}</ToastTitle>
-        </Toast>,
-        { intent: 'error' },
-      );
-    }
-  };
-
-  const handleUploadDocument = async () => {
-    if (!selectedFile || !legalGuardian) return;
-    try {
-      await uploadLegalDocument(patientId, legalGuardian.id, selectedFile, {
-        title: selectedFile.name,
-        category: 'legal',
-      });
-      setSelectedFile(null);
-      await reload();
-      dispatchToast(
-        <Toast>
-          <ToastTitle>Documento enviado</ToastTitle>
-        </Toast>,
-        { intent: 'success' },
-      );
-    } catch (error) {
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao enviar documento'}</ToastTitle>
-        </Toast>,
-        { intent: 'error' },
-      );
-    }
-  };
-
-  const handleApproveDocument = async () => {
-    if (!latestLegalDoc?.id) return;
-    try {
-      await approveLegalDocumentManual(latestLegalDoc.id);
-      await reload();
-      dispatchToast(
-        <Toast>
-          <ToastTitle>Documento aprovado manualmente</ToastTitle>
-        </Toast>,
-        { intent: 'success' },
-      );
-    } catch (error) {
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao aprovar documento'}</ToastTitle>
-        </Toast>,
-        { intent: 'error' },
-      );
-    }
-  };
-
-  const handleAiCheck = async () => {
-    if (!latestLegalDoc?.id) return;
-    try {
-      await approveLegalDocumentAi(latestLegalDoc.id);
-      await reload();
-      dispatchToast(
-        <Toast>
-          <ToastTitle>Análise de IA aprovada</ToastTitle>
-        </Toast>,
-        { intent: 'info' },
-      );
-    } catch (error) {
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao aprovar IA'}</ToastTitle>
-        </Toast>,
-        { intent: 'error' },
-      );
-    }
   };
 
   const handleCreateInvite = async () => {
@@ -923,74 +798,66 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                   <ReadOnlyRow label="Email" value={formatText(legalGuardian?.email ?? null)} />
                   <ReadOnlyRow label="Status documento" value={formatDocumentStatus(latestLegalDoc?.document_status ?? null)} />
                 </dl>
-
-                {isEditing && legalGuardian && (
-                  <div className={styles.formGrid}>
-                    <Field label="Anexar documento jurídico">
-                      <input
-                        className={styles.fileInput}
-                        type="file"
-                        onChange={(event) => {
-                          const file = event.currentTarget.files?.[0] ?? null;
-                          setSelectedFile(file);
-                        }}
-                      />
-                    </Field>
-                    <div className={styles.formActions}>
+                {(legalGuardian?.phone_primary || legalGuardian?.email) && (
+                  <div className={styles.contactActions}>
+                    {legalGuardian?.phone_primary && (
+                      <>
+                        <Button
+                          appearance="subtle"
+                          size="small"
+                          icon={<ChatRegular />}
+                          onClick={() => handleWhatsApp(legalGuardian.phone_primary)}
+                        >
+                          WhatsApp
+                        </Button>
+                        <Button
+                          appearance="subtle"
+                          size="small"
+                          icon={<CallRegular />}
+                          onClick={() => handleCall(legalGuardian.phone_primary)}
+                        >
+                          Ligar
+                        </Button>
+                      </>
+                    )}
+                    {legalGuardian?.email && (
                       <Button
-                        appearance="primary"
-                        icon={<AddRegular />}
-                        onClick={() => void handleUploadDocument()}
-                        disabled={!selectedFile}
+                        appearance="subtle"
+                        size="small"
+                        icon={<MailRegular />}
+                        onClick={() => handleEmailAction(legalGuardian.email)}
                       >
-                        Enviar documento
+                        Email
                       </Button>
-                      <Button
-                        appearance="outline"
-                        icon={<ShieldLockRegular />}
-                        onClick={() => void handleAiCheck()}
-                        disabled={!latestLegalDoc?.id}
-                      >
-                        Validar com IA
-                      </Button>
-                      <Button
-                        appearance="outline"
-                        icon={<CheckmarkRegular />}
-                        onClick={() => void handleApproveDocument()}
-                        disabled={!latestLegalDoc?.id}
-                      >
-                        Aprovar manualmente
-                      </Button>
-                    </div>
+                    )}
                   </div>
                 )}
-
-                {isEditing && relatedPersons.length > 0 && (
-                  <div className={styles.list}>
-                    {relatedPersons.map((person) => (
-                      <div key={person.id} className={styles.row}>
-                        <div>
-                          <strong>{formatText(person.name ?? null)}</strong>
-                          <p className={styles.muted}>{formatText(person.relationship_degree ?? null)}</p>
-                        </div>
-                        {!person.is_legal_guardian && (
-                          <Button appearance="outline" size="small" onClick={() => void handleSetGuardian(person.id)}>
-                            Definir como responsável
-                          </Button>
-                        )}
+                {timeline.length > 0 && (
+                  <div className={styles.timeline}>
+                    {timeline.map((item) => (
+                      <div key={item.key} className={styles.timelineItem}>
+                        <span
+                          className={styles.timelineDot}
+                          style={{
+                            backgroundColor: item.done
+                              ? tokens.colorPaletteGreenBackground3
+                              : tokens.colorNeutralStroke2,
+                          }}
+                        />
+                        <span>{item.label}</span>
+                        <Badge appearance="outline" color={item.done ? 'success' : 'subtle'}>
+                          {item.done ? 'OK' : 'Pendente'}
+                        </Badge>
                       </div>
                     ))}
                   </div>
                 )}
+                <p className={styles.muted}>Válido somente após aprovação manual.</p>
+
                 <div className={styles.cardFooter}>
-                  <Button appearance="outline" icon={<AddRegular />} onClick={openLegalModal}>
+                  <Button appearance="outline" icon={<AddRegular />} onClick={() => setIsLegalWizardOpen(true)}>
                     Cadastrar responsável legal
                   </Button>
-                  {latestLegalDoc && (
-                    <Button appearance="outline" icon={<ShieldLockRegular />} onClick={() => void approveLegalDocumentAi(latestLegalDoc.id)}>
-                      Aprovar análise de IA
-                    </Button>
-                  )}
                 </div>
               </div>
             </section>
@@ -1000,16 +867,47 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                 <div className={styles.cardTitle}>Contatos & familiares</div>
               </div>
               <div className={styles.cardBody}>
-                {relatedPersons.length === 0 && <div className={styles.empty}>Nenhum contato cadastrado.</div>}
-                {relatedPersons.length > 0 && (
+                {nonLegalRelatedPersons.length === 0 && <div className={styles.empty}>Nenhum contato cadastrado.</div>}
+                {nonLegalRelatedPersons.length > 0 && (
                   <div className={styles.list}>
-                    {relatedPersons.map((person) => (
+                    {nonLegalRelatedPersons.map((person) => (
                       <div key={person.id} className={styles.listItem}>
                         <div className={styles.row}>
                           <div>
                             <strong>{formatText(person.name ?? null)}</strong>
                             <p className={styles.muted}>{formatText(person.relationship_degree ?? null)}</p>
                             <p className={styles.muted}>{formatPhone(person.phone_primary ?? null)}</p>
+                            {(person.phone_primary || person.email) && (
+                              <div className={styles.contactActions}>
+                                {person.phone_primary && (
+                                  <>
+                                    <Button
+                                      appearance="subtle"
+                                      size="small"
+                                      icon={<ChatRegular />}
+                                      aria-label="WhatsApp"
+                                      onClick={() => handleWhatsApp(person.phone_primary)}
+                                    />
+                                    <Button
+                                      appearance="subtle"
+                                      size="small"
+                                      icon={<CallRegular />}
+                                      aria-label="Ligar"
+                                      onClick={() => handleCall(person.phone_primary)}
+                                    />
+                                  </>
+                                )}
+                                {person.email && (
+                                  <Button
+                                    appearance="subtle"
+                                    size="small"
+                                    icon={<MailRegular />}
+                                    aria-label="Email"
+                                    onClick={() => handleEmailAction(person.email)}
+                                  />
+                                )}
+                              </div>
+                            )}
                           </div>
                           {isEditing && (
                             <div className={styles.badgeRow}>
@@ -1025,7 +923,7 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                   </div>
                 )}
 
-                {isEditing && contactDraft && (
+                {contactDraft && (
                   <div className={styles.formGrid}>
                     <Field label="Nome completo" required>
                       <Input
@@ -1049,7 +947,9 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                       <Input
                         value={contactDraft.phone_primary ?? ''}
                         onChange={(event) =>
-                          setContactDraft((prev) => (prev ? { ...prev, phone_primary: event.target.value } : prev))
+                          setContactDraft((prev) =>
+                            prev ? { ...prev, phone_primary: maskPhoneInput(event.target.value) } : prev,
+                          )
                         }
                       />
                     </Field>
@@ -1061,6 +961,40 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                         }
                       />
                     </Field>
+                    {(contactDraft.phone_primary || contactDraft.email) && (
+                      <div className={styles.contactActions} style={{ gridColumn: '1 / -1' }}>
+                        {contactDraft.phone_primary && (
+                          <>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={<ChatRegular />}
+                              onClick={() => handleWhatsApp(contactDraft.phone_primary)}
+                            >
+                              WhatsApp
+                            </Button>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={<CallRegular />}
+                              onClick={() => handleCall(contactDraft.phone_primary)}
+                            >
+                              Ligar
+                            </Button>
+                          </>
+                        )}
+                        {contactDraft.email && (
+                          <Button
+                            appearance="subtle"
+                            size="small"
+                            icon={<MailRegular />}
+                            onClick={() => handleEmailAction(contactDraft.email)}
+                          >
+                            Email
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     <Field label="Tipo de contato">
                       <Select
                         value={contactDraft.contact_type ?? ''}
@@ -1224,6 +1158,37 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                             <strong>{formatText(member.profissional_nome ?? '')}</strong>
                             <p className={styles.muted}>{formatText(member.role_in_case ?? '')}</p>
                             <p className={styles.muted}>{formatPhone(member.contact_phone ?? '')}</p>
+                            {(member.contact_phone || member.contact_email) && (
+                              <div className={styles.contactActions}>
+                                {member.contact_phone && (
+                                  <>
+                                    <Button
+                                      appearance="subtle"
+                                      size="small"
+                                      icon={<ChatRegular />}
+                                      aria-label="WhatsApp"
+                                      onClick={() => handleWhatsApp(member.contact_phone)}
+                                    />
+                                    <Button
+                                      appearance="subtle"
+                                      size="small"
+                                      icon={<CallRegular />}
+                                      aria-label="Ligar"
+                                      onClick={() => handleCall(member.contact_phone)}
+                                    />
+                                  </>
+                                )}
+                                {member.contact_email && (
+                                  <Button
+                                    appearance="subtle"
+                                    size="small"
+                                    icon={<MailRegular />}
+                                    aria-label="Email"
+                                    onClick={() => handleEmailAction(member.contact_email)}
+                                  />
+                                )}
+                              </div>
+                            )}
                           </div>
                           {isEditing && (
                             <Button appearance="subtle" size="small" icon={<EditRegular />} onClick={() => handleEditCareTeam(member)}>
@@ -1236,7 +1201,7 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                   </div>
                 )}
 
-                {isEditing && careTeamDraft && (
+                {careTeamDraft && (
                   <div className={styles.formGrid}>
                     <Field label="Nome do profissional" required>
                       <Input
@@ -1258,7 +1223,9 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                       <Input
                         value={careTeamDraft.contact_phone ?? ''}
                         onChange={(event) =>
-                          setCareTeamDraft((prev) => (prev ? { ...prev, contact_phone: event.target.value } : prev))
+                          setCareTeamDraft((prev) =>
+                            prev ? { ...prev, contact_phone: maskPhoneInput(event.target.value) } : prev,
+                          )
                         }
                       />
                     </Field>
@@ -1270,6 +1237,40 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                         }
                       />
                     </Field>
+                    {(careTeamDraft.contact_phone || careTeamDraft.contact_email) && (
+                      <div className={styles.contactActions} style={{ gridColumn: '1 / -1' }}>
+                        {careTeamDraft.contact_phone && (
+                          <>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={<ChatRegular />}
+                              onClick={() => handleWhatsApp(careTeamDraft.contact_phone)}
+                            >
+                              WhatsApp
+                            </Button>
+                            <Button
+                              appearance="subtle"
+                              size="small"
+                              icon={<CallRegular />}
+                              onClick={() => handleCall(careTeamDraft.contact_phone)}
+                            >
+                              Ligar
+                            </Button>
+                          </>
+                        )}
+                        {careTeamDraft.contact_email && (
+                          <Button
+                            appearance="subtle"
+                            size="small"
+                            icon={<MailRegular />}
+                            onClick={() => handleEmailAction(careTeamDraft.contact_email)}
+                          >
+                            Email
+                          </Button>
+                        )}
+                      </div>
+                    )}
                     <Field label="Status">
                       <Select
                         value={careTeamDraft.status ?? 'Ativo'}
@@ -1398,62 +1399,12 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
           </aside>
         </div>
       </div>
-      {isLegalModalOpen && (
-        <div className={styles.modalOverlay} role="dialog" aria-modal="true">
-          <div className={styles.modalBox}>
-            <div className={styles.modalHeader}>
-              <h3>Cadastro de responsável legal</h3>
-              <Button appearance="transparent" icon={<DismissRegular />} onClick={closeLegalModal}>
-                Fechar
-              </Button>
-            </div>
-            <div className={styles.formGrid}>
-              <Field label="Nome" required>
-                <Input value={legalForm.name} onChange={(event) => setLegalForm((prev) => ({ ...prev, name: event.target.value }))} />
-              </Field>
-              <Field label="Parentesco/função" required>
-                <Input
-                  value={legalForm.relationship}
-                  onChange={(event) => setLegalForm((prev) => ({ ...prev, relationship: event.target.value }))}
-                />
-              </Field>
-              <Field label="Telefone" required>
-                <Input
-                  value={legalForm.phone}
-                  onChange={(event) => setLegalForm((prev) => ({ ...prev, phone: event.target.value }))}
-                />
-              </Field>
-              <Field label="Email" required>
-                <Input
-                  value={legalForm.email}
-                  onChange={(event) => setLegalForm((prev) => ({ ...prev, email: event.target.value }))}
-                />
-              </Field>
-              <Field label="Documento jurídico">
-                <input
-                  className={styles.fileInput}
-                  type="file"
-                  onChange={(event) => setLegalDocumentFile(event.currentTarget.files?.[0] ?? null)}
-                />
-              </Field>
-              <Field label="Observações">
-                <Textarea
-                  value={legalForm.observations}
-                  onChange={(event) => setLegalForm((prev) => ({ ...prev, observations: event.target.value }))}
-                />
-              </Field>
-            </div>
-            <div className={styles.modalActions}>
-              <Button appearance="outline" onClick={closeLegalModal}>
-                Cancelar
-              </Button>
-              <Button appearance="primary" onClick={handleLegalModalSave} disabled={legalModalSaving}>
-                {legalModalSaving ? 'Salvando...' : 'Salvar responsável legal'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <LegalGuardianWizardModal
+        open={isLegalWizardOpen}
+        patientId={patientId}
+        onClose={() => setIsLegalWizardOpen(false)}
+        onCompleted={() => void reload()}
+      />
     </>
   );
 });
