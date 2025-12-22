@@ -1,0 +1,1 @@
+pwsh .tmp/dev-link-tenant.ps1 -UserId "e4278ac7-804d-430d-a4d1-223b99075d57" -TenantId "e40046d1-b549-43ac-ad89-626b5b1a52a4"
