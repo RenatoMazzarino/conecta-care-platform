@@ -11,8 +11,8 @@ Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apont
 | ABA01 — Dados Pessoais | Implementado | [ABA01_DADOS_PESSOAIS.md](./ABA01_DADOS_PESSOAIS.md) |
 | ABA02 — Endereço & Logística | Em revisao | [ABA02_ENDERECO_LOGISTICA.md](./ABA02_ENDERECO_LOGISTICA.md) |
 | ABA03 — Rede de Apoio | Em implementacao | [ABA03_REDE_APOIO.md](./ABA03_REDE_APOIO.md) |
-| ABA04 — Administrativo | A definir | — |
-| ABA05 — Financeiro | A definir | — |
+| ABA04 — Admin & Financeiro | Draft | [ABA04_ADMIN_FINANCEIRO.md](./ABA04_ADMIN_FINANCEIRO.md) |
+| ABA05 — (Unificada na ABA04) | — | — |
 | ABA06 — Clínico | A definir | — |
 | ABA07 — Documentos (GED) | A definir | — |
 | ABA08 — Histórico & Auditoria | A definir | — |
@@ -30,6 +30,11 @@ Anexos ABA02:
 
 - Contrato e cobertura de legado: `docs/contracts/pacientes/ABA03_REDE_APOIO.md`
 - Plano associado: `docs/reviews/PLANO_PACIENTES_ABA03_REDE_APOIO.md`
+
+## Referências ABA04
+
+- Contrato: `docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md`
+- Plano associado: `docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md`
 
 ## Evidências
 
