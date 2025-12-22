@@ -127,21 +127,35 @@ export async function upsertRelatedPerson(
   }
 
   if (row && parsed.is_main_contact) {
-    await supabase
+    const { error: mainContactError } = await supabase
       .from('patient_related_persons')
       .update({ is_main_contact: false })
       .eq('patient_id', parsedPatientId.data)
       .is('deleted_at', null)
       .neq('id', row.id);
+    if (mainContactError) {
+      if (isTenantMissingError(mainContactError)) {
+        console.error('[patients] tenant_id ausente', mainContactError);
+        throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
+      }
+      throw new Error(mainContactError.message);
+    }
   }
 
   if (row && parsed.is_legal_guardian) {
-    await supabase
+    const { error: guardianError } = await supabase
       .from('patient_related_persons')
       .update({ is_legal_guardian: false })
       .eq('patient_id', parsedPatientId.data)
       .is('deleted_at', null)
       .neq('id', row.id);
+    if (guardianError) {
+      if (isTenantMissingError(guardianError)) {
+        console.error('[patients] tenant_id ausente', guardianError);
+        throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
+      }
+      throw new Error(guardianError.message);
+    }
   }
 
   return row;
