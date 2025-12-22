@@ -261,11 +261,12 @@ export function LegalGuardianWizardModal({
       setSaving(true);
       try {
         const related = await upsertRelatedPerson(patientId, {
+          id: guardianId ?? undefined,
           name: legalForm.name,
           relationship_degree: legalForm.relationship,
           phone_primary: legalForm.phone,
           email: legalForm.email,
-          is_legal_guardian: true,
+          is_legal_guardian: false,
           contact_type: 'ResponsavelLegal',
           observations: legalForm.notes,
         });
@@ -301,7 +302,7 @@ export function LegalGuardianWizardModal({
         setSaving(false);
       }
     },
-    [closeWizard, dispatchToast, legalForm, onCompleted, patientId],
+    [closeWizard, dispatchToast, legalForm, guardianId, onCompleted, patientId],
   );
 
   const handleStep2Save = useCallback(

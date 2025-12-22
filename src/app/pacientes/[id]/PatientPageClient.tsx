@@ -89,6 +89,13 @@ const useStyles = makeStyles({
     gap: '14px',
     alignItems: 'center',
   },
+  avatarWrap: {
+    position: 'relative',
+    borderRadius: '10px',
+    padding: '3px',
+    border: '2px solid var(--status-color)',
+    flexShrink: 0,
+  },
   recordAvatar: {
     width: '46px',
     height: '46px',
@@ -100,6 +107,16 @@ const useStyles = makeStyles({
     fontWeight: 800,
     color: '#0f6cbd',
     flexShrink: 0,
+  },
+  statusDot: {
+    position: 'absolute',
+    width: '12px',
+    height: '12px',
+    borderRadius: '999px',
+    backgroundColor: 'var(--status-color)',
+    border: '2px solid #ffffff',
+    right: '2px',
+    bottom: '2px',
   },
   titleBlock: {
     minWidth: '280px',
@@ -139,12 +156,6 @@ const useStyles = makeStyles({
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-  },
-  dot: {
-    width: '8px',
-    height: '8px',
-    borderRadius: '50%',
-    backgroundColor: '#107c10',
   },
   link: {
     color: '#005a9e',
@@ -312,6 +323,27 @@ interface PatientPageClientProps {
   patientId: string;
 }
 
+function getStatusColor(recordStatus?: string | null, isActive?: boolean | null) {
+  if (!recordStatus) {
+    return isActive ? '#107c10' : '#9aa0a6';
+  }
+  switch (recordStatus) {
+    case 'draft':
+    case 'onboarding':
+      return '#9aa0a6';
+    case 'pending_financial':
+      return '#f0b429';
+    case 'active':
+      return '#107c10';
+    case 'inactive':
+    case 'deceased':
+    case 'discharged':
+      return '#d13438';
+    default:
+      return '#9aa0a6';
+  }
+}
+
 export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const styles = useStyles();
   const router = useRouter();
@@ -404,7 +436,7 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     return letters.join('');
   }, [patient?.full_name]);
 
-  const statusLabel = patient ? (patient.is_active ? 'Ativo' : 'Cadastro') : '—';
+  const statusColor = getStatusColor(patient?.record_status ?? null, patient?.is_active ?? null);
   const recordTitle = patient?.full_name ?? 'Paciente';
   const subtitle = `Paciente${cidadeUf ? ` • ${cidadeUf}` : ''}`;
   const legalGuardianMeta = legalGuardianSummary
@@ -759,7 +791,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
 
       <div className={styles.container}>
         <section className={styles.recordHeader}>
-          <div className={styles.recordAvatar}>{initials}</div>
+          <div className={styles.avatarWrap} style={{ ['--status-color' as string]: statusColor }}>
+            <div className={styles.recordAvatar}>{initials}</div>
+            <span className={styles.statusDot} />
+          </div>
 
           <div className={styles.titleBlock}>
             <h1 className={styles.title}>{patientLoading ? 'Carregando...' : recordTitle}</h1>
@@ -767,13 +802,6 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
           </div>
 
           <div className={styles.metaRow}>
-            <div className={styles.meta}>
-              <div className={styles.metaKey}>Status</div>
-              <div className={styles.metaValue}>
-                <span className={styles.dot} />
-                {statusLabel}
-              </div>
-            </div>
             <div className={styles.meta}>
               <div className={styles.metaKey}>Responsável legal</div>
               <div className={styles.metaValue}>{legalGuardianMeta}</div>
