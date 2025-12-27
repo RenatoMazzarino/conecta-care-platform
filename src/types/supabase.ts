@@ -582,6 +582,7 @@ export type Database = {
           is_financial_responsible: boolean
           is_legal_guardian: boolean
           is_main_contact: boolean
+          is_payer: boolean
           is_whatsapp: boolean
           lives_with_patient: string | null
           name: string
@@ -629,6 +630,7 @@ export type Database = {
           is_financial_responsible?: boolean
           is_legal_guardian?: boolean
           is_main_contact?: boolean
+          is_payer?: boolean
           is_whatsapp?: boolean
           lives_with_patient?: string | null
           name: string
@@ -676,6 +678,7 @@ export type Database = {
           is_financial_responsible?: boolean
           is_legal_guardian?: boolean
           is_main_contact?: boolean
+          is_payer?: boolean
           is_whatsapp?: boolean
           lives_with_patient?: string | null
           name?: string
@@ -700,6 +703,501 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "patient_related_persons_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_entities: {
+        Row: {
+          billing_address_cep: string | null
+          billing_address_city: string | null
+          billing_address_neighborhood: string | null
+          billing_address_number: string | null
+          billing_address_state: string | null
+          billing_address_street: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          doc_number: string | null
+          doc_type: string | null
+          id: string
+          kind: string
+          legal_name: string | null
+          name: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          billing_address_cep?: string | null
+          billing_address_city?: string | null
+          billing_address_neighborhood?: string | null
+          billing_address_number?: string | null
+          billing_address_state?: string | null
+          billing_address_street?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          doc_number?: string | null
+          doc_type?: string | null
+          id?: string
+          kind: string
+          legal_name?: string | null
+          name: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          billing_address_cep?: string | null
+          billing_address_city?: string | null
+          billing_address_neighborhood?: string | null
+          billing_address_number?: string | null
+          billing_address_state?: string | null
+          billing_address_street?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          doc_number?: string | null
+          doc_type?: string | null
+          id?: string
+          kind?: string
+          legal_name?: string | null
+          name?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      care_policy_profiles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          rule_set: Json
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          rule_set: Json
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          rule_set?: Json
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
+      patient_admin_financial_profile: {
+        Row: {
+          acquisition_channel: string | null
+          admission_date: string | null
+          admission_source: string | null
+          admission_type: string | null
+          admin_notes: string | null
+          administrative_status: string
+          administrative_status_changed_at: string | null
+          administrative_status_reason: string | null
+          authorization_number: string | null
+          billing_base_value: number | null
+          billing_due_day: number | null
+          billing_model: string | null
+          billing_periodicity: string | null
+          billing_status: string | null
+          bond_type: string | null
+          card_holder_name: string | null
+          checklist_complete: boolean
+          checklist_notes: string | null
+          commercial_responsible_id: string | null
+          contract_category: string | null
+          contract_end_date: string | null
+          contract_id: string | null
+          contract_manager_id: string | null
+          contract_start_date: string | null
+          contract_status: string | null
+          contract_status_reason: string | null
+          copay_percent: number | null
+          cost_center_id: string | null
+          created_at: string
+          created_by: string | null
+          daily_interest_percent: number | null
+          deleted_at: string | null
+          demand_origin: string | null
+          demand_origin_description: string | null
+          discharge_date: string | null
+          discharge_prediction_date: string | null
+          discount_days_limit: number | null
+          discount_early_payment: number | null
+          erp_case_code: string | null
+          external_contract_id: string | null
+          financial_notes: string | null
+          financial_responsible_contact: string | null
+          financial_responsible_name: string | null
+          grace_period_days: number | null
+          insurance_card_number: string | null
+          insurance_card_validity: string | null
+          insurer_name: string | null
+          invoice_delivery_method: string | null
+          judicial_case_number: string | null
+          late_fee_percent: number | null
+          monthly_fee: number | null
+          official_letter_number: string | null
+          payer_admin_contact_description: string | null
+          payer_admin_contact_id: string | null
+          payer_relation: string | null
+          payment_method: string | null
+          payment_terms: string | null
+          patient_id: string
+          plan_name: string | null
+          policy_profile_id: string | null
+          primary_payer_entity_id: string | null
+          primary_payer_related_person_id: string | null
+          readjustment_index: string | null
+          readjustment_month: number | null
+          receiving_account_info: string | null
+          renewal_type: string | null
+          service_package_description: string | null
+          service_package_name: string | null
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          acquisition_channel?: string | null
+          admission_date?: string | null
+          admission_source?: string | null
+          admission_type?: string | null
+          admin_notes?: string | null
+          administrative_status?: string
+          administrative_status_changed_at?: string | null
+          administrative_status_reason?: string | null
+          authorization_number?: string | null
+          billing_base_value?: number | null
+          billing_due_day?: number | null
+          billing_model?: string | null
+          billing_periodicity?: string | null
+          billing_status?: string | null
+          bond_type?: string | null
+          card_holder_name?: string | null
+          checklist_complete?: boolean
+          checklist_notes?: string | null
+          commercial_responsible_id?: string | null
+          contract_category?: string | null
+          contract_end_date?: string | null
+          contract_id?: string | null
+          contract_manager_id?: string | null
+          contract_start_date?: string | null
+          contract_status?: string | null
+          contract_status_reason?: string | null
+          copay_percent?: number | null
+          cost_center_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          daily_interest_percent?: number | null
+          deleted_at?: string | null
+          demand_origin?: string | null
+          demand_origin_description?: string | null
+          discharge_date?: string | null
+          discharge_prediction_date?: string | null
+          discount_days_limit?: number | null
+          discount_early_payment?: number | null
+          erp_case_code?: string | null
+          external_contract_id?: string | null
+          financial_notes?: string | null
+          financial_responsible_contact?: string | null
+          financial_responsible_name?: string | null
+          grace_period_days?: number | null
+          insurance_card_number?: string | null
+          insurance_card_validity?: string | null
+          insurer_name?: string | null
+          invoice_delivery_method?: string | null
+          judicial_case_number?: string | null
+          late_fee_percent?: number | null
+          monthly_fee?: number | null
+          official_letter_number?: string | null
+          payer_admin_contact_description?: string | null
+          payer_admin_contact_id?: string | null
+          payer_relation?: string | null
+          payment_method?: string | null
+          payment_terms?: string | null
+          patient_id: string
+          plan_name?: string | null
+          policy_profile_id?: string | null
+          primary_payer_entity_id?: string | null
+          primary_payer_related_person_id?: string | null
+          readjustment_index?: string | null
+          readjustment_month?: number | null
+          receiving_account_info?: string | null
+          renewal_type?: string | null
+          service_package_description?: string | null
+          service_package_name?: string | null
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          acquisition_channel?: string | null
+          admission_date?: string | null
+          admission_source?: string | null
+          admission_type?: string | null
+          admin_notes?: string | null
+          administrative_status?: string
+          administrative_status_changed_at?: string | null
+          administrative_status_reason?: string | null
+          authorization_number?: string | null
+          billing_base_value?: number | null
+          billing_due_day?: number | null
+          billing_model?: string | null
+          billing_periodicity?: string | null
+          billing_status?: string | null
+          bond_type?: string | null
+          card_holder_name?: string | null
+          checklist_complete?: boolean
+          checklist_notes?: string | null
+          commercial_responsible_id?: string | null
+          contract_category?: string | null
+          contract_end_date?: string | null
+          contract_id?: string | null
+          contract_manager_id?: string | null
+          contract_start_date?: string | null
+          contract_status?: string | null
+          contract_status_reason?: string | null
+          copay_percent?: number | null
+          cost_center_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          daily_interest_percent?: number | null
+          deleted_at?: string | null
+          demand_origin?: string | null
+          demand_origin_description?: string | null
+          discharge_date?: string | null
+          discharge_prediction_date?: string | null
+          discount_days_limit?: number | null
+          discount_early_payment?: number | null
+          erp_case_code?: string | null
+          external_contract_id?: string | null
+          financial_notes?: string | null
+          financial_responsible_contact?: string | null
+          financial_responsible_name?: string | null
+          grace_period_days?: number | null
+          insurance_card_number?: string | null
+          insurance_card_validity?: string | null
+          insurer_name?: string | null
+          invoice_delivery_method?: string | null
+          judicial_case_number?: string | null
+          late_fee_percent?: number | null
+          monthly_fee?: number | null
+          official_letter_number?: string | null
+          payer_admin_contact_description?: string | null
+          payer_admin_contact_id?: string | null
+          payer_relation?: string | null
+          payment_method?: string | null
+          payment_terms?: string | null
+          patient_id?: string
+          plan_name?: string | null
+          policy_profile_id?: string | null
+          primary_payer_entity_id?: string | null
+          primary_payer_related_person_id?: string | null
+          readjustment_index?: string | null
+          readjustment_month?: number | null
+          receiving_account_info?: string | null
+          renewal_type?: string | null
+          service_package_description?: string | null
+          service_package_name?: string | null
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_admin_financial_profile_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_admin_financial_profile_policy_profile_id_fkey"
+            columns: ["policy_profile_id"]
+            referencedRelation: "care_policy_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_admin_financial_profile_primary_payer_entity_id_fkey"
+            columns: ["primary_payer_entity_id"]
+            referencedRelation: "billing_entities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_admin_financial_profile_payer_admin_contact_id_fkey"
+            columns: ["payer_admin_contact_id"]
+            referencedRelation: "patient_related_persons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_admin_financial_profile_primary_payer_related_person_id_fkey"
+            columns: ["primary_payer_related_person_id"]
+            referencedRelation: "patient_related_persons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_onboarding_checklist: {
+        Row: {
+          completed_at: string | null
+          completed_by_label: string | null
+          completed_by_user_id: string | null
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          document_id: string | null
+          id: string
+          is_completed: boolean
+          item_code: string
+          item_description: string | null
+          patient_id: string
+          tenant_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by_label?: string | null
+          completed_by_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          document_id?: string | null
+          id?: string
+          is_completed?: boolean
+          item_code: string
+          item_description?: string | null
+          patient_id: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by_label?: string | null
+          completed_by_user_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          document_id?: string | null
+          id?: string
+          is_completed?: boolean
+          item_code?: string
+          item_description?: string | null
+          patient_id?: string
+          tenant_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_onboarding_checklist_document_id_fkey"
+            columns: ["document_id"]
+            referencedRelation: "patient_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_onboarding_checklist_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_timeline_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          description: string | null
+          event_category: string | null
+          event_time: string
+          event_type: string
+          id: string
+          payload: Json | null
+          patient_id: string
+          tenant_id: string
+          title: string | null
+          tone: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          event_category?: string | null
+          event_time?: string
+          event_type: string
+          id?: string
+          payload?: Json | null
+          patient_id: string
+          tenant_id?: string
+          title?: string | null
+          tone?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          event_category?: string | null
+          event_time?: string
+          event_type?: string
+          id?: string
+          payload?: Json | null
+          patient_id?: string
+          tenant_id?: string
+          title?: string | null
+          tone?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_timeline_events_patient_id_fkey"
             columns: ["patient_id"]
             referencedRelation: "patients"
             referencedColumns: ["id"]

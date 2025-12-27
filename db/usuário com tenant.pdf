@@ -1,1 +1,9 @@
-pwsh .tmp/dev-link-tenant.ps1 -UserId "e4278ac7-804d-430d-a4d1-223b99075d57" -TenantId "e40046d1-b549-43ac-ad89-626b5b1a52a4"
+
+update auth.users
+set raw_app_meta_data = jsonb_set(
+  coalesce(raw_app_meta_data, '{}'::jsonb),
+  '{tenant_id}',
+  to_jsonb('e40046d1-b549-43ac-ad89-626b5b1a52a4'::text),
+  true
+)
+where id = '266487ea-681a-444b-8585-f161841d8f33';

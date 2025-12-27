@@ -5,7 +5,7 @@
 - Módulo: Pacientes
 - Aba: ABA03 • Rede de Apoio
 - Versão: 0.1
-- Status: Draft
+- Status: Aprovado
 - Última atualização: 2025-12-21
 - Referências:
   - `AGENT.md` (governança / fluxo contrato → migrations → types → actions → UI)

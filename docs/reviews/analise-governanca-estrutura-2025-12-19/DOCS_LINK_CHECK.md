@@ -1,8 +1,8 @@
 # Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-22 01:38:43
+Data: 2025-12-27 08:07:04
 
-Total de links verificados: 122
+Total de links verificados: 127
 Links quebrados: 0
 
 **Nenhum link relativo quebrado encontrado.**
@@ -18,9 +18,11 @@ Links quebrados: 0
 - [docs/architecture/decisions/README.md] → "./ADR-006-email-validation-db-policy.md" → OK
 - [docs/architecture/REPO_MAP.md] → "./SYSTEM_ARCHITECTURE.md" → OK
 - [docs/architecture/SYSTEM_ARCHITECTURE.md] → "./OPEN_TODO.md" → OK
+- [docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md] → "../../legacy_maps/pacientes/ABA04_ADMIN_FINANCEIRO_LEGADO_MAP.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA01_DADOS_PESSOAIS.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA02_ENDERECO_LOGISTICA.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA03_REDE_APOIO.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA04_ADMIN_FINANCEIRO.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA02_ENDERECO_LOGISTICA.md#anexos-cobertura-do-legado-fonte-docsrepo_antigoschema_currentsql" → OK
 - [docs/contracts/README.md] → "./pacientes/INDEX.md" → OK
 - [docs/contracts/README.md] → "./prontuarios/INDEX.md" → OK
@@ -30,6 +32,7 @@ Links quebrados: 0
 - [docs/contracts/README.md] → "./home-care-ops/INDEX.md" → OK
 - [docs/contracts/README.md] → "./inventario/INDEX.md" → OK
 - [docs/contracts/README.md] → "./configuracoes/INDEX.md" → OK
+- [docs/legacy_maps/pacientes/ABA04_ADMIN_FINANCEIRO_LEGADO_MAP.md] → "../../contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md" → OK
 - [docs/MODULE_STATUS.md] → "./contracts/pacientes/INDEX.md" → OK
 - [docs/MODULE_STATUS.md] → "./runbooks/ONBOARDING.md" → OK
 - [docs/MODULE_STATUS.md] → "./runbooks/migrations-workflow.md" → OK
@@ -113,6 +116,8 @@ Links quebrados: 0
 - [docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md] → "./BRANCH_PROTECTION_CHECKLIST.md" → OK
 - [docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../../scripts/docs-link-check.mjs" → OK
 - [docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../../package.json" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md] → "../contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md] → "../legacy_maps/pacientes/ABA04_ADMIN_FINANCEIRO_LEGADO_MAP.md" → OK
 - [docs/runbooks/ONBOARDING.md] → "./env.md" → OK
 - [docs/runbooks/ONBOARDING.md] → "./local-dev-supabase.md" → OK
 - [docs/runbooks/ONBOARDING.md] → "./auth-tenancy.md" → OK
