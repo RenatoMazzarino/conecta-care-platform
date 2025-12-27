@@ -12,7 +12,7 @@ Colunas:
 
 | Módulo | Status | Abas | Contratos | Runbooks | Evidência |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| Pacientes | Implementado | Dados Pessoais; Endereço & Logística; Rede de Apoio; Administrativo; Financeiro; Clínico; Documentos (GED); Histórico & Auditoria | [Índice de Contratos (Pacientes)](./contracts/pacientes/INDEX.md) | [ONBOARDING](./runbooks/ONBOARDING.md); [migrations-workflow](./runbooks/migrations-workflow.md); [auth-tenancy](./runbooks/auth-tenancy.md) | — |
+| Pacientes | Implementado | Dados Pessoais; Endereço & Logística; Rede de Apoio; Admin & Financeiro (concluídas); Clínico; Documentos (GED); Histórico & Auditoria (placeholders) | [Índice de Contratos (Pacientes)](./contracts/pacientes/INDEX.md) | [ONBOARDING](./runbooks/ONBOARDING.md); [migrations-workflow](./runbooks/migrations-workflow.md); [auth-tenancy](./runbooks/auth-tenancy.md) | — |
 | Prontuários | Em desenvolvimento | — | [Índice de Contratos (Prontuários)](./contracts/prontuarios/INDEX.md) | — | — |
 | Agendamentos | Não iniciado | — | [Índice de Contratos (Agendamentos)](./contracts/agendamentos/INDEX.md) | — | — |
 | Escalas | Não iniciado | Visão por Paciente; Visão por Profissional | [Índice de Contratos (Escalas)](./contracts/escalas/INDEX.md) | — | — |

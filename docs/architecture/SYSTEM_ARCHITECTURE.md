@@ -32,7 +32,7 @@ Esta seção descreve a implementação **real e existente** no repositório.
   - **Layout (Shell)**: O layout "Dynamics-style" está implementado e serve como base para futuros módulos.
     - **Command Bar**: `src/components/layout/CommandBar.tsx` (para listas) e em `PatientPageClient.tsx` (para detalhes).
     - **Record Header, Abas e Grid de Cards**: Estrutura visual principal em `PatientPageClient.tsx`.
-  - **Dados**: A "Aba 01 - Dados Pessoais" está conectada ao Supabase, utilizando Server Actions (`src/features/pacientes/actions/*`) e validação com Zod (`src/features/pacientes/schemas/*`). As demais abas são placeholders.
+  - **Dados**: As Abas 01–04 estão conectadas ao Supabase, utilizando Server Actions (`src/features/pacientes/actions/*`) e validação com Zod (`src/features/pacientes/schemas/*`). As abas Clínico, Documentos (GED) e Histórico seguem como placeholders; a aba “Visão geral” está reservada para o dashboard do paciente.
 
 - **Autenticação e Segurança**:
   - **Login**: Página de login mínima em `src/app/login/page.tsx` usando Supabase Auth.

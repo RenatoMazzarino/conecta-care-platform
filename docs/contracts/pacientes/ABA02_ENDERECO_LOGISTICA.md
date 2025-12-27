@@ -5,7 +5,7 @@
 - Modulo: Pacientes
 - Aba: ABA02 — Endereco & Logistica
 - Versao: 0.3
-- Status: Em revisao
+- Status: Aprovado
 - Ultima atualizacao: 2025-12-20
 - Governanca:
   - O legado e referencia de **cobertura/estrutura**. O schema novo segue as decisoes deste contrato.

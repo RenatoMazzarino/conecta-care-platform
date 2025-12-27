@@ -1,6 +1,6 @@
 # Índice de Contratos — Módulo Pacientes
 
-Status: ATUAL — ABA01 implementada; ABA02 em revisao; ABA03 em implementacao; ABA04 aprovado.
+Status: ATUAL — ABA01 a ABA04 concluidas.
 
 Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apontador canônico para os contratos do módulo e deve ser atualizado conforme novos contratos forem aprovados.
 
@@ -8,10 +8,10 @@ Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apont
 
 | ABA | Status | Contrato |
 | :-- | :----- | :------- |
-| ABA01 — Dados Pessoais | Implementado | [ABA01_DADOS_PESSOAIS.md](./ABA01_DADOS_PESSOAIS.md) |
-| ABA02 — Endereço & Logística | Em revisao | [ABA02_ENDERECO_LOGISTICA.md](./ABA02_ENDERECO_LOGISTICA.md) |
-| ABA03 — Rede de Apoio | Em implementacao | [ABA03_REDE_APOIO.md](./ABA03_REDE_APOIO.md) |
-| ABA04 — Admin & Financeiro | Aprovado | [ABA04_ADMIN_FINANCEIRO.md](./ABA04_ADMIN_FINANCEIRO.md) |
+| ABA01 — Dados Pessoais | Concluida | [ABA01_DADOS_PESSOAIS.md](./ABA01_DADOS_PESSOAIS.md) |
+| ABA02 — Endereço & Logística | Concluida | [ABA02_ENDERECO_LOGISTICA.md](./ABA02_ENDERECO_LOGISTICA.md) |
+| ABA03 — Rede de Apoio | Concluida | [ABA03_REDE_APOIO.md](./ABA03_REDE_APOIO.md) |
+| ABA04 — Admin & Financeiro | Concluida | [ABA04_ADMIN_FINANCEIRO.md](./ABA04_ADMIN_FINANCEIRO.md) |
 | ABA05 — (Unificada na ABA04) | — | — |
 | ABA06 — Clínico | A definir | — |
 | ABA07 — Documentos (GED) | A definir | — |
@@ -20,7 +20,7 @@ Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apont
 Notas:
 
 - Os nomes das ABAs seguem o padrão visual de navegação documentado em `AGENT.md` e a arquitetura canônica em `docs/architecture/SYSTEM_ARCHITECTURE.md`.
-- Quando um contrato for aprovado para uma ABA, substitua “A definir” por “Em contrato/Implementado” e adicione o link do documento correspondente.
+- Quando um contrato for aprovado e implementado para uma ABA, substitua “A definir” por “Concluida” e adicione o link do documento correspondente.
 
 Anexos ABA02:
 
@@ -39,4 +39,6 @@ Anexos ABA02:
 ## Evidências
 
 - Contrato ABA01 aprovado: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`.
-- Contrato ABA02 em revisao: `docs/contracts/pacientes/ABA02_ENDERECO_LOGISTICA.md`.
+- Contrato ABA02 aprovado: `docs/contracts/pacientes/ABA02_ENDERECO_LOGISTICA.md`.
+- Contrato ABA03 aprovado: `docs/contracts/pacientes/ABA03_REDE_APOIO.md`.
+- Contrato ABA04 aprovado: `docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md`.
