@@ -351,6 +351,7 @@ type RelatedPersonRow = {
   can_authorize_clinical?: boolean | null;
   can_authorize_financial?: boolean | null;
   is_main_contact?: boolean | null;
+  is_payer?: boolean | null;
 };
 
 type CareTeamMemberRow = {
@@ -978,14 +979,15 @@ export const RedeApoioTab = forwardRef<RedeApoioTabHandle, RedeApoioTabProps>(fu
                               </div>
                             )}
                           </div>
-                          {isEditing && (
-                            <div className={styles.badgeRow}>
-                              {person.is_emergency_contact && <Badge color="danger">Emergência</Badge>}
+                          <div className={styles.badgeRow}>
+                            {person.is_payer && <Badge color="success">Pagador</Badge>}
+                            {isEditing && person.is_emergency_contact && <Badge color="danger">Emergência</Badge>}
+                            {isEditing && (
                               <Button appearance="subtle" size="small" icon={<EditRegular />} onClick={() => handleEditContact(person)}>
                                 Editar
                               </Button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

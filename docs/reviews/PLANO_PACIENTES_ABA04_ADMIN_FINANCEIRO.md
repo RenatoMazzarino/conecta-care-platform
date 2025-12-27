@@ -1,139 +1,126 @@
-# Plano de Implementação: Pacientes - Aba 04 (Administrativo e Financeiro)
+# Plano de Implementacao: Aba 04 (Administrativo e Financeiro)
 
-**Objetivo:** Implementar a interface de edição de dados administrativos e financeiros do paciente, garantindo integridade com o legado e separação clara de responsabilidades.
+## 0) Baseline
 
-**Status:** Draft  
-**Data:** 22/12/2025  
-**Base:** Snapshot `conectacare-2025-11-29.sql`
+- **Status:** Aprovado
+- **Contrato Canonico:** [docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md](../contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md)
+- **Mapa do Legado:** [docs/legacy_maps/pacientes/ABA04_ADMIN_FINANCEIRO_LEGADO_MAP.md](../legacy_maps/pacientes/ABA04_ADMIN_FINANCEIRO_LEGADO_MAP.md)
+- **Regra:** o contrato define o schema alvo limpo; o mapa define KEEP/MOVE/DROP.
 
----
+## 1) Objetivo
 
-## 1. Estratégia de Interface (UI Cards)
+Implementar a Aba 04 com 5 cards (Contrato, Responsaveis, Pagador, Faturamento, Checklist), incluindo `billing_entities` e `care_policy_profiles`, com painel unificado de status e ganchos para integracoes externas e IA.
 
-A tela será dividida em cards lógicos para facilitar a visualização por perfis diferentes (Administrativo vs Financeiro).
+## 2) Escopo
 
-### Card 1: Identificação Contratual
-*Foco: Status e Vigência*
+**IN:**
+- Modelagem canonica (`patient_admin_financial_profile`, `patient_onboarding_checklist`, `billing_entities`, `care_policy_profiles`).
+- Backfill a partir das tabelas legadas mapeadas.
+- Actions e UI para leitura/escrita do canonico.
+- Sincronizacao do pagador PF com `patient_related_persons` (badge "Pagador" na Aba03).
+- RLS e auditoria (created/updated + system_audit_logs).
+- Ganchos de produto para integracoes e IA.
 
-- **Campos (Read/Edit):**
-    - **Status Atual:** Select (Ativo, Suspenso, Encerrado...). *Origem: `patient_admin_info.status`*.
-    - **Motivo Status:** Text (se status != Ativo). *Origem: `patient_admin_info.status_reason`*.
-    - **Tipo de Admissão:** Select (Home Care, Paliativo...). *Origem: `patient_admin_info.admission_type`*.
-    - **Data de Início:** DatePicker. *Origem: `patient_admin_info.start_date`*.
-    - **Data Prevista Alta/Fim:** DatePicker. *Origem: `patient_admin_info.end_date`*.
-    - **Número do Contrato Interno:** Input (somente leitura para user básico). *Origem: `patient_admin_info.contract_id`*.
-    - **Número do Contrato Externo:** Input. *Origem: `patient_admin_info.external_contract_id`*.
-    - **Categoria:** Select. *Origem: `patient_admin_info.contract_category`*.
+**OUT:**
+- Lancamentos financeiros, boletos, NF e conciliacao.
+- Regras de escala e dados clinicos (fora da Aba 04).
 
-- **Conflito Legado:**
-    - A tabela `patient_administrative_profiles` possui `admission_date` e `contract_number`.
-    - **Decisão:** A UI lerá e gravará prioritariamente em `patient_admin_info` (`start_date` e `contract_id`). Se `patient_administrative_profiles` existir, um trigger ou serviço de backend deverá manter a sincronia, mas o frontend foca na tabela principal.
+## 3) Ganchos de Produto (obrigatorios)
 
-### Card 2: Origem e Captação
-*Foco: Marketing e Comercial*
+1. Assinatura Digital e Protocolo (provider, envelope, status, eventos).
+2. Event Log / Timeline (eventos por mudanca relevante com payload estruturado).
+3. Motor de Regras (rule_set em `care_policy_profiles`).
+4. Integracao com Operadoras/Planos e SUS (adapters documentados).
+5. Camada IA (snapshot de contexto e rastreabilidade).
 
-- **Campos:**
-    - **Origem da Demanda:** Select/Input. *Origem: `patient_admin_info.demand_origin`*.
-    - **Canal de Aquisição:** Input. *Origem: `patient_admin_info.acquisition_channel`*.
-    - **Responsável Comercial:** Select (Busca User). *Origem: `patient_admin_info.commercial_responsible_id`*.
-    - **Gerente de Contrato:** Select (Busca User). *Origem: `patient_admin_info.contract_manager_id`*.
+## 4) Fases de Implementacao
 
-### Card 3: Dados do Pagador (Financeiro)
-*Foco: Quem paga a conta*
+### Fase 1 — Dados (Migrations)
+1. Criar tabelas canonicas conforme o contrato, incluindo `billing_entities`, `care_policy_profiles` e `patient_timeline_events`.
+2. Adicionar FKs `primary_payer_entity_id` e `policy_profile_id` no perfil canonico.
+3. Backfill de dados com base no mapa (KEEP/MOVE), definindo precedencia entre fontes duplicadas e usando upsert 1:1 por paciente.
+4. Gerar `billing_entities` a partir de `payer_name`/`payer_doc_*`, normalizar `doc_number` e deduplicar por `(tenant_id, kind, doc_type, doc_number)` antes de vincular `primary_payer_entity_id`.
+5. Migrar checklist legado para `patient_onboarding_checklist` com `item_code`, evitando duplicidade por `(patient_id, item_code)`.
+6. Aplicar constraints, indices e FKs recomendados.
+7. Habilitar RLS por `tenant_id` usando `app_private.current_tenant_id()`.
+8. Deprecar tabelas legadas (sem novas escritas) e remover colunas DROP apos validacao.
 
-- **Campos:**
-    - **Tipo de Pagador:** Select (Operadora, Particular, etc.). *Origem: `patient_admin_info.primary_payer_type`*.
-    - **Pagador (Pessoa/Empresa):** Componente de busca polimórfica (PF ou PJ).
-        - Salva em: `patient_admin_info.primary_payer_related_person_id` (se PF) ou `primary_payer_legal_entity_id` (se PJ).
-        - *Nota:* Se for Operadora, buscar na tabela de Operadoras (se existir) ou usar campo texto `insurer_name` em `patient_financial_profiles` como fallback legado.
-    - **Convênio/Seguradora:** Input Texto (Legado). *Origem: `patient_financial_profiles.insurer_name`*.
-    - **Nome do Plano:** Input. *Origem: `patient_financial_profiles.plan_name`*.
-    - **Carteirinha:** Input. *Origem: `patient_financial_profiles.insurance_card_number`*.
-    - **Validade Carteira:** Date. *Origem: `patient_financial_profiles.insurance_card_validity`*.
+### Fase 2 — Types e Schemas
+1. Atualizar tipos do Supabase (`npm run verify`).
+2. Criar schemas Zod:
+   - `AdminFinancialProfileSchema`
+   - `OnboardingChecklistSchema`
+   - `BillingEntitySchema`
+   - `CarePolicyProfileSchema`
+3. Adicionar validacoes de enums e regras de data.
 
-### Card 4: Configuração de Faturamento
-*Foco: Regras de Cobrança (Não operaciona, apenas configura)*
+### Fase 3 — Actions
+1. `getAdminFinancialData(patientId)`
+2. `updateAdminInfo(patientId, payload)`
+3. `updateFinancialProfile(patientId, payload)`
+4. `getOnboardingChecklist(patientId)`
+5. `updateOnboardingChecklist(patientId, payload)`
+6. `upsertBillingEntity(payload)`
+7. `setPrimaryPayerEntity(patientId, billingEntityId)`
+8. `upsertCarePolicyProfile(payload)`
+9. `setPolicyProfile(patientId, profileId)`
+10. `recordPatientTimelineEvent(patientId, payload)`
+11. `sendContractForSignature(patientId, payload)`
 
-- **Campos:**
-    - **Status Financeiro:** Select (Ativo, Inadimplente...). *Origem: `patient_financial_profiles.billing_status`*.
-    - **Modelo de Cobrança:** Select (Mensalidade, Plantão...). *Origem: `patient_financial_profiles.billing_model`*.
-    - **Dia de Vencimento:** Input Number (1-31). *Origem: `patient_financial_profiles.billing_due_day`*.
-    - **Forma de Pagamento:** Select (Boleto, Pix...). *Origem: `patient_financial_profiles.payment_method`*.
-    - **Envio de Fatura:** Checkbox/Select (Email, Correio). *Origem: `patient_financial_profiles.invoice_delivery_method`*.
-    - **Emails para Cobrança:** Input (Multiple). *Origem: `patient_financial_profiles.billing_email_list`*.
+### Fase 4 — UI
+1. Criar `AdminFinancialTab` com 5 cards.
+2. Formularios com RHF + Zod, modo leitura/edicao e estados previsiveis.
+3. Card Pagador com selecao/criacao de `billing_entities` e vinculo a PF quando aplicavel.
+4. Validar duplicidade de `billing_entities` (doc_number + kind + doc_type, com doc_number normalizado) antes de criar novos registros.
+5. Rotular `billing_entities.kind` com nomes explicitos (Pessoa (CPF), Empresa (CNPJ), Operadora, Corretora, Orgao Publico/SUS).
+6. Card Contrato com selecao de `policy_profile_id`.
+7. Painel unificado de status no cabecalho do paciente.
+8. Checklist com lista de itens, upload e links de documentos.
 
-### Card 5: Responsáveis Internos (Operacional)
-*Foco: Quem cuida do caso*
+### Fase 5 — Observabilidade/IA
+1. Catalogar eventos do dominio (status, pagador, policy_profile, billing, checklist).
+2. Normalizar payloads para consumo por IA e auditoria.
+3. Preparar derivacao de `patient_context_snapshot` para assistentes internos.
 
-- **Campos:**
-    - **Filial/Área:** Select. *Origem: `patient_admin_info.operation_area`*.
-    - **Supervisor Técnico:** Select (User). *Origem: `patient_admin_info.supervisor_id`*.
-    - **Enfermeiro Responsável:** Select (User). *Origem: `patient_admin_info.nurse_responsible_id`*.
-    - **Escalista:** Select (User). *Origem: `patient_admin_info.escalista_id`*.
+### Fase 6 — Docs e Revisao
+1. Atualizar evidencias (DoD, validacao).
+2. Revisao final de consistencia entre contrato, mapa e implementacao.
 
-### Card 6: Checklist de Implantação
-*Foco: Compliance*
+## 5) Inventario de Artefatos
 
-- **Estrutura:** Lista de itens com Checkbox + Data Auto + User Auto + Link Upload.
-- **Itens Mapeados (`patient_admin_info`):**
-    1.  **Contrato Assinado:** `chk_contract_ok`
-    2.  **Termo de Consentimento:** `chk_consent_ok`
-    3.  **Laudo Médico:** `chk_medical_report_ok`
-    4.  **Documentos Pessoais:** `chk_legal_docs_ok`
-    5.  **Comprovante Endereço:** `chk_address_proof_ok`
-    6.  **Liminar Judicial:** `chk_judicial_ok` (com campo extra `judicial_case_number`)
-- **Comportamento:** Ao marcar "OK", o sistema preenche `_at` e `_by` no backend. O front permite upload do arquivo (`_doc_id`).
+### Novos arquivos
+- `src/components/patient/AdminFinancialTab.tsx`
+- `src/features/pacientes/actions/aba04/`
+- `src/features/pacientes/schemas/aba04AdminFinanceiro.schema.ts`
+- `src/features/pacientes/services/aba04/`
+- `supabase/migrations/202512221400_pacientes_aba04_admin_financeiro.sql`
 
----
+### Alteracoes
+- `src/app/pacientes/[id]/PatientPageClient.tsx`
+- `src/components/patient/RedeApoioTab.tsx`
+- `src/types/supabase.ts`
 
-## 2. Mapa de APIs e Integrações
+## 6) Criterios de Aceite (DoD)
 
-Para esta etapa (Aba 04), as integrações são apenas **pontos de dados**, sem execução transacional complexa.
+1. Schema canonico criado com constraints, `billing_entities` e `care_policy_profiles`.
+2. Backfill realizado e colunas DROP removidas apos validacao.
+3. Pagador PF sincronizado com `patient_related_persons` (`is_payer = true`).
+4. Checklist normalizado com `item_code` e documentos associados.
+5. Painel unificado de status funcionando no cabecalho do paciente.
+6. Eventos relevantes registrados em timeline/auditoria.
+7. `npm run verify` sem erros.
+8. Sem duplicidades em `billing_entities` por tenant (constraints e dedupe aplicados).
 
-### Internas (Supabase)
-1.  **GET /patient/:id/admin-financial**:
-    - Query unificada (JOIN) entre `patient_admin_info` e `patient_financial_profiles`.
-2.  **UPDATE /patient/:id/admin**:
-    - Atualiza `patient_admin_info`.
-3.  **UPDATE /patient/:id/financial**:
-    - Atualiza `patient_financial_profiles`.
-4.  **Upload de Documentos (Checklist)**:
-    - Bucket: `patient-documents`.
-    - Path: `/{tenant_id}/{patient_id}/admin/{doc_type}/{filename}`.
+## 7) Decisões Finalizadas
 
-### Externas (Stubs/Futuro)
--   **Consulta ANS (Operadoras):** Validar se o nome da operadora existe na base oficial.
-    -   *Ação Agora:* Apenas campo texto livre ou select simples.
--   **Validação de CPF/CNPJ (Pagador):**
-    -   *Ação Agora:* Função utilitária no front (`utils/validators.ts`).
--   **ERP Financeiro (Omie/Totvs):**
-    -   *Ação Agora:* Campo `erp_case_code` e `cost_center_id` disponíveis para preenchimento manual ou integração futura via Job.
+- [x] Enum de `administrative_status` e painel unificado de status.
+- [x] Pagador canonico via `billing_entities` e `primary_payer_entity_id`.
+- [x] Politicas por `care_policy_profiles` e `policy_profile_id`.
+- [x] Checklist canonico em `patient_onboarding_checklist`.
+- [x] RLS via `app_private.current_tenant_id()`.
 
----
+## 8) Backlog Pós-Autorização
 
-## 3. Plano de Migrations
-
-Não serão criadas novas tabelas. As tabelas `patient_admin_info` e `patient_financial_profiles` já existem no snapshot.
-A migration necessária será apenas de **Policies (RLS)** se ainda não existirem, e **Triggers** para auditoria.
-
-1.  **Migration 01:** Garantir índices em `patient_id` e `tenant_id` (já existem nas PKs).
-2.  **Migration 02 (Opcional):** Criar trigger para atualizar `updated_at` automaticamente se o Postgres não tiver nativo.
-
----
-
-## 4. Definição de Pronto (DoD)
-
-### Documental
-- [x] Contrato (ABA04_ADMIN_FINANCEIRO.md) revisado e aprovado.
-- [x] Plano de UI mapeado com origem de dados.
-
-### Técnico
-- [ ] Types TypeScript gerados (`database.types.ts`) refletindo as colunas exatas.
-- [ ] Zod Schemas criados para validação de formulário (AdminSchema, FinancialSchema).
-- [ ] Componentes de UI (Cards) implementados usando `React Hook Form`.
-- [ ] Integração com Supabase (Hooks `usePatientAdmin`, `usePatientFinancial`).
-
-### Testes Manuais
-- `npm run verify`: Deve passar sem erros de tipagem.
-- Validar salvamento de Checklist: Marcar checkbox -> Recarregar página -> Checkbox persiste e campos `_at`/`_by` preenchidos.
-- Validar RLS: Tentar acessar paciente de outro tenant via ID na URL -> Deve retornar 404/403.
+- Detalhar contratos de integracao com operadoras/SUS.
+- Definir taxonomia final de eventos para timeline.
+- Consolidar estrategia de snapshot de contexto para IA.

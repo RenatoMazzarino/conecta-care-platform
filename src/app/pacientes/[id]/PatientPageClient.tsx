@@ -15,6 +15,7 @@ import { Header } from '@/components/layout';
 import { DadosPessoaisTab, type DadosPessoaisTabHandle } from '@/components/patient/DadosPessoaisTab';
 import { EnderecoLogisticaTab, type EnderecoLogisticaTabHandle } from '@/components/patient/EnderecoLogisticaTab';
 import { RedeApoioTab, type RedeApoioTabHandle } from '@/components/patient/RedeApoioTab';
+import { AdminFinancialTab, type AdminFinancialTabHandle } from '@/components/patient/AdminFinancialTab';
 import { getPatientById, type PatientRow } from '@/features/pacientes/actions/getPatientById';
 import { getSupabaseClient } from '@/lib/supabase/client';
 
@@ -191,6 +192,30 @@ const useStyles = makeStyles({
     marginTop: '14px',
     paddingBottom: '40px',
   },
+  statusPanel: {
+    marginTop: '12px',
+    display: 'flex',
+    gap: '10px',
+    flexWrap: 'wrap',
+  },
+  statusPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '4px 10px',
+    borderRadius: '999px',
+    backgroundColor: tokens.colorNeutralBackground1,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    fontSize: '11px',
+    fontWeight: 700,
+    color: tokens.colorNeutralForeground1,
+  },
+  statusLabel: {
+    color: tokens.colorNeutralForeground3,
+    fontSize: '10px',
+    textTransform: 'uppercase',
+    letterSpacing: '.4px',
+  },
   tabGrid: {
     display: 'grid',
     gridTemplateColumns: '2fr 1fr',
@@ -275,45 +300,15 @@ type PatientTab =
   | 'endereco-logistica'
   | 'rede-apoio'
   | 'administrativo'
-  | 'financeiro'
   | 'clinico'
   | 'documentos'
   | 'historico';
-
-interface Administrativo {
-  id: string;
-  paciente_id: string;
-  convenio?: string;
-  numero_carteirinha?: string;
-  validade_carteirinha?: string;
-  plano?: string;
-  data_inicio_atendimento?: string;
-  status: 'ativo' | 'inativo' | 'pendente' | 'suspenso';
-  observacoes?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-const mockAdministrativo: Administrativo = {
-  id: '1',
-  paciente_id: '1',
-  convenio: 'Unimed',
-  numero_carteirinha: '0123456789',
-  validade_carteirinha: '2025-12-31',
-  plano: 'Nacional Plus',
-  data_inicio_atendimento: '2024-01-15',
-  status: 'ativo',
-  observacoes: 'Paciente com autorização para home care integral.',
-  created_at: '2024-01-10T10:00:00Z',
-  updated_at: '2024-06-15T14:30:00Z',
-};
 
 const patientTabs: { value: PatientTab; label: string }[] = [
   { value: 'dados-pessoais', label: 'Dados pessoais' },
   { value: 'endereco-logistica', label: 'Endereço & logística' },
   { value: 'rede-apoio', label: 'Rede de apoio' },
-  { value: 'administrativo', label: 'Administrativo' },
-  { value: 'financeiro', label: 'Financeiro' },
+  { value: 'administrativo', label: 'Admin & Financeiro' },
   { value: 'clinico', label: 'Clínico' },
   { value: 'documentos', label: 'Documentos (GED)' },
   { value: 'historico', label: 'Histórico & Auditoria' },
@@ -350,9 +345,11 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const dadosPessoaisRef = useRef<DadosPessoaisTabHandle | null>(null);
   const enderecoLogisticaRef = useRef<EnderecoLogisticaTabHandle | null>(null);
   const redeApoioRef = useRef<RedeApoioTabHandle | null>(null);
+  const adminFinancialRef = useRef<AdminFinancialTabHandle | null>(null);
   const [dadosPessoaisUi, setDadosPessoaisUi] = useState({ isEditing: false, isSaving: false });
   const [enderecoLogisticaUi, setEnderecoLogisticaUi] = useState({ isEditing: false, isSaving: false });
   const [redeApoioUi, setRedeApoioUi] = useState({ isEditing: false, isSaving: false });
+  const [adminFinancialUi, setAdminFinancialUi] = useState({ isEditing: false, isSaving: false });
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedTab, setSelectedTab] = useState<PatientTab>('dados-pessoais');
@@ -361,8 +358,13 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const [patientError, setPatientError] = useState<string | null>(null);
   const [addressSummary, setAddressSummary] = useState<{ city?: string | null; state?: string | null } | null>(null);
   const [legalGuardianSummary, setLegalGuardianSummary] = useState<{ name?: string | null; status: string } | null>(null);
-
-  const administrativo = mockAdministrativo;
+  const [adminFinancialSummary, setAdminFinancialSummary] = useState<{
+    contract_status?: string | null;
+    administrative_status?: string | null;
+    billing_status?: string | null;
+    checklist_complete?: boolean;
+    policy_profile_name?: string | null;
+  } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -426,8 +428,6 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
 
   const cidadeUf =
     addressSummary?.city && addressSummary?.state ? `${addressSummary.city}/${addressSummary.state}` : addressSummary?.city;
-  const responsavelLegal = legalGuardianSummary?.name ?? 'Não informado';
-
   const initials = useMemo(() => {
     const name = patient?.full_name?.trim();
     if (!name) return '—';
@@ -473,77 +473,13 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     />
   );
 
-  const renderAdministrativo = () => (
-    <div className={styles.tabGrid}>
-      <div className={styles.tabLeftCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Contrato / Convênio</div>
-          </div>
-          <div className={styles.cardBody}>
-            {renderDefinitionList([
-              { label: 'Convênio', value: administrativo.convenio },
-              { label: 'Plano', value: administrativo.plano },
-              { label: 'Carteirinha', value: administrativo.numero_carteirinha },
-              { label: 'Validade', value: administrativo.validade_carteirinha },
-              { label: 'Status', value: administrativo.status },
-              { label: 'Início atendimento', value: administrativo.data_inicio_atendimento },
-            ])}
-          </div>
-        </section>
-
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Observações administrativas</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>{administrativo.observacoes || 'Nenhuma observação registrada.'}</p>
-          </div>
-        </section>
-      </div>
-
-      <aside className={styles.tabRightCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Notas</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>Placeholder para futura implementação da aba “Administrativo”.</p>
-          </div>
-        </section>
-      </aside>
-    </div>
-  );
-
-  const renderFinanceiro = () => (
-    <div className={styles.tabGrid}>
-      <div className={styles.tabLeftCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Resumo financeiro</div>
-          </div>
-          <div className={styles.cardBody}>
-            {renderDefinitionList([
-              { label: 'Modelo de cobrança', value: 'Convênio · Coparticipação' },
-              { label: 'Pendências', value: 'Nenhuma pendência aberta' },
-              { label: 'Última fatura', value: 'Out/2025' },
-              { label: 'Responsável financeiro', value: responsavelLegal },
-            ])}
-          </div>
-        </section>
-      </div>
-
-      <aside className={styles.tabRightCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Notas</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>Placeholder para futura implementação da aba “Financeiro”.</p>
-          </div>
-        </section>
-      </aside>
-    </div>
+  const renderAdminFinancial = () => (
+    <AdminFinancialTab
+      ref={adminFinancialRef}
+      patientId={patientId}
+      onStatusChange={setAdminFinancialUi}
+      onStatusSummary={setAdminFinancialSummary}
+    />
   );
 
   const renderClinico = () => (
@@ -646,9 +582,7 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
       case 'rede-apoio':
         return renderRedeApoio();
       case 'administrativo':
-        return renderAdministrativo();
-      case 'financeiro':
-        return renderFinanceiro();
+        return renderAdminFinancial();
       case 'clinico':
         return renderClinico();
       case 'documentos':
@@ -663,14 +597,18 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const isDadosPessoaisTabSelected = selectedTab === 'dados-pessoais';
   const isEnderecoLogisticaTabSelected = selectedTab === 'endereco-logistica';
   const isRedeApoioTabSelected = selectedTab === 'rede-apoio';
-  const isEditableTabSelected = isDadosPessoaisTabSelected || isEnderecoLogisticaTabSelected || isRedeApoioTabSelected;
+  const isAdminFinancialTabSelected = selectedTab === 'administrativo';
+  const isEditableTabSelected =
+    isDadosPessoaisTabSelected || isEnderecoLogisticaTabSelected || isRedeApoioTabSelected || isAdminFinancialTabSelected;
   const activeTabUi = isDadosPessoaisTabSelected
     ? dadosPessoaisUi
     : isEnderecoLogisticaTabSelected
       ? enderecoLogisticaUi
       : isRedeApoioTabSelected
         ? redeApoioUi
-        : null;
+        : isAdminFinancialTabSelected
+          ? adminFinancialUi
+          : null;
   const isEditingActiveTab = Boolean(activeTabUi?.isEditing);
   const isSavingActiveTab = Boolean(activeTabUi?.isSaving);
 
@@ -685,6 +623,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
     if (isRedeApoioTabSelected) {
       redeApoioRef.current?.save();
+      return;
+    }
+    if (isAdminFinancialTabSelected) {
+      adminFinancialRef.current?.save();
     }
   };
 
@@ -699,6 +641,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
     if (isRedeApoioTabSelected) {
       redeApoioRef.current?.startEdit();
+      return;
+    }
+    if (isAdminFinancialTabSelected) {
+      adminFinancialRef.current?.startEdit();
     }
   };
 
@@ -713,6 +659,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
     if (isRedeApoioTabSelected) {
       redeApoioRef.current?.cancelEdit();
+      return;
+    }
+    if (isAdminFinancialTabSelected) {
+      adminFinancialRef.current?.cancelEdit();
     }
   };
 
@@ -727,6 +677,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     }
     if (isRedeApoioTabSelected) {
       redeApoioRef.current?.reload();
+      return;
+    }
+    if (isAdminFinancialTabSelected) {
+      adminFinancialRef.current?.reload();
     }
   };
 
@@ -819,11 +773,32 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
               </div>
             </div>
             <div className={styles.meta}>
-              <div className={styles.metaKey}>Convênio</div>
-              <div className={styles.metaValue}>{administrativo.convenio || '—'}</div>
+              <div className={styles.metaKey}>Política</div>
+              <div className={styles.metaValue}>{adminFinancialSummary?.policy_profile_name ?? '—'}</div>
             </div>
           </div>
         </section>
+
+        {adminFinancialSummary && (
+          <div className={styles.statusPanel}>
+            <div className={styles.statusPill}>
+              <span className={styles.statusLabel}>Contrato</span>
+              <span>{adminFinancialSummary.contract_status ?? '—'}</span>
+            </div>
+            <div className={styles.statusPill}>
+              <span className={styles.statusLabel}>Admin</span>
+              <span>{adminFinancialSummary.administrative_status ?? '—'}</span>
+            </div>
+            <div className={styles.statusPill}>
+              <span className={styles.statusLabel}>Faturamento</span>
+              <span>{adminFinancialSummary.billing_status ?? '—'}</span>
+            </div>
+            <div className={styles.statusPill}>
+              <span className={styles.statusLabel}>Checklist</span>
+              <span>{adminFinancialSummary.checklist_complete ? 'Completo' : 'Pendente'}</span>
+            </div>
+          </div>
+        )}
 
         <nav className={styles.tabs}>
           {patientTabs.map((tab) => (
