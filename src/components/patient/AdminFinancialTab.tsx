@@ -677,7 +677,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
             </div>
           </section>
 
-          <section className={styles.card}>
+          <section className={`${styles.card} ${styles.cardSpan}`}>
             <div className={styles.cardHeader}>
               <div className={styles.cardTitle}>Configuracao de faturamento</div>
             </div>
@@ -744,62 +744,6 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
             </div>
           </section>
 
-          <section className={`${styles.card} ${styles.cardSpan}`}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Checklist de implantacao</div>
-            </div>
-            <div className={styles.cardBody}>
-              <div className={styles.checklistList}>
-                {checklistItemCodeOptions.map((code) => {
-                  const item = checklistDraft.find((entry) => entry.item_code === code);
-                  const isCompleted = Boolean(item?.is_completed);
-                  return (
-                    <div key={code} className={styles.checklistItem}>
-                      <div>
-                        <strong>{checklistLabels[code]}</strong>
-                        <div className={styles.checklistMeta}>
-                          {item?.completed_at ? `Concluido em ${item.completed_at}` : 'Nao concluido'}
-                        </div>
-                      </div>
-                      {isEditing ? (
-                        <Checkbox
-                          checked={isCompleted}
-                          onChange={(event) => {
-                            const checked = event.target.checked;
-                            setChecklistDraft((prev) => {
-                              const next = [...prev];
-                              const idx = next.findIndex((entry) => entry.item_code === code);
-                              if (idx >= 0) {
-                                next[idx] = {
-                                  ...next[idx],
-                                  is_completed: checked,
-                                  completed_at: checked ? new Date().toISOString() : null,
-                                };
-                              } else {
-                                next.push({
-                                  item_code: code,
-                                  is_completed: checked,
-                                  completed_at: checked ? new Date().toISOString() : null,
-                                });
-                              }
-                              return next;
-                            });
-                          }}
-                        />
-                      ) : (
-                        <Badge appearance="outline" color={isCompleted ? 'success' : 'subtle'}>
-                          {isCompleted ? 'Concluido' : 'Pendente'}
-                        </Badge>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-              <div className={styles.formGridFull} style={{ marginTop: '12px' }}>
-                {fieldTextarea('checklist_notes', 'Observacoes do checklist')}
-              </div>
-            </div>
-          </section>
         </div>
 
         <aside className={styles.rightCol}>
@@ -1043,6 +987,63 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                   )}
                 </div>
               )}
+            </div>
+          </section>
+
+          <section className={styles.card}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>Checklist de implantacao</div>
+            </div>
+            <div className={styles.cardBody}>
+              <div className={styles.checklistList}>
+                {checklistItemCodeOptions.map((code) => {
+                  const item = checklistDraft.find((entry) => entry.item_code === code);
+                  const isCompleted = Boolean(item?.is_completed);
+                  return (
+                    <div key={code} className={styles.checklistItem}>
+                      <div>
+                        <strong>{checklistLabels[code]}</strong>
+                        <div className={styles.checklistMeta}>
+                          {item?.completed_at ? `Concluido em ${item.completed_at}` : 'Nao concluido'}
+                        </div>
+                      </div>
+                      {isEditing ? (
+                        <Checkbox
+                          checked={isCompleted}
+                          onChange={(event) => {
+                            const checked = event.target.checked;
+                            setChecklistDraft((prev) => {
+                              const next = [...prev];
+                              const idx = next.findIndex((entry) => entry.item_code === code);
+                              if (idx >= 0) {
+                                next[idx] = {
+                                  ...next[idx],
+                                  is_completed: checked,
+                                  completed_at: checked ? new Date().toISOString() : null,
+                                };
+                              } else {
+                                next.push({
+                                  item_code: code,
+                                  is_completed: checked,
+                                  completed_at: checked ? new Date().toISOString() : null,
+                                });
+                              }
+                              return next;
+                            });
+                          }}
+                        />
+                      ) : (
+                        <Badge appearance="outline" color={isCompleted ? 'success' : 'subtle'}>
+                          {isCompleted ? 'Concluido' : 'Pendente'}
+                        </Badge>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className={styles.formGridFull} style={{ marginTop: '12px' }}>
+                {fieldTextarea('checklist_notes', 'Observacoes do checklist')}
+              </div>
             </div>
           </section>
 
