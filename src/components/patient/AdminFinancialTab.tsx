@@ -917,6 +917,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                   <Field label="Titulo do contrato">
                     <Input
                       value={signatureTitle}
+                      placeholder="Ex.: Contrato de atendimento"
                       onChange={(event) => setSignatureTitle(event.target.value)}
                       disabled={integrationDisabled}
                     />
@@ -924,6 +925,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                   <Field label="Provider assinatura (opcional)">
                     <Input
                       value={signatureProvider}
+                      placeholder="Ex.: docusign, clicksign, manual"
                       onChange={(event) => setSignatureProvider(event.target.value)}
                       disabled={integrationDisabled}
                     />
@@ -934,7 +936,13 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                     Enviar para assinatura
                   </Button>
                 </div>
-                <p className={styles.muted}>Provider em branco usa fallback manual.</p>
+                <p className={styles.muted}>
+                  Informe um titulo claro do documento. O provider indica o serviço externo; se vazio, usa modo manual
+                  (apenas registra no sistema).
+                </p>
+                <p className={styles.muted}>
+                  O botao cria um documento interno e registra um evento de timeline indicando envio para assinatura.
+                </p>
               </div>
 
               <div className={styles.integrationDivider}>
@@ -966,6 +974,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                     <Field label="Provider ingestao (opcional)">
                       <Input
                         value={ingestionProvider}
+                        placeholder="Ex.: ocr, manual"
                         onChange={(event) => setIngestionProvider(event.target.value)}
                         disabled={integrationDisabled}
                       />
@@ -976,7 +985,12 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                       Solicitar ingestao
                     </Button>
                   </div>
-                  <p className={styles.muted}>Registra evento e vincula documento ao checklist.</p>
+                  <p className={styles.muted}>
+                    Escolha o item do checklist que sera vinculado ao documento e um titulo descritivo.
+                  </p>
+                  <p className={styles.muted}>
+                    O botao cria/atualiza o item, registra o documento e grava um evento de ingestao na timeline.
+                  </p>
                 </div>
               </div>
 
@@ -986,6 +1000,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                     <Field label="Provider billing/ERP (opcional)">
                       <Input
                         value={billingProvider}
+                        placeholder="Ex.: totvs, senior, manual"
                         onChange={(event) => setBillingProvider(event.target.value)}
                         disabled={integrationDisabled}
                       />
@@ -993,6 +1008,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                     <Field label="Referencia">
                       <Input
                         value={billingReference}
+                        placeholder="Ex.: FAT-2025-001"
                         onChange={(event) => setBillingReference(event.target.value)}
                         disabled={integrationDisabled}
                       />
@@ -1018,6 +1034,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                     <Field label="Observacoes">
                       <Textarea
                         value={billingNote}
+                        placeholder="Descreva o contexto do envio/reconciliacao"
                         onChange={(event) => setBillingNote(event.target.value)}
                         disabled={integrationDisabled}
                       />
@@ -1031,7 +1048,12 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                       Solicitar reconciliacao
                     </Button>
                   </div>
-                  <p className={styles.muted}>Eventos de export/reconcile sao gravados na timeline.</p>
+                  <p className={styles.muted}>
+                    Use referencia e periodo para identificar a janela de faturamento a ser exportada ou reconciliada.
+                  </p>
+                  <p className={styles.muted}>
+                    Os botoes registram eventos de exportacao/reconciliacao na timeline, sem integracao real.
+                  </p>
                 </div>
               </div>
             </div>

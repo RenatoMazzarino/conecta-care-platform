@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { makeStyles, tokens, Spinner } from '@fluentui/react-components';
 import {
@@ -17,7 +17,9 @@ import { EnderecoLogisticaTab, type EnderecoLogisticaTabHandle } from '@/compone
 import { RedeApoioTab, type RedeApoioTabHandle } from '@/components/patient/RedeApoioTab';
 import { AdminFinancialTab, type AdminFinancialTabHandle } from '@/components/patient/AdminFinancialTab';
 import { getPatientById, type PatientRow } from '@/features/pacientes/actions/getPatientById';
+import { getPatientTimelineEvents } from '@/features/pacientes/actions/getPatientTimelineEvents';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import type { Database } from '@/types/supabase';
 
 const isDevBypassEnabled =
   process.env.NODE_ENV === 'development' && Boolean(process.env.NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN);
@@ -293,9 +295,40 @@ const useStyles = makeStyles({
     color: tokens.colorNeutralForeground3,
     fontSize: '12px',
   },
+  timelineList: {
+    display: 'grid',
+    gap: '12px',
+  },
+  timelineItem: {
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    paddingBottom: '12px',
+  },
+  timelineHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    gap: '12px',
+  },
+  timelineTitle: {
+    fontWeight: 700,
+    fontSize: '13px',
+    margin: 0,
+  },
+  timelineMeta: {
+    fontSize: '11px',
+    color: tokens.colorNeutralForeground3,
+  },
+  timelinePayload: {
+    fontSize: '11px',
+    color: tokens.colorNeutralForeground3,
+    marginTop: '6px',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
 });
 
 type PatientTab =
+  | 'visao-geral'
   | 'dados-pessoais'
   | 'endereco-logistica'
   | 'rede-apoio'
@@ -305,6 +338,7 @@ type PatientTab =
   | 'historico';
 
 const patientTabs: { value: PatientTab; label: string }[] = [
+  { value: 'visao-geral', label: 'Visão geral' },
   { value: 'dados-pessoais', label: 'Dados pessoais' },
   { value: 'endereco-logistica', label: 'Endereço & logística' },
   { value: 'rede-apoio', label: 'Rede de apoio' },
@@ -317,6 +351,8 @@ const patientTabs: { value: PatientTab; label: string }[] = [
 interface PatientPageClientProps {
   patientId: string;
 }
+
+type TimelineEventRow = Database['public']['Tables']['patient_timeline_events']['Row'];
 
 function getStatusColor(recordStatus?: string | null, isActive?: boolean | null) {
   if (!recordStatus) {
@@ -352,10 +388,13 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
   const [adminFinancialUi, setAdminFinancialUi] = useState({ isEditing: false, isSaving: false });
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<PatientTab>('dados-pessoais');
+  const [selectedTab, setSelectedTab] = useState<PatientTab>('visao-geral');
   const [patient, setPatient] = useState<PatientRow | null>(null);
   const [patientLoading, setPatientLoading] = useState(false);
   const [patientError, setPatientError] = useState<string | null>(null);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEventRow[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [timelineError, setTimelineError] = useState<string | null>(null);
   const [addressSummary, setAddressSummary] = useState<{ city?: string | null; state?: string | null } | null>(null);
   const [legalGuardianSummary, setLegalGuardianSummary] = useState<{ name?: string | null; status: string } | null>(null);
   const [adminFinancialSummary, setAdminFinancialSummary] = useState<{
@@ -425,6 +464,27 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
       cancelled = true;
     };
   }, [authChecked, isAuthenticated, patientId]);
+
+  const loadTimeline = useCallback(() => {
+    setTimelineLoading(true);
+    setTimelineError(null);
+    getPatientTimelineEvents(patientId)
+      .then((events) => {
+        setTimelineEvents(events as TimelineEventRow[]);
+      })
+      .catch((error) => {
+        setTimelineError(error instanceof Error ? error.message : 'Falha ao carregar timeline');
+      })
+      .finally(() => {
+        setTimelineLoading(false);
+      });
+  }, [patientId]);
+
+  useEffect(() => {
+    if (!authChecked || !isAuthenticated) return;
+    if (selectedTab !== 'visao-geral') return;
+    void loadTimeline();
+  }, [authChecked, isAuthenticated, loadTimeline, selectedTab]);
 
   const cidadeUf =
     addressSummary?.city && addressSummary?.state ? `${addressSummary.city}/${addressSummary.state}` : addressSummary?.city;
@@ -540,6 +600,69 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     </div>
   );
 
+  const renderTimelinePayload = (payload: unknown) => {
+    if (!payload) return null;
+    const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+    const trimmed = text.length > 400 ? `${text.slice(0, 400)}…` : text;
+    return <pre className={styles.timelinePayload}>{trimmed}</pre>;
+  };
+
+  const formatTimelineTime = (value?: string | null) => {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString('pt-BR');
+  };
+
+  const renderVisaoGeral = () => (
+    <div className={styles.tabGrid}>
+      <div className={styles.tabLeftCol}>
+        <section className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div className={styles.cardTitle}>Timeline</div>
+            <button className={styles.cmd} type="button" onClick={loadTimeline} disabled={timelineLoading}>
+              <ArrowClockwiseRegular />
+              Recarregar
+            </button>
+          </div>
+          <div className={styles.cardBody}>
+            {timelineLoading && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Spinner size="extra-tiny" />
+                <span className={styles.muted}>Carregando timeline...</span>
+              </div>
+            )}
+            {timelineError && <p className={styles.muted}>{timelineError}</p>}
+            {!timelineLoading && !timelineError && timelineEvents.length === 0 && (
+              <p className={styles.muted}>Nenhum evento registrado ainda.</p>
+            )}
+            {!timelineLoading && !timelineError && timelineEvents.length > 0 && (
+              <div className={styles.timelineList}>
+                {timelineEvents.map((event) => {
+                  const eventTime = event.event_time ?? event.created_at;
+                  const title = event.title ?? event.event_type ?? 'Evento';
+                  return (
+                    <div key={event.id} className={styles.timelineItem}>
+                      <div className={styles.timelineHeader}>
+                        <p className={styles.timelineTitle}>{title}</p>
+                        <span className={styles.timelineMeta}>{formatTimelineTime(eventTime)}</span>
+                      </div>
+                      <div className={styles.timelineMeta}>
+                        {event.event_category ?? 'geral'} · {event.event_type ?? 'evento'}
+                      </div>
+                      {event.description && <p className={styles.muted}>{event.description}</p>}
+                      {renderTimelinePayload(event.payload)}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
+
   const renderHistorico = () => (
     <div className={styles.tabGrid}>
       <div className={styles.tabLeftCol}>
@@ -568,6 +691,8 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
 
   const renderTabContent = () => {
     switch (selectedTab) {
+      case 'visao-geral':
+        return renderVisaoGeral();
       case 'dados-pessoais':
         return (
           <DadosPessoaisTab

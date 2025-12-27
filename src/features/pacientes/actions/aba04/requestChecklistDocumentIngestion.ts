@@ -25,6 +25,26 @@ function buildExternalPath(provider: string, ingestionId: string) {
   return `external://${provider}/${ingestionId}`;
 }
 
+function resolveChecklistCategory(itemCode: string) {
+  switch (itemCode) {
+    case 'CONTRACT':
+    case 'CONSENT':
+    case 'LEGAL_DOCS':
+    case 'LEGAL_GUARDIAN_DOCS':
+    case 'JUDICIAL':
+      return 'legal';
+    case 'FINANCIAL_DOCS':
+    case 'FINANCIAL_RESPONSIBLE_DOCS':
+      return 'financial';
+    case 'MEDICAL_REPORT':
+      return 'clinical';
+    case 'ADDRESS_PROOF':
+      return 'identity';
+    default:
+      return 'other';
+  }
+}
+
 export async function requestChecklistDocumentIngestion(patientId: string, payload: ChecklistDocumentIngestionInput) {
   const parsedPatientId = patientIdSchema.safeParse(patientId);
   if (!parsedPatientId.success) {
@@ -71,7 +91,7 @@ export async function requestChecklistDocumentIngestion(patientId: string, paylo
   if (!documentId) {
     const fileName = buildFileName(parsed.title);
     const filePath = buildExternalPath(ingestion.provider, ingestion.ingestion_id);
-    const category = parsed.category ?? 'checklist';
+    const category = parsed.category ?? resolveChecklistCategory(parsed.item_code);
 
     const { data: created, error: documentError } = await supabase
       .from('patient_documents')
