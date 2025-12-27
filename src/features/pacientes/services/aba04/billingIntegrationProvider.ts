@@ -37,6 +37,7 @@ function buildOperationId() {
 const fallbackProvider: BillingIntegrationProvider = {
   name: 'manual',
   async sendExport(payload) {
+    void payload;
     return {
       provider: payload.provider ?? 'manual',
       export_id: buildOperationId(),
@@ -45,6 +46,7 @@ const fallbackProvider: BillingIntegrationProvider = {
     };
   },
   async reconcileStatus(payload) {
+    void payload;
     return {
       provider: payload.provider ?? 'manual',
       reconciliation_id: payload.reference ?? buildOperationId(),
@@ -62,6 +64,7 @@ export function resolveBillingIntegrationProvider(provider?: string | null): Bil
   return {
     name: provider,
     async sendExport(payload) {
+      void payload;
       return {
         provider,
         export_id: buildOperationId(),
@@ -70,6 +73,7 @@ export function resolveBillingIntegrationProvider(provider?: string | null): Bil
       };
     },
     async reconcileStatus(payload) {
+      void payload;
       return {
         provider,
         reconciliation_id: payload.reference ?? buildOperationId(),
