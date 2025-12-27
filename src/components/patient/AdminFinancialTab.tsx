@@ -32,6 +32,7 @@ import { updateFinancialProfile } from '@/features/pacientes/actions/aba04/updat
 import { updateOnboardingChecklist } from '@/features/pacientes/actions/aba04/updateOnboardingChecklist';
 import { upsertBillingEntity } from '@/features/pacientes/actions/aba04/upsertBillingEntity';
 import { setPrimaryPayerEntity } from '@/features/pacientes/actions/aba04/setPrimaryPayerEntity';
+import { getPatientTimelineEvents } from '@/features/pacientes/actions/getPatientTimelineEvents';
 import {
   adminFinancialProfileSchema,
   admissionTypeOptions,
@@ -187,9 +188,40 @@ const useStyles = makeStyles({
     marginTop: '14px',
     paddingTop: '14px',
   },
+  timelineList: {
+    display: 'grid',
+    gap: '12px',
+  },
+  timelineItem: {
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    paddingBottom: '12px',
+  },
+  timelineHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+    gap: '12px',
+  },
+  timelineTitle: {
+    fontWeight: 700,
+    fontSize: '13px',
+    margin: 0,
+  },
+  timelineMeta: {
+    fontSize: '11px',
+    color: tokens.colorNeutralForeground3,
+  },
+  timelinePayload: {
+    fontSize: '11px',
+    color: tokens.colorNeutralForeground3,
+    marginTop: '6px',
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+  },
 });
 
 type AdminFinancialProfileRow = Database['public']['Tables']['patient_admin_financial_profile']['Row'];
+type TimelineEventRow = Database['public']['Tables']['patient_timeline_events']['Row'];
 export interface AdminFinancialStatusSummary {
   contract_status?: string | null;
   administrative_status?: string | null;
@@ -338,6 +370,9 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
   const [billingPeriodEnd, setBillingPeriodEnd] = useState('');
   const [billingNote, setBillingNote] = useState('');
   const [isIntegrationBusy, setIsIntegrationBusy] = useState(false);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEventRow[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [timelineError, setTimelineError] = useState<string | null>(null);
 
   const { control, handleSubmit, reset, setError } = useForm<AdminFinancialProfileInput>({
     defaultValues: buildDefaultValues(null),
@@ -348,6 +383,27 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
   const policyProfiles = data?.policyProfiles ?? [];
   const relatedPersons = data?.relatedPersons ?? [];
   const integrationDisabled = isSaving || isIntegrationBusy;
+
+  const loadTimeline = useCallback(async () => {
+    setTimelineLoading(true);
+    setTimelineError(null);
+    try {
+      const events = await getPatientTimelineEvents(patientId);
+      const allowed = new Set([
+        'contract_sent',
+        'checklist_document_ingestion_requested',
+        'billing_export_requested',
+        'billing_reconciliation_requested',
+      ]);
+      setTimelineEvents(
+        (events as TimelineEventRow[]).filter((event) => event.event_type && allowed.has(event.event_type)),
+      );
+    } catch (error) {
+      setTimelineError(error instanceof Error ? error.message : 'Falha ao carregar timeline');
+    } finally {
+      setTimelineLoading(false);
+    }
+  }, [patientId]);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -378,6 +434,10 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  useEffect(() => {
+    void loadTimeline();
+  }, [loadTimeline]);
 
   useEffect(() => {
     onStatusChange?.({ isEditing, isSaving });
@@ -412,6 +472,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
         { intent: 'success' },
       );
       await loadData();
+      await loadTimeline();
     } catch (error) {
       dispatchToast(
         <Toast>
@@ -422,7 +483,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
     } finally {
       setIsIntegrationBusy(false);
     }
-  }, [dispatchToast, loadData, patientId, signatureProvider, signatureTitle]);
+  }, [dispatchToast, loadData, loadTimeline, patientId, signatureProvider, signatureTitle]);
 
   const handleRequestIngestion = useCallback(async () => {
     setIsIntegrationBusy(true);
@@ -455,6 +516,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
         { intent: 'success' },
       );
       await loadData();
+      await loadTimeline();
     } catch (error) {
       dispatchToast(
         <Toast>
@@ -465,7 +527,16 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
     } finally {
       setIsIntegrationBusy(false);
     }
-  }, [data?.checklist, dispatchToast, ingestionItemCode, ingestionProvider, ingestionTitle, loadData, patientId]);
+  }, [
+    data?.checklist,
+    dispatchToast,
+    ingestionItemCode,
+    ingestionProvider,
+    ingestionTitle,
+    loadData,
+    loadTimeline,
+    patientId,
+  ]);
 
   const handleBillingExport = useCallback(async () => {
     setIsIntegrationBusy(true);
@@ -484,6 +555,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
         { intent: 'success' },
       );
       await loadData();
+      await loadTimeline();
     } catch (error) {
       dispatchToast(
         <Toast>
@@ -502,6 +574,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
     billingReference,
     dispatchToast,
     loadData,
+    loadTimeline,
     patientId,
   ]);
 
@@ -520,6 +593,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
         { intent: 'success' },
       );
       await loadData();
+      await loadTimeline();
     } catch (error) {
       dispatchToast(
         <Toast>
@@ -530,7 +604,21 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
     } finally {
       setIsIntegrationBusy(false);
     }
-  }, [billingNote, billingProvider, billingReference, dispatchToast, loadData, patientId]);
+  }, [billingNote, billingProvider, billingReference, dispatchToast, loadData, loadTimeline, patientId]);
+
+  const renderTimelinePayload = (payload: unknown) => {
+    if (!payload) return null;
+    const text = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+    const trimmed = text.length > 320 ? `${text.slice(0, 320)}…` : text;
+    return <pre className={styles.timelinePayload}>{trimmed}</pre>;
+  };
+
+  const formatTimelineTime = (value?: string | null) => {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleString('pt-BR');
+  };
 
   const renderDefinitionList = useCallback(
     (items: { label: string; value?: string | number | null }[]) => (
@@ -1359,6 +1447,51 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
               <div className={styles.formGridFull} style={{ marginTop: '12px' }}>
                 {fieldTextarea('checklist_notes', 'Observacoes do checklist')}
               </div>
+            </div>
+          </section>
+
+          <section className={styles.card}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>Timeline (Integrações & IA)</div>
+              <Button appearance="subtle" icon={<ArrowClockwiseRegular />} onClick={loadTimeline} disabled={timelineLoading}>
+                Recarregar
+              </Button>
+            </div>
+            <div className={styles.cardBody}>
+              {timelineLoading && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Spinner size="extra-tiny" />
+                  <span className={styles.muted}>Carregando eventos...</span>
+                </div>
+              )}
+              {timelineError && <p className={styles.muted}>{timelineError}</p>}
+              {!timelineLoading && !timelineError && timelineEvents.length === 0 && (
+                <p className={styles.muted}>Nenhum evento das integrações ainda.</p>
+              )}
+              {!timelineLoading && !timelineError && timelineEvents.length > 0 && (
+                <div className={styles.timelineList}>
+                  {timelineEvents.map((event) => {
+                    const eventTime = event.event_time ?? event.created_at;
+                    const title = event.title ?? event.event_type ?? 'Evento';
+                    return (
+                      <div key={event.id} className={styles.timelineItem}>
+                        <div className={styles.timelineHeader}>
+                          <p className={styles.timelineTitle}>{title}</p>
+                          <span className={styles.timelineMeta}>{formatTimelineTime(eventTime)}</span>
+                        </div>
+                        <div className={styles.timelineMeta}>
+                          {event.event_category ?? 'integracao'} · {event.event_type ?? 'evento'}
+                        </div>
+                        {event.description && <p className={styles.muted}>{event.description}</p>}
+                        {renderTimelinePayload(event.payload)}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              <p className={styles.muted} style={{ marginTop: '10px' }}>
+                Termometro: mostra apenas as acoes do card “Integracoes & IA”.
+              </p>
             </div>
           </section>
 
