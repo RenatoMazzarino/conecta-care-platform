@@ -321,21 +321,6 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
   const policyProfiles = data?.policyProfiles ?? [];
   const relatedPersons = data?.relatedPersons ?? [];
 
-  const updateSummary = useCallback(
-    (profileRow: AdminFinancialProfileRow | null) => {
-      if (!onStatusSummary) return;
-      const policyName = data?.policyProfiles.find((item) => item.id === profileRow?.policy_profile_id)?.name ?? null;
-      onStatusSummary({
-        contract_status: profileRow?.contract_status ?? null,
-        administrative_status: profileRow?.administrative_status ?? null,
-        billing_status: profileRow?.billing_status ?? null,
-        checklist_complete: profileRow?.checklist_complete ?? false,
-        policy_profile_name: policyName,
-      });
-    },
-    [data?.policyProfiles, onStatusSummary],
-  );
-
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setLoadError(null);
@@ -355,13 +340,12 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
         })),
       );
       setNewPayerDraft(null);
-      updateSummary(loaded.profile);
     } catch (error) {
       setLoadError(error instanceof Error ? error.message : 'Falha ao carregar administrativo/financeiro');
     } finally {
       setIsLoading(false);
     }
-  }, [patientId, reset, updateSummary]);
+  }, [patientId, reset]);
 
   useEffect(() => {
     void loadData();
@@ -370,6 +354,19 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
   useEffect(() => {
     onStatusChange?.({ isEditing, isSaving });
   }, [isEditing, isSaving, onStatusChange]);
+
+  useEffect(() => {
+    if (!onStatusSummary) return;
+    const profileRow = data?.profile ?? null;
+    const policyName = data?.policyProfiles.find((item) => item.id === profileRow?.policy_profile_id)?.name ?? null;
+    onStatusSummary({
+      contract_status: profileRow?.contract_status ?? null,
+      administrative_status: profileRow?.administrative_status ?? null,
+      billing_status: profileRow?.billing_status ?? null,
+      checklist_complete: profileRow?.checklist_complete ?? false,
+      policy_profile_name: policyName,
+    });
+  }, [data, onStatusSummary]);
 
 
   const renderDefinitionList = useCallback(
