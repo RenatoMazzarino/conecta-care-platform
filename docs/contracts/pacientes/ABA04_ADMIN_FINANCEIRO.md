@@ -12,12 +12,14 @@ Este contrato define o modelo canonico da Aba 04 (Administrativo e Financeiro) d
 ## 2. Escopo
 
 **IN:**
+
 - Dados administrativos do paciente (status, admissao, contratos e responsaveis).
 - Dados cadastrais de faturamento e pagador.
 - Checklist administrativo e documentos associados.
 - RLS por `tenant_id`, auditoria e soft delete.
 
 **OUT:**
+
 - Lancamentos financeiros e operacoes transacionais (boletos, NF, baixas, conciliacao).
 - Regras de escala, plantao ou agenda assistencial.
 - Dados clinicos e prontuario.
@@ -28,196 +30,196 @@ Este contrato define o modelo canonico da Aba 04 (Administrativo e Financeiro) d
 
 Tabela 1:1 por paciente, consolidando informacoes administrativas e financeiras cadastrais.
 
-**Identificacao e status**
+#### Identificacao e status
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `patient_id` | `UUID` | SIM |  | FK para `patients.id` | Chave primaria. |
-| `tenant_id` | `UUID` | SIM |  | FK para `tenants.id` | RLS obrigatorio. |
-| `administrative_status` | `TEXT` | SIM | `em_cadastro` | Enum (ver secao 5) | Status administrativo. |
-| `administrative_status_reason` | `TEXT` | NAO |  |  | Motivo de status. |
-| `administrative_status_changed_at` | `TIMESTAMPTZ` | NAO |  |  | Data da mudanca de status. |
-| `admission_type` | `TEXT` | NAO |  | Enum (ver secao 5) | Tipo de admissao. |
-| `admission_date` | `DATE` | NAO |  |  | Data de admissao. |
-| `discharge_prediction_date` | `DATE` | NAO |  |  | Previsao de alta. |
-| `discharge_date` | `DATE` | NAO |  | `>= admission_date` | Data de alta efetiva. |
-| `admission_source` | `TEXT` | NAO |  |  | Origem da admissao. |
-| `demand_origin` | `TEXT` | NAO |  |  | Origem da demanda. |
-| `demand_origin_description` | `TEXT` | NAO |  |  | Descricao da origem. |
-| `acquisition_channel` | `TEXT` | NAO |  |  | Canal de aquisicao. |
-| `service_package_name` | `TEXT` | NAO |  |  | Pacote de servico. |
-| `service_package_description` | `TEXT` | NAO |  |  | Descricao do pacote. |
-| `policy_profile_id` | `UUID` | NAO |  | FK para `care_policy_profiles.id` | Perfil de regras do paciente. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`patient_id`|`UUID`|SIM||FK para `patients.id`|Chave primaria.|
+|`tenant_id`|`UUID`|SIM||FK para `tenants.id`|RLS obrigatorio.|
+|`administrative_status`|`TEXT`|SIM|`em_cadastro`|Enum (ver secao 5)|Status administrativo.|
+|`administrative_status_reason`|`TEXT`|NAO|||Motivo de status.|
+|`administrative_status_changed_at`|`TIMESTAMPTZ`|NAO|||Data da mudanca de status.|
+|`admission_type`|`TEXT`|NAO||Enum (ver secao 5)|Tipo de admissao.|
+|`admission_date`|`DATE`|NAO|||Data de admissao.|
+|`discharge_prediction_date`|`DATE`|NAO|||Previsao de alta.|
+|`discharge_date`|`DATE`|NAO||`>= admission_date`|Data de alta efetiva.|
+|`admission_source`|`TEXT`|NAO|||Origem da admissao.|
+|`demand_origin`|`TEXT`|NAO|||Origem da demanda.|
+|`demand_origin_description`|`TEXT`|NAO|||Descricao da origem.|
+|`acquisition_channel`|`TEXT`|NAO|||Canal de aquisicao.|
+|`service_package_name`|`TEXT`|NAO|||Pacote de servico.|
+|`service_package_description`|`TEXT`|NAO|||Descricao do pacote.|
+|`policy_profile_id`|`UUID`|NAO||FK para `care_policy_profiles.id`|Perfil de regras do paciente.|
 
-**Contrato e identificadores**
+#### Contrato e identificadores
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `contract_id` | `TEXT` | NAO |  |  | Identificador do contrato. |
-| `external_contract_id` | `TEXT` | NAO |  |  | Identificador externo/ERP. |
-| `contract_start_date` | `DATE` | NAO |  |  | Inicio do contrato. |
-| `contract_end_date` | `DATE` | NAO |  | `>= contract_start_date` | Fim do contrato. |
-| `contract_status` | `TEXT` | NAO |  | Enum (ver secao 5) | Status do contrato. |
-| `contract_status_reason` | `TEXT` | NAO |  |  | Motivo do status do contrato. |
-| `contract_category` | `TEXT` | NAO |  | Enum (ver secao 5) | Categoria do contrato. |
-| `renewal_type` | `TEXT` | NAO |  | Enum (ver secao 5) | Tipo de renovacao. |
-| `authorization_number` | `TEXT` | NAO |  |  | Numero de autorizacao. |
-| `judicial_case_number` | `TEXT` | NAO |  |  | Numero do processo judicial. |
-| `official_letter_number` | `TEXT` | NAO |  |  | Numero de oficio. |
-| `cost_center_id` | `TEXT` | NAO |  |  | Centro de custo. |
-| `erp_case_code` | `TEXT` | NAO |  |  | Codigo do caso no ERP. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`contract_id`|`TEXT`|NAO|||Identificador do contrato.|
+|`external_contract_id`|`TEXT`|NAO|||Identificador externo/ERP.|
+|`contract_start_date`|`DATE`|NAO|||Inicio do contrato.|
+|`contract_end_date`|`DATE`|NAO||`>= contract_start_date`|Fim do contrato.|
+|`contract_status`|`TEXT`|NAO||Enum (ver secao 5)|Status do contrato.|
+|`contract_status_reason`|`TEXT`|NAO|||Motivo do status do contrato.|
+|`contract_category`|`TEXT`|NAO||Enum (ver secao 5)|Categoria do contrato.|
+|`renewal_type`|`TEXT`|NAO||Enum (ver secao 5)|Tipo de renovacao.|
+|`authorization_number`|`TEXT`|NAO|||Numero de autorizacao.|
+|`judicial_case_number`|`TEXT`|NAO|||Numero do processo judicial.|
+|`official_letter_number`|`TEXT`|NAO|||Numero de oficio.|
+|`cost_center_id`|`TEXT`|NAO|||Centro de custo.|
+|`erp_case_code`|`TEXT`|NAO|||Codigo do caso no ERP.|
 
-**Responsaveis e pagador**
+#### Responsaveis e pagador
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `commercial_responsible_id` | `UUID` | NAO |  | FK para `auth.users.id` | Responsavel comercial (display via `user_profiles`). |
-| `contract_manager_id` | `UUID` | NAO |  | FK para `auth.users.id` | Gestor do contrato (display via `user_profiles`). |
-| `payer_admin_contact_id` | `UUID` | NAO |  | FK para `patient_related_persons.id` | Contato administrativo do pagador. |
-| `payer_admin_contact_description` | `TEXT` | NAO |  |  | Observacao do contato. |
-| `primary_payer_entity_id` | `UUID` | NAO |  | FK para `billing_entities.id` | Entidade pagadora canonica. |
-| `primary_payer_related_person_id` | `UUID` | NAO |  | FK para `patient_related_persons.id` | Pagador PF vinculado ao paciente. |
-| `payer_relation` | `TEXT` | NAO |  |  | Relacao do pagador com o paciente. |
-| `financial_responsible_name` | `TEXT` | NAO |  |  | Nome do responsavel financeiro. |
-| `financial_responsible_contact` | `TEXT` | NAO |  |  | Contato do responsavel financeiro. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`commercial_responsible_id`|`UUID`|NAO||FK para `auth.users.id`|Responsavel comercial (display via `user_profiles`).|
+|`contract_manager_id`|`UUID`|NAO||FK para `auth.users.id`|Gestor do contrato (display via `user_profiles`).|
+|`payer_admin_contact_id`|`UUID`|NAO||FK para `patient_related_persons.id`|Contato administrativo do pagador.|
+|`payer_admin_contact_description`|`TEXT`|NAO|||Observacao do contato.|
+|`primary_payer_entity_id`|`UUID`|NAO||FK para `billing_entities.id`|Entidade pagadora canonica.|
+|`primary_payer_related_person_id`|`UUID`|NAO||FK para `patient_related_persons.id`|Pagador PF vinculado ao paciente.|
+|`payer_relation`|`TEXT`|NAO|||Relacao do pagador com o paciente.|
+|`financial_responsible_name`|`TEXT`|NAO|||Nome do responsavel financeiro.|
+|`financial_responsible_contact`|`TEXT`|NAO|||Contato do responsavel financeiro.|
 
-**Financeiro e faturamento**
+#### Financeiro e faturamento
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `bond_type` | `TEXT` | NAO |  | Enum (ver secao 5) | Tipo de vinculo. |
-| `insurer_name` | `TEXT` | NAO |  |  | Operadora. |
-| `plan_name` | `TEXT` | NAO |  |  | Plano. |
-| `insurance_card_number` | `TEXT` | NAO |  |  | Numero da carteirinha. |
-| `insurance_card_validity` | `DATE` | NAO |  |  | Validade da carteirinha. |
-| `monthly_fee` | `NUMERIC(10,2)` | NAO | `0` |  | Mensalidade. |
-| `billing_due_day` | `INTEGER` | NAO |  | `1..31` | Dia de vencimento. |
-| `billing_status` | `TEXT` | NAO | `active` | Enum (ver secao 5) | Status de cobranca. |
-| `payment_method` | `TEXT` | NAO |  | Enum (ver secao 5) | Forma de pagamento. |
-| `billing_model` | `TEXT` | NAO |  | Enum (ver secao 5) | Modelo de cobranca. |
-| `billing_base_value` | `NUMERIC` | NAO |  |  | Valor base. |
-| `billing_periodicity` | `TEXT` | NAO |  |  | Periodicidade. |
-| `payment_terms` | `TEXT` | NAO |  |  | Condicoes de pagamento. |
-| `grace_period_days` | `INTEGER` | NAO | `0` |  | Dias de carencia. |
-| `copay_percent` | `NUMERIC` | NAO |  |  | Percentual de coparticipacao. |
-| `readjustment_index` | `TEXT` | NAO |  |  | Indice de reajuste. |
-| `readjustment_month` | `INTEGER` | NAO |  |  | Mes de reajuste. |
-| `late_fee_percent` | `NUMERIC` | NAO | `0` |  | Multa por atraso. |
-| `daily_interest_percent` | `NUMERIC` | NAO | `0` |  | Juros diarios. |
-| `discount_early_payment` | `NUMERIC` | NAO | `0` |  | Desconto por pagamento antecipado. |
-| `discount_days_limit` | `INTEGER` | NAO |  |  | Limite de dias para desconto. |
-| `card_holder_name` | `TEXT` | NAO |  |  | Nome do titular do cartao. |
-| `invoice_delivery_method` | `TEXT` | NAO |  | Enum (ver secao 5) | Metodo de envio. |
-| `receiving_account_info` | `TEXT` | NAO |  |  | Conta de recebimento. |
-| `financial_notes` | `TEXT` | NAO |  |  | Observacoes financeiras. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`bond_type`|`TEXT`|NAO||Enum (ver secao 5)|Tipo de vinculo.|
+|`insurer_name`|`TEXT`|NAO|||Operadora.|
+|`plan_name`|`TEXT`|NAO|||Plano.|
+|`insurance_card_number`|`TEXT`|NAO|||Numero da carteirinha.|
+|`insurance_card_validity`|`DATE`|NAO|||Validade da carteirinha.|
+|`monthly_fee`|`NUMERIC(10,2)`|NAO|`0`||Mensalidade.|
+|`billing_due_day`|`INTEGER`|NAO||`1..31`|Dia de vencimento.|
+|`billing_status`|`TEXT`|NAO|`active`|Enum (ver secao 5)|Status de cobranca.|
+|`payment_method`|`TEXT`|NAO||Enum (ver secao 5)|Forma de pagamento.|
+|`billing_model`|`TEXT`|NAO||Enum (ver secao 5)|Modelo de cobranca.|
+|`billing_base_value`|`NUMERIC`|NAO|||Valor base.|
+|`billing_periodicity`|`TEXT`|NAO|||Periodicidade.|
+|`payment_terms`|`TEXT`|NAO|||Condicoes de pagamento.|
+|`grace_period_days`|`INTEGER`|NAO|`0`||Dias de carencia.|
+|`copay_percent`|`NUMERIC`|NAO|||Percentual de coparticipacao.|
+|`readjustment_index`|`TEXT`|NAO|||Indice de reajuste.|
+|`readjustment_month`|`INTEGER`|NAO|||Mes de reajuste.|
+|`late_fee_percent`|`NUMERIC`|NAO|`0`||Multa por atraso.|
+|`daily_interest_percent`|`NUMERIC`|NAO|`0`||Juros diarios.|
+|`discount_early_payment`|`NUMERIC`|NAO|`0`||Desconto por pagamento antecipado.|
+|`discount_days_limit`|`INTEGER`|NAO|||Limite de dias para desconto.|
+|`card_holder_name`|`TEXT`|NAO|||Nome do titular do cartao.|
+|`invoice_delivery_method`|`TEXT`|NAO||Enum (ver secao 5)|Metodo de envio.|
+|`receiving_account_info`|`TEXT`|NAO|||Conta de recebimento.|
+|`financial_notes`|`TEXT`|NAO|||Observacoes financeiras.|
 
-**Checklist e notas**
+#### Checklist e notas
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `checklist_complete` | `BOOLEAN` | NAO | `false` |  | Conclusao do checklist. |
-| `checklist_notes` | `TEXT` | NAO |  |  | Observacoes do checklist. |
-| `admin_notes` | `TEXT` | NAO |  |  | Observacoes administrativas. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`checklist_complete`|`BOOLEAN`|NAO|`false`||Conclusao do checklist.|
+|`checklist_notes`|`TEXT`|NAO|||Observacoes do checklist.|
+|`admin_notes`|`TEXT`|NAO|||Observacoes administrativas.|
 
-**Auditoria e soft delete**
+#### Auditoria e soft delete
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `created_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Criacao do registro. |
-| `updated_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Ultima atualizacao. |
-| `created_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da criacao. |
-| `updated_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da atualizacao. |
-| `deleted_at` | `TIMESTAMPTZ` | NAO |  |  | Soft delete. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`created_at`|`TIMESTAMPTZ`|SIM|`now()`||Criacao do registro.|
+|`updated_at`|`TIMESTAMPTZ`|SIM|`now()`||Ultima atualizacao.|
+|`created_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da criacao.|
+|`updated_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da atualizacao.|
+|`deleted_at`|`TIMESTAMPTZ`|NAO|||Soft delete.|
 
 ### 3.2 `public.billing_entities`
 
 Entidade pagadora canonica, tenant-scoped e reutilizavel entre pacientes (master data).
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `UUID` | SIM | `gen_random_uuid()` |  | Chave primaria. |
-| `tenant_id` | `UUID` | SIM |  | FK para `tenants.id` | RLS obrigatorio. |
-| `kind` | `TEXT` | SIM |  | Enum (ver secao 5) | Tipo de entidade pagadora. |
-| `name` | `TEXT` | SIM |  |  | Nome de exibicao. |
-| `legal_name` | `TEXT` | NAO |  |  | Razao social quando aplicavel. |
-| `doc_type` | `TEXT` | NAO |  | Obrigatorio se `doc_number` estiver preenchido | Tipo de documento. |
-| `doc_number` | `TEXT` | NAO |  |  | Documento. |
-| `contact_email` | `TEXT` | NAO |  |  | Email de contato. |
-| `contact_phone` | `TEXT` | NAO |  |  | Telefone de contato. |
-| `billing_address_cep` | `TEXT` | NAO |  |  | CEP de cobranca. |
-| `billing_address_street` | `TEXT` | NAO |  |  | Rua de cobranca. |
-| `billing_address_number` | `TEXT` | NAO |  |  | Numero de cobranca. |
-| `billing_address_neighborhood` | `TEXT` | NAO |  |  | Bairro de cobranca. |
-| `billing_address_city` | `TEXT` | NAO |  |  | Cidade de cobranca. |
-| `billing_address_state` | `TEXT` | NAO |  |  | UF de cobranca. |
-| `created_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Criacao do registro. |
-| `updated_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Ultima atualizacao. |
-| `created_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da criacao. |
-| `updated_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da atualizacao. |
-| `deleted_at` | `TIMESTAMPTZ` | NAO |  |  | Soft delete. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`id`|`UUID`|SIM|`gen_random_uuid()`||Chave primaria.|
+|`tenant_id`|`UUID`|SIM||FK para `tenants.id`|RLS obrigatorio.|
+|`kind`|`TEXT`|SIM||Enum (ver secao 5)|Tipo de entidade pagadora.|
+|`name`|`TEXT`|SIM|||Nome de exibicao.|
+|`legal_name`|`TEXT`|NAO|||Razao social quando aplicavel.|
+|`doc_type`|`TEXT`|NAO||Obrigatorio se `doc_number` estiver preenchido|Tipo de documento.|
+|`doc_number`|`TEXT`|NAO|||Documento.|
+|`contact_email`|`TEXT`|NAO|||Email de contato.|
+|`contact_phone`|`TEXT`|NAO|||Telefone de contato.|
+|`billing_address_cep`|`TEXT`|NAO|||CEP de cobranca.|
+|`billing_address_street`|`TEXT`|NAO|||Rua de cobranca.|
+|`billing_address_number`|`TEXT`|NAO|||Numero de cobranca.|
+|`billing_address_neighborhood`|`TEXT`|NAO|||Bairro de cobranca.|
+|`billing_address_city`|`TEXT`|NAO|||Cidade de cobranca.|
+|`billing_address_state`|`TEXT`|NAO|||UF de cobranca.|
+|`created_at`|`TIMESTAMPTZ`|SIM|`now()`||Criacao do registro.|
+|`updated_at`|`TIMESTAMPTZ`|SIM|`now()`||Ultima atualizacao.|
+|`created_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da criacao.|
+|`updated_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da atualizacao.|
+|`deleted_at`|`TIMESTAMPTZ`|NAO|||Soft delete.|
 
 ### 3.3 `public.care_policy_profiles`
 
 Perfil de regras por tenant, usado para definir politicas operacionais e financeiras.
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `UUID` | SIM | `gen_random_uuid()` |  | Chave primaria. |
-| `tenant_id` | `UUID` | SIM |  | FK para `tenants.id` | RLS obrigatorio. |
-| `name` | `TEXT` | SIM |  |  | Nome do perfil. |
-| `description` | `TEXT` | NAO |  |  | Descricao do perfil. |
-| `rule_set` | `JSONB` | SIM |  |  | Regras de faturamento, inventario, escalas e documentos. |
-| `is_default` | `BOOLEAN` | SIM | `false` |  | Perfil default do tenant. |
-| `version` | `INTEGER` | SIM | `1` | `>= 1` | Versao incremental do perfil. |
-| `created_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Criacao do registro. |
-| `updated_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Ultima atualizacao. |
-| `created_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da criacao. |
-| `updated_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da atualizacao. |
-| `deleted_at` | `TIMESTAMPTZ` | NAO |  |  | Soft delete. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`id`|`UUID`|SIM|`gen_random_uuid()`||Chave primaria.|
+|`tenant_id`|`UUID`|SIM||FK para `tenants.id`|RLS obrigatorio.|
+|`name`|`TEXT`|SIM|||Nome do perfil.|
+|`description`|`TEXT`|NAO|||Descricao do perfil.|
+|`rule_set`|`JSONB`|SIM|||Regras de faturamento, inventario, escalas e documentos.|
+|`is_default`|`BOOLEAN`|SIM|`false`||Perfil default do tenant.|
+|`version`|`INTEGER`|SIM|`1`|`>= 1`|Versao incremental do perfil.|
+|`created_at`|`TIMESTAMPTZ`|SIM|`now()`||Criacao do registro.|
+|`updated_at`|`TIMESTAMPTZ`|SIM|`now()`||Ultima atualizacao.|
+|`created_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da criacao.|
+|`updated_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da atualizacao.|
+|`deleted_at`|`TIMESTAMPTZ`|NAO|||Soft delete.|
 
 ### 3.4 `public.patient_onboarding_checklist`
 
 Tabela para itens do checklist administrativo associados ao paciente.
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `UUID` | SIM | `gen_random_uuid()` |  | Chave primaria. |
-| `tenant_id` | `UUID` | SIM |  | FK para `tenants.id` | RLS obrigatorio. |
-| `patient_id` | `UUID` | SIM |  | FK para `patients.id` | Paciente. |
-| `item_code` | `TEXT` | SIM |  | Enum (ver secao 5) | Codigo do item. |
-| `item_description` | `TEXT` | NAO |  |  | Descricao livre do item. |
-| `is_completed` | `BOOLEAN` | SIM | `false` |  | Item concluido. |
-| `completed_at` | `TIMESTAMPTZ` | NAO |  |  | Data/hora de conclusao. |
-| `completed_by_user_id` | `UUID` | NAO |  | FK para `auth.users.id` | Usuario que concluiu. |
-| `completed_by_label` | `TEXT` | NAO |  |  | Nome livre quando nao houver usuario. |
-| `document_id` | `UUID` | NAO |  | FK para `patient_documents.id` | Documento associado. |
-| `created_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Criacao do item. |
-| `updated_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Ultima atualizacao. |
-| `created_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da criacao. |
-| `updated_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da atualizacao. |
-| `deleted_at` | `TIMESTAMPTZ` | NAO |  |  | Soft delete. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`id`|`UUID`|SIM|`gen_random_uuid()`||Chave primaria.|
+|`tenant_id`|`UUID`|SIM||FK para `tenants.id`|RLS obrigatorio.|
+|`patient_id`|`UUID`|SIM||FK para `patients.id`|Paciente.|
+|`item_code`|`TEXT`|SIM||Enum (ver secao 5)|Codigo do item.|
+|`item_description`|`TEXT`|NAO|||Descricao livre do item.|
+|`is_completed`|`BOOLEAN`|SIM|`false`||Item concluido.|
+|`completed_at`|`TIMESTAMPTZ`|NAO|||Data/hora de conclusao.|
+|`completed_by_user_id`|`UUID`|NAO||FK para `auth.users.id`|Usuario que concluiu.|
+|`completed_by_label`|`TEXT`|NAO|||Nome livre quando nao houver usuario.|
+|`document_id`|`UUID`|NAO||FK para `patient_documents.id`|Documento associado.|
+|`created_at`|`TIMESTAMPTZ`|SIM|`now()`||Criacao do item.|
+|`updated_at`|`TIMESTAMPTZ`|SIM|`now()`||Ultima atualizacao.|
+|`created_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da criacao.|
+|`updated_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da atualizacao.|
+|`deleted_at`|`TIMESTAMPTZ`|NAO|||Soft delete.|
 
 ### 3.5 `public.patient_timeline_events`
 
 Eventos de linha do tempo para status, pagador, politica e checklist (observabilidade e IA).
 
-| Coluna | Tipo | Obrigatorio | Default | Validacao | Observacoes |
-| --- | --- | --- | --- | --- | --- |
-| `id` | `UUID` | SIM | `gen_random_uuid()` |  | Chave primaria. |
-| `tenant_id` | `UUID` | SIM |  | FK para `tenants.id` | RLS obrigatorio. |
-| `patient_id` | `UUID` | SIM |  | FK para `patients.id` | Paciente. |
-| `event_time` | `TIMESTAMPTZ` | SIM | `now()` |  | Momento do evento. |
-| `event_type` | `TEXT` | SIM |  |  | Tipo do evento. |
-| `event_category` | `TEXT` | NAO |  |  | Categoria funcional. |
-| `title` | `TEXT` | NAO |  |  | Titulo curto. |
-| `description` | `TEXT` | NAO |  |  | Descricao detalhada. |
-| `tone` | `TEXT` | SIM | `default` | Enum (ver secao 5) | Tom visual. |
-| `payload` | `JSONB` | NAO |  |  | Payload estruturado. |
-| `created_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Criacao do registro. |
-| `updated_at` | `TIMESTAMPTZ` | SIM | `now()` |  | Ultima atualizacao. |
-| `created_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da criacao. |
-| `updated_by` | `UUID` | SIM |  | FK para `auth.users.id` | Autor da atualizacao. |
-| `deleted_at` | `TIMESTAMPTZ` | NAO |  |  | Soft delete. |
+|Coluna|Tipo|Obrigatorio|Default|Validacao|Observacoes|
+|---|---|---|---|---|---|
+|`id`|`UUID`|SIM|`gen_random_uuid()`||Chave primaria.|
+|`tenant_id`|`UUID`|SIM||FK para `tenants.id`|RLS obrigatorio.|
+|`patient_id`|`UUID`|SIM||FK para `patients.id`|Paciente.|
+|`event_time`|`TIMESTAMPTZ`|SIM|`now()`||Momento do evento.|
+|`event_type`|`TEXT`|SIM|||Tipo do evento.|
+|`event_category`|`TEXT`|NAO|||Categoria funcional.|
+|`title`|`TEXT`|NAO|||Titulo curto.|
+|`description`|`TEXT`|NAO|||Descricao detalhada.|
+|`tone`|`TEXT`|SIM|`default`|Enum (ver secao 5)|Tom visual.|
+|`payload`|`JSONB`|NAO|||Payload estruturado.|
+|`created_at`|`TIMESTAMPTZ`|SIM|`now()`||Criacao do registro.|
+|`updated_at`|`TIMESTAMPTZ`|SIM|`now()`||Ultima atualizacao.|
+|`created_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da criacao.|
+|`updated_by`|`UUID`|SIM||FK para `auth.users.id`|Autor da atualizacao.|
+|`deleted_at`|`TIMESTAMPTZ`|NAO|||Soft delete.|
 
 ## 4. Estrutura de UI (cards)
 
@@ -290,25 +292,28 @@ Todas as tabelas da Aba 04 devem ter `deleted_at` e usar soft delete.
 
 ## 12. Integracoes & IA Entranhada (Ganchos de Produto)
 
-1) **Assinatura Digital e Protocolo**
-- Documentos de checklist devem registrar provider (ex.: docusign, clicksign), `envelope_id`, status, timestamps e signer roles.
-- Eventos esperados: `contract_sent`, `contract_signed`, `contract_voided`.
+1. **Assinatura Digital e Protocolo**
+   - Documentos de checklist registram provider (ex.: docusign, clicksign), `envelope_id`, status, timestamps e signer roles.
+   - Action canonica: `sendContractForSignature` registra documento e evento na timeline.
+   - Eventos esperados: `contract_sent`, `contract_signed`, `contract_voided`.
 
-2) **Event Log / Timeline**
-- Toda mudanca relevante (status, pagador, policy_profile, configuracao de faturamento, checklist) gera eventos em `patient_timeline_events` ou `system_audit_logs` com categoria.
-- Payload estruturado e consistente para consumo por IA e auditoria.
+1. **Policy Engine (Care Policy Profiles)**
+   - `care_policy_profiles.rule_set` e `version` sao a base para automacoes.
+   - Action canonica: `setPolicyProfile` registra alteracao e evento na timeline (`policy_profile_changed`).
 
-3) **Motor de Regras (policy profiles)**
-- `care_policy_profiles.rule_set` e a base para automacoes.
-- Regras impactam faturamento, inventario, escalas e exigencia documental.
+1. **Ingestao de Documentos do Checklist**
+   - Upload e extracao de documentos alimentam `patient_documents` e vinculam `document_id` nos itens do checklist.
+   - Action canonica: `requestChecklistDocumentIngestion` registra evento e vinculo no checklist.
+   - Eventos registrados em `patient_timeline_events` e usados no `patient_context_snapshot`.
 
-4) **Integracao com Operadoras/Planos e SUS**
-- `billing_entities.kind = insurer/public` suportam identificadores, registros e tabelas de regras especificas.
-- Planejar adapters/endpoints de sincronizacao (documentacao de interface apenas).
+1. **Integracao Billing/ERP**
+   - Interface de provider para exportacao e reconciliacao de cobranca (sem SDK).
+   - Actions canonicas: `sendBillingExport` e `reconcileBillingStatus` registram eventos na timeline.
+   - Eventos de export/reconcile registrados na timeline.
 
-5) **Camada IA**
-- `patient_context_snapshot` (derivado) consolida `policy_profile`, eventos, status, checklist e pagador.
-- Uso de IA deve manter auditoria e rastreabilidade operacional.
+1. **Observabilidade & IA**
+   - `patient_timeline_events` + `patient_context_snapshot` (derivado) sustentam auditoria e copiloto interno.
+   - Toda automacao exige rastreabilidade e explainability operacional.
 
 ## 13. Mapa do legado
 
@@ -318,11 +323,13 @@ Mapa completo de inventario e decisoes KEEP/MOVE/DROP:
 ## 14. DoD (Definition of Done)
 
 ### DoD Documental
+
 - [ ] Contrato atualizado e aprovado.
 - [ ] Mapa de legado 100% inventariado e validado.
 - [ ] Plano de implementacao alinhado ao contrato e mapa.
 
 ### DoD Tecnico
+
 - [ ] Migrations para tabelas canonicas, `billing_entities`, `care_policy_profiles` e checklist.
 - [ ] Backfill executado conforme mapa do legado.
 - [ ] RLS por `tenant_id` em todas as tabelas novas.

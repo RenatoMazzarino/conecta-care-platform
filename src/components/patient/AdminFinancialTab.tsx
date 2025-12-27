@@ -23,6 +23,10 @@ import { Controller, useForm } from 'react-hook-form';
 import type { FieldPath } from 'react-hook-form';
 import type { Database } from '@/types/supabase';
 import { getAdminFinancialData } from '@/features/pacientes/actions/aba04/getAdminFinancialData';
+import { reconcileBillingStatus } from '@/features/pacientes/actions/aba04/reconcileBillingStatus';
+import { requestChecklistDocumentIngestion } from '@/features/pacientes/actions/aba04/requestChecklistDocumentIngestion';
+import { sendBillingExport } from '@/features/pacientes/actions/aba04/sendBillingExport';
+import { sendContractForSignature } from '@/features/pacientes/actions/aba04/sendContractForSignature';
 import { updateAdminInfo } from '@/features/pacientes/actions/aba04/updateAdminInfo';
 import { updateFinancialProfile } from '@/features/pacientes/actions/aba04/updateFinancialProfile';
 import { updateOnboardingChecklist } from '@/features/pacientes/actions/aba04/updateOnboardingChecklist';
@@ -173,6 +177,16 @@ const useStyles = makeStyles({
     gap: '8px',
     flexWrap: 'wrap',
   },
+  integrationBlock: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  },
+  integrationDivider: {
+    borderTop: `1px dashed ${tokens.colorNeutralStroke2}`,
+    marginTop: '14px',
+    paddingTop: '14px',
+  },
 });
 
 type AdminFinancialProfileRow = Database['public']['Tables']['patient_admin_financial_profile']['Row'];
@@ -311,6 +325,19 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
   const [isSaving, setIsSaving] = useState(false);
   const [checklistDraft, setChecklistDraft] = useState<OnboardingChecklistItemInput[]>([]);
   const [newPayerDraft, setNewPayerDraft] = useState<BillingEntityInput | null>(null);
+  const [signatureTitle, setSignatureTitle] = useState('Contrato');
+  const [signatureProvider, setSignatureProvider] = useState('');
+  const [ingestionItemCode, setIngestionItemCode] = useState<OnboardingChecklistItemInput['item_code']>(
+    checklistItemCodeOptions[0],
+  );
+  const [ingestionTitle, setIngestionTitle] = useState('');
+  const [ingestionProvider, setIngestionProvider] = useState('');
+  const [billingProvider, setBillingProvider] = useState('');
+  const [billingReference, setBillingReference] = useState('');
+  const [billingPeriodStart, setBillingPeriodStart] = useState('');
+  const [billingPeriodEnd, setBillingPeriodEnd] = useState('');
+  const [billingNote, setBillingNote] = useState('');
+  const [isIntegrationBusy, setIsIntegrationBusy] = useState(false);
 
   const { control, handleSubmit, reset, setError } = useForm<AdminFinancialProfileInput>({
     defaultValues: buildDefaultValues(null),
@@ -320,6 +347,7 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
   const billingEntities = data?.billingEntities ?? [];
   const policyProfiles = data?.policyProfiles ?? [];
   const relatedPersons = data?.relatedPersons ?? [];
+  const integrationDisabled = isSaving || isIntegrationBusy;
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -368,6 +396,141 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
     });
   }, [data, onStatusSummary]);
 
+  const handleSendSignature = useCallback(async () => {
+    setIsIntegrationBusy(true);
+    try {
+      const title = signatureTitle.trim() || 'Contrato';
+      await sendContractForSignature(patientId, {
+        title,
+        provider: signatureProvider.trim() || undefined,
+        category: 'legal',
+      });
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Contrato enviado para assinatura.</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      await loadData();
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao enviar para assinatura'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setIsIntegrationBusy(false);
+    }
+  }, [dispatchToast, loadData, patientId, signatureProvider, signatureTitle]);
+
+  const handleRequestIngestion = useCallback(async () => {
+    setIsIntegrationBusy(true);
+    try {
+      const itemCode = ingestionItemCode;
+      const title = ingestionTitle.trim() || checklistLabels[itemCode];
+      const existing = data?.checklist?.find((item) => item.item_code === itemCode) ?? null;
+
+      if (!existing) {
+        await updateOnboardingChecklist(patientId, [
+          {
+            item_code: itemCode,
+            item_description: title,
+            is_completed: false,
+          },
+        ]);
+      }
+
+      await requestChecklistDocumentIngestion(patientId, {
+        item_code: itemCode,
+        title,
+        provider: ingestionProvider.trim() || undefined,
+        document_id: existing?.document_id ?? null,
+      });
+
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Ingestao de documento solicitada.</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      await loadData();
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao solicitar ingestao'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setIsIntegrationBusy(false);
+    }
+  }, [data?.checklist, dispatchToast, ingestionItemCode, ingestionProvider, ingestionTitle, loadData, patientId]);
+
+  const handleBillingExport = useCallback(async () => {
+    setIsIntegrationBusy(true);
+    try {
+      await sendBillingExport(patientId, {
+        provider: billingProvider.trim() || undefined,
+        reference: billingReference.trim() || undefined,
+        period_start: billingPeriodStart || undefined,
+        period_end: billingPeriodEnd || undefined,
+        note: billingNote.trim() || undefined,
+      });
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Exportacao enviada para o provedor.</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      await loadData();
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao exportar faturamento'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setIsIntegrationBusy(false);
+    }
+  }, [
+    billingNote,
+    billingPeriodEnd,
+    billingPeriodStart,
+    billingProvider,
+    billingReference,
+    dispatchToast,
+    loadData,
+    patientId,
+  ]);
+
+  const handleBillingReconcile = useCallback(async () => {
+    setIsIntegrationBusy(true);
+    try {
+      await reconcileBillingStatus(patientId, {
+        provider: billingProvider.trim() || undefined,
+        reference: billingReference.trim() || undefined,
+        note: billingNote.trim() || undefined,
+      });
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Reconciliacao solicitada.</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      await loadData();
+    } catch (error) {
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{error instanceof Error ? error.message : 'Falha ao reconciliar faturamento'}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setIsIntegrationBusy(false);
+    }
+  }, [billingNote, billingProvider, billingReference, dispatchToast, loadData, patientId]);
 
   const renderDefinitionList = useCallback(
     (items: { label: string; value?: string | number | null }[]) => (
@@ -470,7 +633,6 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
     loadData,
     newPayerDraft,
     patientId,
-    profile?.policy_profile_id,
     profile?.primary_payer_entity_id,
     setError,
   ]);
@@ -741,6 +903,137 @@ export const AdminFinancialTab = forwardRef<AdminFinancialTabHandle, AdminFinanc
                   {fieldTextarea('financial_notes', 'Observacoes financeiras')}
                 </div>
               )}
+            </div>
+          </section>
+
+          <section className={`${styles.card} ${styles.cardSpan}`}>
+            <div className={styles.cardHeader}>
+              <div className={styles.cardTitle}>Integracoes & IA</div>
+              {isIntegrationBusy && <Spinner size="extra-tiny" />}
+            </div>
+            <div className={styles.cardBody}>
+              <div className={styles.integrationBlock}>
+                <div className={styles.formGrid}>
+                  <Field label="Titulo do contrato">
+                    <Input
+                      value={signatureTitle}
+                      onChange={(event) => setSignatureTitle(event.target.value)}
+                      disabled={integrationDisabled}
+                    />
+                  </Field>
+                  <Field label="Provider assinatura (opcional)">
+                    <Input
+                      value={signatureProvider}
+                      onChange={(event) => setSignatureProvider(event.target.value)}
+                      disabled={integrationDisabled}
+                    />
+                  </Field>
+                </div>
+                <div className={styles.inlineActions}>
+                  <Button appearance="primary" onClick={handleSendSignature} disabled={integrationDisabled}>
+                    Enviar para assinatura
+                  </Button>
+                </div>
+                <p className={styles.muted}>Provider em branco usa fallback manual.</p>
+              </div>
+
+              <div className={styles.integrationDivider}>
+                <div className={styles.integrationBlock}>
+                  <div className={styles.formGrid}>
+                    <Field label="Item do checklist">
+                      <Select
+                        value={ingestionItemCode}
+                        onChange={(event) =>
+                          setIngestionItemCode(event.target.value as OnboardingChecklistItemInput['item_code'])
+                        }
+                        disabled={integrationDisabled}
+                      >
+                        {checklistItemCodeOptions.map((option) => (
+                          <option key={option} value={option}>
+                            {checklistLabels[option]}
+                          </option>
+                        ))}
+                      </Select>
+                    </Field>
+                    <Field label="Titulo do documento">
+                      <Input
+                        value={ingestionTitle}
+                        placeholder={checklistLabels[ingestionItemCode]}
+                        onChange={(event) => setIngestionTitle(event.target.value)}
+                        disabled={integrationDisabled}
+                      />
+                    </Field>
+                    <Field label="Provider ingestao (opcional)">
+                      <Input
+                        value={ingestionProvider}
+                        onChange={(event) => setIngestionProvider(event.target.value)}
+                        disabled={integrationDisabled}
+                      />
+                    </Field>
+                  </div>
+                  <div className={styles.inlineActions}>
+                    <Button appearance="primary" onClick={handleRequestIngestion} disabled={integrationDisabled}>
+                      Solicitar ingestao
+                    </Button>
+                  </div>
+                  <p className={styles.muted}>Registra evento e vincula documento ao checklist.</p>
+                </div>
+              </div>
+
+              <div className={styles.integrationDivider}>
+                <div className={styles.integrationBlock}>
+                  <div className={styles.formGrid}>
+                    <Field label="Provider billing/ERP (opcional)">
+                      <Input
+                        value={billingProvider}
+                        onChange={(event) => setBillingProvider(event.target.value)}
+                        disabled={integrationDisabled}
+                      />
+                    </Field>
+                    <Field label="Referencia">
+                      <Input
+                        value={billingReference}
+                        onChange={(event) => setBillingReference(event.target.value)}
+                        disabled={integrationDisabled}
+                      />
+                    </Field>
+                    <Field label="Periodo inicio">
+                      <Input
+                        type="date"
+                        value={billingPeriodStart}
+                        onChange={(event) => setBillingPeriodStart(event.target.value)}
+                        disabled={integrationDisabled}
+                      />
+                    </Field>
+                    <Field label="Periodo fim">
+                      <Input
+                        type="date"
+                        value={billingPeriodEnd}
+                        onChange={(event) => setBillingPeriodEnd(event.target.value)}
+                        disabled={integrationDisabled}
+                      />
+                    </Field>
+                  </div>
+                  <div className={styles.formGridFull}>
+                    <Field label="Observacoes">
+                      <Textarea
+                        value={billingNote}
+                        onChange={(event) => setBillingNote(event.target.value)}
+                        disabled={integrationDisabled}
+                      />
+                    </Field>
+                  </div>
+                  <div className={styles.inlineActions}>
+                    <Button appearance="primary" onClick={handleBillingExport} disabled={integrationDisabled}>
+                      Enviar exportacao
+                    </Button>
+                    <Button appearance="secondary" onClick={handleBillingReconcile} disabled={integrationDisabled}>
+                      Solicitar reconciliacao
+                    </Button>
+                  </div>
+                  <p className={styles.muted}>Eventos de export/reconcile sao gravados na timeline.</p>
+                </div>
+              </div>
             </div>
           </section>
 

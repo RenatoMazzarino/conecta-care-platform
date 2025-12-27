@@ -27,11 +27,11 @@ Implementar a Aba 04 com 5 cards (Contrato, Responsaveis, Pagador, Faturamento, 
 
 ## 3) Ganchos de Produto (obrigatorios)
 
-1. Assinatura Digital e Protocolo (provider, envelope, status, eventos).
-2. Event Log / Timeline (eventos por mudanca relevante com payload estruturado).
-3. Motor de Regras (rule_set em `care_policy_profiles`).
-4. Integracao com Operadoras/Planos e SUS (adapters documentados).
-5. Camada IA (snapshot de contexto e rastreabilidade).
+1. Assinatura digital (provider + envelope + status) + action `sendContractForSignature` + evento na timeline.
+1. Policy Engine (rule_set + version) + action `setPolicyProfile` + evento na timeline.
+1. Ingestao de documentos do checklist (upload + extracao) + timeline/context snapshot.
+1. Integracao billing/ERP (exportacao/reconciliacao) via interface de provider + timeline.
+1. Observabilidade/IA (patient_timeline_events + patient_context_snapshot) com rastreabilidade.
 
 ## 4) Fases de Implementacao
 
@@ -66,6 +66,9 @@ Implementar a Aba 04 com 5 cards (Contrato, Responsaveis, Pagador, Faturamento, 
 9. `setPolicyProfile(patientId, profileId)`
 10. `recordPatientTimelineEvent(patientId, payload)`
 11. `sendContractForSignature(patientId, payload)`
+12. `requestChecklistDocumentIngestion(patientId, payload)`
+13. `sendBillingExport(patientId, payload)`
+14. `reconcileBillingStatus(patientId, payload)`
 
 ### Fase 4 — UI
 1. Criar `AdminFinancialTab` com 5 cards.
@@ -81,6 +84,7 @@ Implementar a Aba 04 com 5 cards (Contrato, Responsaveis, Pagador, Faturamento, 
 1. Catalogar eventos do dominio (status, pagador, policy_profile, billing, checklist).
 2. Normalizar payloads para consumo por IA e auditoria.
 3. Preparar derivacao de `patient_context_snapshot` para assistentes internos.
+4. Garantir rastreabilidade dos ganchos (assinatura, policy engine, checklist, billing/ERP).
 
 ### Fase 6 — Docs e Revisao
 1. Atualizar evidencias (DoD, validacao).
