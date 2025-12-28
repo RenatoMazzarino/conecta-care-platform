@@ -16,6 +16,7 @@ import { DadosPessoaisTab, type DadosPessoaisTabHandle } from '@/components/pati
 import { EnderecoLogisticaTab, type EnderecoLogisticaTabHandle } from '@/components/patient/EnderecoLogisticaTab';
 import { RedeApoioTab, type RedeApoioTabHandle } from '@/components/patient/RedeApoioTab';
 import { AdminFinancialTab, type AdminFinancialTabHandle } from '@/components/patient/AdminFinancialTab';
+import { GedTab } from '@/components/patient/GedTab';
 import { getPatientById, type PatientRow } from '@/features/pacientes/actions/getPatientById';
 import { getSupabaseClient } from '@/lib/supabase/client';
 
@@ -516,31 +517,7 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     </div>
   );
 
-  const renderDocumentos = () => (
-    <div className={styles.tabGrid}>
-      <div className={styles.tabLeftCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Documentos (GED)</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>Placeholder para futura implementação de GED.</p>
-          </div>
-        </section>
-      </div>
-
-      <aside className={styles.tabRightCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Notas</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>Aba “Documentos” será integrada ao Storage + catálogo GED.</p>
-          </div>
-        </section>
-      </aside>
-    </div>
-  );
+  const renderDocumentos = () => <GedTab patientId={patientId} />;
 
   const renderVisaoGeral = () => (
     <div className={styles.tabGrid}>
