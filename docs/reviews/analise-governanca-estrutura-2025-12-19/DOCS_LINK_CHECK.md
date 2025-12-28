@@ -1,8 +1,8 @@
 # Relatório de Verificação de Links da Documentação
 
-Data: 2025-12-27 08:07:04
+Data: 2025-12-28 04:08:37
 
-Total de links verificados: 127
+Total de links verificados: 174
 Links quebrados: 0
 
 **Nenhum link relativo quebrado encontrado.**
@@ -10,20 +10,57 @@ Links quebrados: 0
 ## Amostra de Links Verificados
 
 - [docs/architecture/ARCHITECTURE_REAL.md] → "./SYSTEM_ARCHITECTURE.md" → OK
+- [docs/architecture/decisions/ADR-007-ged-custodia-watermark-time-stamp.md] → "../../contracts/pacientes/ABA05_GED.md" → OK
+- [docs/architecture/decisions/ADR-007-ged-custodia-watermark-time-stamp.md] → "../../reviews/PLANO_PACIENTES_ABA05_GED.md" → OK
+- [docs/architecture/decisions/ADR-007-ged-custodia-watermark-time-stamp.md] → "../../../AGENT.md" → OK
 - [docs/architecture/decisions/README.md] → "./ADR-001-contract-driven-development.md" → OK
 - [docs/architecture/decisions/README.md] → "./ADR-002-multi-tenant-rls.md" → OK
 - [docs/architecture/decisions/README.md] → "./ADR-003-soft-delete.md" → OK
 - [docs/architecture/decisions/README.md] → "./ADR-004-ui-dynamics-standard.md" → OK
 - [docs/architecture/decisions/README.md] → "./ADR-005-tenancy-app-metadata-jwt.md" → OK
 - [docs/architecture/decisions/README.md] → "./ADR-006-email-validation-db-policy.md" → OK
+- [docs/architecture/decisions/README.md] → "./ADR-007-ged-custodia-watermark-time-stamp.md" → OK
 - [docs/architecture/REPO_MAP.md] → "./SYSTEM_ARCHITECTURE.md" → OK
 - [docs/architecture/SYSTEM_ARCHITECTURE.md] → "./OPEN_TODO.md" → OK
 - [docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md] → "../../legacy_maps/pacientes/ABA04_ADMIN_FINANCEIRO_LEGADO_MAP.md" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../../../AGENT.md" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../_templates/CONTRACT_TEMPLATE.md" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "./ABA03_REDE_APOIO.md" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "./ABA04_ADMIN_FINANCEIRO.md" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../../architecture/decisions/ADR-007-ged-custodia-watermark-time-stamp.md" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../../architecture/decisions/ADR-004-ui-dynamics-standard.md" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../../../html/ged-viewer-dynamics.html" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../../../html/modelo_final_aparencia_pagina_do_paciente.htm" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../../repo_antigo/schema_current.sql" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../../../db/snapshots_legado/conectacare-2025-11-29.sql" → OK
+- [docs/contracts/pacientes/ABA05_GED.md] → "../../../html/ged-viewer-dynamics.html" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA01_DADOS_PESSOAIS.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA02_ENDERECO_LOGISTICA.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA03_REDE_APOIO.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA04_ADMIN_FINANCEIRO.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA05_GED.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "../../../AGENT.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "../../architecture/SYSTEM_ARCHITECTURE.md" → OK
 - [docs/contracts/pacientes/INDEX.md] → "./ABA02_ENDERECO_LOGISTICA.md#anexos-cobertura-do-legado-fonte-docsrepo_antigoschema_currentsql" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA03_REDE_APOIO.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "../../reviews/PLANO_PACIENTES_ABA03_REDE_APOIO.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA04_ADMIN_FINANCEIRO.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "../../reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA05_GED.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "../../reviews/PLANO_PACIENTES_ABA05_GED.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA01_DADOS_PESSOAIS.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA02_ENDERECO_LOGISTICA.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA03_REDE_APOIO.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA04_ADMIN_FINANCEIRO.md" → OK
+- [docs/contracts/pacientes/INDEX.md] → "./ABA05_GED.md" → OK
+- [docs/contracts/pacientes/README.md] → "./ABA01_DADOS_PESSOAIS.md" → OK
+- [docs/contracts/pacientes/README.md] → "./ABA02_ENDERECO_LOGISTICA.md" → OK
+- [docs/contracts/pacientes/README.md] → "./ABA03_REDE_APOIO.md" → OK
+- [docs/contracts/pacientes/README.md] → "./ABA04_ADMIN_FINANCEIRO.md" → OK
+- [docs/contracts/pacientes/README.md] → "./ABA05_GED.md" → OK
+- [docs/contracts/pacientes/README.md] → "./ABA02_ENDERECO_LOGISTICA.md#anexos-cobertura-do-legado-fonte-docsrepo_antigoschema_currentsql" → OK
+- [docs/contracts/pacientes/README.md] → "../../reviews/PLANO_PACIENTES_ABA03_REDE_APOIO.md" → OK
+- [docs/contracts/pacientes/README.md] → "../../reviews/PLANO_PACIENTES_ABA05_GED.md" → OK
 - [docs/contracts/README.md] → "./pacientes/INDEX.md" → OK
 - [docs/contracts/README.md] → "./prontuarios/INDEX.md" → OK
 - [docs/contracts/README.md] → "./agendamentos/INDEX.md" → OK
@@ -118,6 +155,16 @@ Links quebrados: 0
 - [docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../../package.json" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md] → "../contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md] → "../legacy_maps/pacientes/ABA04_ADMIN_FINANCEIRO_LEGADO_MAP.md" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/ged-viewer-dynamics.html" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../AGENT.md" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../contracts/pacientes/ABA05_GED.md" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../architecture/decisions/ADR-007-ged-custodia-watermark-time-stamp.md" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/ged-viewer-dynamics.html" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/modelo_final_aparencia_pagina_do_paciente.htm" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../db/snapshots_legado/conectacare-2025-11-29.sql" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/ged-viewer-dynamics.html" → OK
+- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/ged-viewer-dynamics.html" → OK
 - [docs/runbooks/ONBOARDING.md] → "./env.md" → OK
 - [docs/runbooks/ONBOARDING.md] → "./local-dev-supabase.md" → OK
 - [docs/runbooks/ONBOARDING.md] → "./auth-tenancy.md" → OK
