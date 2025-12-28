@@ -6,4 +6,4 @@ set raw_app_meta_data = jsonb_set(
   to_jsonb('e40046d1-b549-43ac-ad89-626b5b1a52a4'::text),
   true
 )
-where id = '266487ea-681a-444b-8585-f161841d8f33';
+where id = '41749d3f-5f81-4212-9d66-3de1f21a8ca4';
