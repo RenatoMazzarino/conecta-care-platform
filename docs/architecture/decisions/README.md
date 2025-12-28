@@ -14,3 +14,4 @@ Status possíveis: Proposed | Accepted | Superseded | Deprecated.
 | ADR-004 | Accepted | 2025-12-17 | @RenatoMazzarino | [UI padrão "Dynamics"](./ADR-004-ui-dynamics-standard.md) | Médio |
 | ADR-005 | Accepted | 2025-12-17 | @RenatoMazzarino | [Tenancy via app_metadata no JWT](./ADR-005-tenancy-app-metadata-jwt.md) | Alto |
 | ADR-006 | Accepted | 2025-12-17 | @RenatoMazzarino | [Política de e-mail no DB](./ADR-006-email-validation-db-policy.md) | Médio |
+| ADR-007 | Accepted | 2025-12-27 | Codex | [GED - Custodia, Watermark, Carimbo do Tempo e Acesso ao Original](./ADR-007-ged-custodia-watermark-time-stamp.md) | Alto |
