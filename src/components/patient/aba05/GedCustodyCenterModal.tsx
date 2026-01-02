@@ -9,7 +9,7 @@ import {
   tokens,
 } from '@fluentui/react-components';
 import { ChevronDownRegular, ChevronRightRegular, DismissRegular } from '@fluentui/react-icons';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { Database } from '@/types/supabase';
 import { gedDocDomainOptions, gedDocTypeOptions } from '@/features/pacientes/schemas/aba05Ged.schema';
 
@@ -246,14 +246,13 @@ export function GedCustodyCenterModal({
   const [expandedLinks, setExpandedLinks] = useState<Set<string>>(new Set());
   const [expandedArtifacts, setExpandedArtifacts] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    if (open) return;
+  const resetState = useCallback(() => {
     setSearch('');
     setDomainFilter('');
     setTypeFilter('');
     setExpandedLinks(new Set());
     setExpandedArtifacts(new Set());
-  }, [open]);
+  }, []);
 
   const filteredLinks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -283,12 +282,17 @@ export function GedCustodyCenterModal({
 
   if (!open) return null;
 
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
   return (
-    <div className={styles.overlay} role="dialog" aria-modal="true" onClick={onClose}>
+    <div className={styles.overlay} role="dialog" aria-modal="true" onClick={handleClose}>
       <div className={styles.modal} onClick={(event) => event.stopPropagation()}>
         <div className={styles.header}>
           <div className={styles.title}>Gestao de custodia</div>
-          <Button icon={<DismissRegular />} onClick={onClose}>
+          <Button icon={<DismissRegular />} onClick={handleClose}>
             Fechar
           </Button>
         </div>

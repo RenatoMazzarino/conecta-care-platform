@@ -1,8 +1,23 @@
 import { z } from 'zod';
 import { getSupabaseClient } from '@/lib/supabase/client';
+import type { Database } from '@/types/supabase';
 import { ensureSession, isTenantMissingError, makeActionError } from '../aba03/shared';
 
 const patientIdSchema = z.string().uuid();
+
+type GedDocumentRow = Database['public']['Tables']['patient_documents']['Row'];
+type GedSecureLink = Database['public']['Tables']['document_secure_links']['Row'];
+type GedArtifact = Database['public']['Tables']['document_artifacts']['Row'];
+type GedLog = Database['public']['Tables']['patient_document_logs']['Row'];
+
+type GedSecureLinkWithDocument = GedSecureLink & {
+  document?: Pick<GedDocumentRow, 'id' | 'title' | 'domain_type' | 'subcategory' | 'category' | 'uploaded_at'> | null;
+};
+
+type GedArtifactWithDocument = GedArtifact & {
+  document?: Pick<GedDocumentRow, 'id' | 'title' | 'domain_type' | 'subcategory' | 'category' | 'uploaded_at'> | null;
+  log?: Pick<GedLog, 'id' | 'action' | 'happened_at' | 'user_id' | 'details'> | null;
+};
 
 export async function listGedCustodyOverview(patientId: string) {
   const parsed = patientIdSchema.safeParse(patientId);
@@ -23,7 +38,8 @@ export async function listGedCustodyOverview(patientId: string) {
     )
     .eq('document.patient_id', parsed.data)
     .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .returns<GedSecureLinkWithDocument[]>();
 
   const artifactsPromise = supabase
     .from('document_artifacts')
@@ -36,7 +52,8 @@ export async function listGedCustodyOverview(patientId: string) {
     )
     .eq('patient_id', parsed.data)
     .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .returns<GedArtifactWithDocument[]>();
 
   const [links, artifacts] = await Promise.all([linksPromise, artifactsPromise]);
 

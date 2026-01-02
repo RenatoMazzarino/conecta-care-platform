@@ -696,8 +696,8 @@ export function GedTab({ patientId }: GedTabProps) {
     setCustodyError(null);
     try {
       const data = await listGedCustodyOverview(patientId);
-      setCustodyLinks(data.links as GedSecureLinkWithDocument[]);
-      setCustodyArtifacts(data.artifacts as GedArtifactWithDocument[]);
+      setCustodyLinks(data.links);
+      setCustodyArtifacts(data.artifacts);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao carregar custodia';
       setCustodyError(message);
@@ -882,7 +882,7 @@ export function GedTab({ patientId }: GedTabProps) {
       for (const item of uploadItems) {
         try {
           await uploadGedDocument(patientId, item.file, item.payload);
-        } catch (error) {
+        } catch {
           failed.push(item);
         }
       }
