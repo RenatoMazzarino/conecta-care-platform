@@ -19,6 +19,16 @@ function formatUserDisplay(session: { user?: { email?: string | null; user_metad
   return name || session?.user?.email || 'Usuario autenticado';
 }
 
+function formatPrintTimestamp(value: Date) {
+  return value.toLocaleString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export async function printGedDocument(documentId: string) {
   const parsed = documentIdSchema.safeParse(documentId);
   if (!parsed.success) {
@@ -69,11 +79,15 @@ export async function printGedDocument(documentId: string) {
 
   const fileBuffer = await fileBlob.arrayBuffer();
   const now = new Date();
-  const watermarkText = `${formatUserDisplay(session)} • ${now.toISOString()} • ${document.tenant_id} • ${document.patient_id}`;
+  const userDisplay = formatUserDisplay(session);
+  const printedAt = formatPrintTimestamp(now);
+  const watermarkText = `Conecta Care • ${userDisplay} • ${printedAt}`;
+  const headerNote = `Impresso via portal Conecta Care por ${userDisplay} em ${printedAt} • Tenant ${document.tenant_id} • Paciente ${document.patient_id}`;
 
   const pdfBytes = await generatePrintArtifact(fileBuffer, document.mime_type, {
     bannerText: 'Documento em custodia Conecta Care',
     watermarkText,
+    headerNote,
   });
 
   const artifactHash = await computeSha256Hex(pdfBytes);
@@ -140,9 +154,7 @@ export async function printGedDocument(documentId: string) {
       throw new Error(artifactError.message);
     }
 
-    const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(artifactPath, 60 * 10, {
-      download: true,
-    });
+    const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(artifactPath, 60 * 10);
 
     return {
       artifactId,
