@@ -20,9 +20,6 @@ import { GedTab } from '@/components/patient/GedTab';
 import { getPatientById, type PatientRow } from '@/features/pacientes/actions/getPatientById';
 import { getSupabaseClient } from '@/lib/supabase/client';
 
-const isDevBypassEnabled =
-  process.env.NODE_ENV === 'development' && Boolean(process.env.NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN);
-
 const useStyles = makeStyles({
   page: {
     display: 'flex',
@@ -385,7 +382,22 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
         console.error('[auth] getSession failed', error);
       }
 
-      if (session || isDevBypassEnabled) {
+      if (session) {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (cancelled) return;
+
+        if (!user || userError) {
+          await supabase.auth.signOut();
+          setIsAuthenticated(false);
+          setAuthChecked(true);
+          router.replace(`/login?next=${encodeURIComponent(`/pacientes/${patientId}`)}`);
+          return;
+        }
+
         setIsAuthenticated(true);
         setAuthChecked(true);
         return;

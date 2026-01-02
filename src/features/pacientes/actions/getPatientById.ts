@@ -36,6 +36,16 @@ export async function getPatientById(patientId: string): Promise<PatientRow> {
   if (!session && !isDevBypassEnabled) {
     throw makeActionError('UNAUTHENTICATED', 'Faça login para acessar');
   }
+  if (session) {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+    if (userError || !user) {
+      await supabase.auth.signOut();
+      throw makeActionError('UNAUTHENTICATED', 'Sessão expirada. Faça login novamente.');
+    }
+  }
 
   const { data, error } = await supabase
     .from('patients')
