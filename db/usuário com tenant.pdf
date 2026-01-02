@@ -7,3 +7,8 @@ set raw_app_meta_data = jsonb_set(
   true
 )
 where id = '41749d3f-5f81-4212-9d66-3de1f21a8ca4';
+
+supabase stop --no-backup
+docker rm -f supabase_storage_conecta-care-platform
+supabase db reset
+supabase start
