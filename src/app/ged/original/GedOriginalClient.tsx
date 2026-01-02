@@ -55,7 +55,7 @@ export function GedOriginalClient() {
         if (cancelled) return;
         setStatus('success');
         setMessage('Download autorizado. Abrindo o original...');
-        window.open(result.url, '_blank', 'noopener,noreferrer');
+        window.location.assign(result.url);
       } catch (error) {
         if (cancelled) return;
         const text = error instanceof Error ? error.message : 'Falha ao consumir link seguro';

@@ -7,23 +7,31 @@ import {
   Input,
   Select,
   Spinner,
-  Textarea,
   Toaster,
   Toast,
   ToastTitle,
   makeStyles,
+  mergeClasses,
   tokens,
   useId,
   useToastController,
 } from '@fluentui/react-components';
-import { AddRegular, ArrowClockwiseRegular, PrintRegular } from '@fluentui/react-icons';
+import {
+  AddRegular,
+  ArrowClockwiseRegular,
+  ChevronDownRegular,
+  ChevronRightRegular,
+  SearchRegular,
+} from '@fluentui/react-icons';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Database } from '@/types/supabase';
+import { GedDocumentViewerModal } from '@/components/patient/aba05/GedDocumentViewerModal';
+import { GedBulkImportModal } from '@/components/patient/aba05/GedBulkImportModal';
+import { GedQuickUploadModal, type GedQuickUploadItem } from '@/components/patient/aba05/GedQuickUploadModal';
+import { GedCustodyCenterModal } from '@/components/patient/aba05/GedCustodyCenterModal';
 import {
-  gedCategoryOptions,
   gedDocDomainOptions,
   gedDocOriginOptions,
-  gedDocSourceOptions,
   gedDocStatusEnumOptions,
   gedDocTypeOptions,
   type GedDocumentInput,
@@ -36,11 +44,14 @@ import { printGedDocument } from '@/features/pacientes/actions/aba05/printGedDoc
 import { createGedSecureLink } from '@/features/pacientes/actions/aba05/createGedSecureLink';
 import { consumeGedSecureLink } from '@/features/pacientes/actions/aba05/consumeGedSecureLink';
 import { revokeGedSecureLink } from '@/features/pacientes/actions/aba05/revokeGedSecureLink';
+import { archiveGedDocuments } from '@/features/pacientes/actions/aba05/archiveGedDocuments';
+import { listGedImportPaths } from '@/features/pacientes/actions/aba05/listGedImportPaths';
+import { listGedCustodyOverview } from '@/features/pacientes/actions/aba05/listGedCustodyOverview';
+import { getGedArtifactDownloadUrl } from '@/features/pacientes/actions/aba05/getGedArtifactDownloadUrl';
 import {
   listBulkImportItems,
   startGedBulkImport,
   reviewBulkImportItem,
-  type BulkImportScope,
 } from '@/features/pacientes/actions/aba05/bulkImport';
 import { isDicomFile } from '@/features/pacientes/actions/aba05/shared';
 
@@ -48,205 +59,295 @@ const useStyles = makeStyles({
   container: {
     padding: '0 0 32px',
   },
-  commandBar: {
-    display: 'flex',
-    gap: '8px',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    padding: '10px 0',
-  },
-  commandPill: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '8px',
-    padding: '6px 10px',
-    borderRadius: '999px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    backgroundColor: '#ffffff',
-    fontSize: '12px',
-    fontWeight: 700,
-    color: tokens.colorNeutralForeground2,
-  },
-  grid: {
+  driveLayout: {
     display: 'grid',
-    gridTemplateColumns: '2fr 1fr',
-    gap: '16px',
-    alignItems: 'start',
-    '@media (max-width: 1100px)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
-  leftCol: {
-    display: 'grid',
-    gridTemplateColumns: '1fr',
     gap: '16px',
   },
-  rightCol: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '16px',
-  },
-  card: {
-    backgroundColor: '#ffffff',
+  driveShell: {
+    backgroundColor: tokens.colorNeutralBackground1,
     border: `1px solid ${tokens.colorNeutralStroke2}`,
     borderRadius: '6px',
     boxShadow: '0 1px 2px rgba(0,0,0,.08)',
     overflow: 'hidden',
   },
-  cardHeader: {
-    padding: '14px 16px',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+  driveShellGrid: {
+    display: 'grid',
+    gridTemplateColumns: '240px minmax(0, 1fr)',
+    minHeight: 0,
+    '@media (max-width: 1100px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  driveNav: {
+    borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
+    padding: '14px 12px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    justifyContent: 'flex-start',
+    gap: '6px',
+    backgroundColor: tokens.colorNeutralBackground1,
+    '@media (max-width: 1100px)': {
+      borderRight: 'none',
+      borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+  },
+  navTitle: {
+    fontSize: '13px',
+    fontWeight: tokens.fontWeightSemibold,
+  },
+  navSectionButton: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: '10px',
-  },
-  cardTitle: {
-    fontSize: '12px',
-    letterSpacing: '.6px',
+    width: '100%',
+    border: 0,
+    backgroundColor: 'transparent',
+    padding: '6px 8px',
+    fontSize: '11px',
     textTransform: 'uppercase',
-    fontWeight: 900,
-    color: tokens.colorNeutralForeground1,
+    letterSpacing: '0.3px',
+    color: tokens.colorNeutralForeground3,
+    fontWeight: tokens.fontWeightSemibold,
+    cursor: 'pointer',
   },
-  cardBody: {
-    padding: '14px 16px',
+  navGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+    paddingLeft: '6px',
+    paddingBottom: '4px',
+  },
+  navItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '8px 10px',
+    borderRadius: '8px',
+    border: '1px solid transparent',
+    backgroundColor: 'transparent',
+    cursor: 'pointer',
+    fontWeight: tokens.fontWeightSemibold,
+    fontSize: '12.5px',
+    color: tokens.colorNeutralForeground1,
+    ':hover': {
+      backgroundColor: '#f5f5f5',
+    },
+    ':disabled': {
+      cursor: 'not-allowed',
+      opacity: 0.6,
+      backgroundColor: 'transparent',
+    },
+  },
+  navItemActive: {
+    backgroundColor: '#eef4fb',
+    borderTopColor: '#cfe0f4',
+    borderRightColor: '#cfe0f4',
+    borderBottomColor: '#cfe0f4',
+    borderLeftColor: '#cfe0f4',
+    color: '#0f6cbd',
+  },
+  navFolderButton: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+    border: '1px solid transparent',
+    backgroundColor: 'transparent',
+    padding: '8px 10px',
+    borderRadius: '8px',
+    fontWeight: tokens.fontWeightSemibold,
+    fontSize: '12.5px',
+    color: tokens.colorNeutralForeground1,
+    cursor: 'pointer',
+    ':hover': {
+      backgroundColor: '#f5f5f5',
+    },
+  },
+  navFolderMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  navFolderCount: {
+    fontSize: '10px',
+    color: tokens.colorNeutralForeground3,
+    fontWeight: tokens.fontWeightSemibold,
+  },
+  driveMain: {
+    display: 'grid',
+    gridTemplateRows: 'auto auto auto 1fr',
+    minHeight: 0,
+  },
+  driveHeader: {
+    padding: '16px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
+  },
+  driveTitle: {
+    fontSize: '16px',
+    fontWeight: tokens.fontWeightSemibold,
+  },
+  driveSub: {
+    fontSize: '12.5px',
+    color: tokens.colorNeutralForeground3,
+    marginTop: '4px',
+  },
+  driveCounters: {
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  counter: {
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+    borderRadius: '8px',
+    padding: '6px 10px',
+    backgroundColor: tokens.colorNeutralBackground1,
+    fontSize: '12px',
+    fontWeight: tokens.fontWeightSemibold,
+    color: tokens.colorNeutralForeground3,
+  },
+  counterValue: {
+    color: tokens.colorNeutralForeground1,
+    fontWeight: tokens.fontWeightSemibold,
+    marginLeft: '4px',
+  },
+  driveToolbar: {
+    padding: '10px 16px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    display: 'flex',
+    gap: '8px',
+    flexWrap: 'wrap',
+  },
+  driveFilters: {
+    padding: '12px 16px 4px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+  },
+  filters: {
+    display: 'grid',
+    gridTemplateColumns: '1.6fr repeat(4, 1fr)',
+    gap: '12px',
+    '@media (max-width: 900px)': {
+      gridTemplateColumns: '1fr 1fr',
+    },
+    '@media (max-width: 680px)': {
+      gridTemplateColumns: '1fr',
+    },
+  },
+  tableWrap: {
+    overflowY: 'auto',
+    overflowX: 'auto',
+    minHeight: 0,
+    maxHeight: '620px',
+  },
+  tableRow: {
+    display: 'grid',
+    gridTemplateColumns: '36px minmax(0, 2.4fr) 1fr 1fr 1fr 1fr',
+    gap: '8px',
+    alignItems: 'center',
+    padding: '10px 16px',
+    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    fontSize: '12.5px',
+    cursor: 'pointer',
+    minWidth: '820px',
+    ':hover': {
+      backgroundColor: '#f6f6f6',
+    },
+  },
+  tableRowSearch: {
+    gridTemplateColumns: '36px minmax(0, 2.2fr) 1fr 1fr 1fr 1fr 1.4fr',
+    minWidth: '980px',
+  },
+  tableRowHeader: {
+    position: 'sticky',
+    top: 0,
+    backgroundColor: '#fafafa',
+    fontWeight: tokens.fontWeightSemibold,
+    color: tokens.colorNeutralForeground3,
+    textTransform: 'uppercase',
+    letterSpacing: '0.3px',
+    fontSize: '10.5px',
+    zIndex: 2,
+    cursor: 'default',
+  },
+  tableRowActive: {
+    backgroundColor: '#eef4fb',
+  },
+  tableCellTitle: {
+    fontWeight: tokens.fontWeightSemibold,
+  },
+  tableCellMeta: {
+    fontSize: '11px',
+    color: tokens.colorNeutralForeground3,
+  },
+  tag: {
+    display: 'inline-flex',
+    padding: '3px 8px',
+    borderRadius: '999px',
+    fontSize: '10px',
+    fontWeight: 700,
+    border: `1px solid ${tokens.colorNeutralStroke2}`,
+  },
+  tagOk: {
+    color: '#107c10',
+    borderTopColor: 'rgba(16, 124, 16, 0.3)',
+    borderRightColor: 'rgba(16, 124, 16, 0.3)',
+    borderBottomColor: 'rgba(16, 124, 16, 0.3)',
+    borderLeftColor: 'rgba(16, 124, 16, 0.3)',
+    backgroundColor: 'rgba(16, 124, 16, 0.08)',
+  },
+  tagWarn: {
+    color: '#8a5a00',
+    borderTopColor: 'rgba(240, 180, 41, 0.4)',
+    borderRightColor: 'rgba(240, 180, 41, 0.4)',
+    borderBottomColor: 'rgba(240, 180, 41, 0.4)',
+    borderLeftColor: 'rgba(240, 180, 41, 0.4)',
+    backgroundColor: 'rgba(240, 180, 41, 0.1)',
+  },
+  tagDanger: {
+    color: '#d13438',
+    borderTopColor: 'rgba(209, 52, 56, 0.35)',
+    borderRightColor: 'rgba(209, 52, 56, 0.35)',
+    borderBottomColor: 'rgba(209, 52, 56, 0.35)',
+    borderLeftColor: 'rgba(209, 52, 56, 0.35)',
+    backgroundColor: 'rgba(209, 52, 56, 0.08)',
   },
   muted: {
     margin: 0,
     color: tokens.colorNeutralForeground3,
     fontSize: '12px',
   },
-  list: {
-    display: 'grid',
-    gap: '8px',
-  },
-  listRow: {
-    display: 'grid',
-    gridTemplateColumns: '1.8fr 1fr 1fr 1fr',
-    gap: '10px',
-    padding: '10px',
-    borderRadius: '6px',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    cursor: 'pointer',
-    backgroundColor: '#fafafa',
-    ':hover': {
-      border: `1px solid ${tokens.colorNeutralStroke1}`,
-      backgroundColor: '#f5f5f5',
-    },
-    '@media (max-width: 900px)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
-  listRowActive: {
-    border: '1px solid #0f6cbd',
-    backgroundColor: '#eef4fb',
-  },
-  listCellTitle: {
-    fontWeight: 700,
-    fontSize: '13px',
-    color: tokens.colorNeutralForeground1,
-  },
-  listCellMeta: {
-    fontSize: '12px',
-    color: tokens.colorNeutralForeground3,
-  },
-  viewerWrap: {
-    position: 'relative',
-    border: `1px solid ${tokens.colorNeutralStroke2}`,
-    borderRadius: '6px',
-    overflow: 'hidden',
-    backgroundColor: '#f8f8f8',
-  },
-  viewerBanner: {
-    backgroundColor: '#eef4fb',
-    borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-    padding: '8px 12px',
-    fontSize: '12px',
-    fontWeight: 700,
-    color: '#0f6cbd',
-  },
-  viewerContent: {
-    position: 'relative',
-    minHeight: '420px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  watermark: {
-    position: 'absolute',
-    inset: 0,
-    opacity: 0.3,
-    pointerEvents: 'none',
-  },
-  viewerFrame: {
-    width: '100%',
-    height: '520px',
-    border: 0,
-  },
-  viewerImage: {
-    maxWidth: '100%',
-    maxHeight: '520px',
-  },
-  formGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-    gap: '12px',
-    '@media (max-width: 720px)': {
-      gridTemplateColumns: '1fr',
-    },
-  },
-  formFull: {
-    gridColumn: '1 / -1',
-  },
-  fileInput: {
-    width: '100%',
-  },
   inlineActions: {
     display: 'flex',
     gap: '8px',
     flexWrap: 'wrap',
   },
-  badgeRow: {
+  searchRow: {
     display: 'flex',
-    flexWrap: 'wrap',
     gap: '8px',
     alignItems: 'center',
   },
-  detailsList: {
-    margin: 0,
-    display: 'grid',
-    gridTemplateColumns: '140px 1fr',
-    rowGap: '10px',
-    columnGap: '12px',
-    '& dt': {
-      color: tokens.colorNeutralForeground3,
-      fontSize: '12px',
-      margin: 0,
-    },
-    '& dd': {
-      margin: 0,
-      fontWeight: tokens.fontWeightSemibold,
-      fontSize: '12.5px',
-      overflowWrap: 'anywhere',
-      color: tokens.colorNeutralForeground1,
-    },
+  searchInput: {
+    flex: 1,
+    minWidth: 0,
   },
-  timelineList: {
-    display: 'grid',
-    gap: '10px',
-  },
-  timelineItem: {
+  selectionBar: {
+    padding: '10px 16px',
     borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
-    paddingBottom: '10px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '12px',
+    backgroundColor: '#f9f9f9',
   },
-  timelineTitle: {
-    fontWeight: 700,
-    fontSize: '12.5px',
-  },
-  timelineMeta: {
-    fontSize: '11px',
-    color: tokens.colorNeutralForeground3,
+  selectionText: {
+    fontSize: '12px',
+    color: tokens.colorNeutralForeground2,
+    fontWeight: tokens.fontWeightSemibold,
   },
 });
 
@@ -255,10 +356,20 @@ type GedDocumentLog = Database['public']['Tables']['patient_document_logs']['Row
 type GedArtifact = Database['public']['Tables']['document_artifacts']['Row'];
 type GedSecureLink = Database['public']['Tables']['document_secure_links']['Row'];
 type GedImportItem = Database['public']['Tables']['document_import_job_items']['Row'];
+type NavSectionKey = 'folders' | 'views' | 'custody';
+type GedSecureLinkWithDocument = GedSecureLink & {
+  document?: Pick<GedDocumentRow, 'id' | 'title' | 'domain_type' | 'subcategory' | 'category' | 'uploaded_at'> | null;
+};
+type GedArtifactWithDocument = GedArtifact & {
+  document?: Pick<GedDocumentRow, 'id' | 'title' | 'domain_type' | 'subcategory' | 'category' | 'uploaded_at'> | null;
+  log?: Pick<GedDocumentLog, 'id' | 'action' | 'happened_at' | 'user_id' | 'details'> | null;
+};
 
 interface GedTabProps {
   patientId: string;
 }
+
+const MAX_QUICK_UPLOAD = 10;
 
 function formatDateTime(value?: string | null) {
   if (!value) return '—';
@@ -274,6 +385,92 @@ function buildWatermarkPattern(text: string) {
   return `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
 }
 
+function normalizePath(raw: string) {
+  return raw
+    .replace(/\\/g, '/')
+    .replace(/^\.\//, '')
+    .replace(/^\/+/, '')
+    .replace(/\/+$/, '')
+    .trim();
+}
+
+function safeSegment(value: string) {
+  return value.replace(/[\\/]+/g, '_').trim();
+}
+
+function extractManifestPath(payload: unknown) {
+  if (!payload || typeof payload !== 'object') return null;
+  const manifest = (payload as { manifest_payload?: unknown }).manifest_payload;
+  if (!manifest || typeof manifest !== 'object') return null;
+  const filePath = (manifest as { file_path?: unknown }).file_path;
+  if (typeof filePath !== 'string') return null;
+  const normalized = normalizePath(filePath);
+  return normalized.length > 0 ? normalized : null;
+}
+
+function resolveFallbackPath(doc: GedDocumentRow) {
+  const source = safeSegment(doc.source_module ?? 'Uploads');
+  const dateSegment = doc.uploaded_at ? new Date(doc.uploaded_at).toISOString().slice(0, 7) : 'sem_data';
+  const name = safeSegment(doc.title ?? doc.file_name ?? doc.original_file_name ?? doc.id);
+  return normalizePath(`${source}/${dateSegment}/${name}`);
+}
+
+function resolveDocPathInfo(doc: GedDocumentRow, importMap: Map<string, string>) {
+  const importPath = importMap.get(doc.id) ?? null;
+  const manifestPath = extractManifestPath(doc.document_validation_payload);
+  const legacyPath =
+    doc.file_path && (!doc.storage_path || doc.file_path !== doc.storage_path) ? doc.file_path : null;
+  const displayPath = normalizePath(importPath ?? manifestPath ?? legacyPath ?? resolveFallbackPath(doc));
+  const parts = displayPath.split('/').filter(Boolean);
+  const folderParts = parts.length > 1 ? parts.slice(0, -1) : [];
+  const folderPath = folderParts.join('/');
+  return { displayPath, folderPath };
+}
+
+type FolderNode = {
+  name: string;
+  path: string;
+  count: number;
+  children: FolderNode[];
+};
+
+function buildFolderTree(paths: string[]) {
+  type NodeBucket = Map<string, { node: FolderNode; children: NodeBucket }>;
+  const root: NodeBucket = new Map();
+
+  const insertPath = (path: string) => {
+    const normalized = normalizePath(path);
+    if (!normalized) return;
+    const parts = normalized.split('/').filter(Boolean);
+    let current = root;
+    let currentPath = '';
+
+    parts.forEach((part) => {
+      const nextPath = currentPath ? `${currentPath}/${part}` : part;
+      let entry = current.get(part);
+      if (!entry) {
+        entry = { node: { name: part, path: nextPath, count: 0, children: [] }, children: new Map() };
+        current.set(part, entry);
+      }
+      entry.node.count += 1;
+      currentPath = nextPath;
+      current = entry.children;
+    });
+  };
+
+  paths.forEach((path) => insertPath(path));
+
+  const toArray = (bucket: NodeBucket): FolderNode[] =>
+    Array.from(bucket.values())
+      .map((entry) => ({
+        ...entry.node,
+        children: toArray(entry.children),
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+  return toArray(root);
+}
+
 export function GedTab({ patientId }: GedTabProps) {
   const styles = useStyles();
   const toasterId = useId('ged-toaster');
@@ -281,8 +478,22 @@ export function GedTab({ patientId }: GedTabProps) {
 
   const [documents, setDocuments] = useState<GedDocumentRow[]>([]);
   const [filters, setFilters] = useState<GedDocumentFilters>({});
+  const [activeNav, setActiveNav] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [navFilter, setNavFilter] = useState<Partial<GedDocumentFilters>>({});
+  const [folderFilter, setFolderFilter] = useState<string | null>(null);
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [importPathMap, setImportPathMap] = useState<Map<string, string>>(new Map());
+  const [navSections, setNavSections] = useState<Record<NavSectionKey, boolean>>({
+    folders: true,
+    views: false,
+    custody: false,
+  });
   const [loading, setLoading] = useState(false);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState<GedDocumentRow | null>(null);
   const [logs, setLogs] = useState<GedDocumentLog[]>([]);
   const [artifacts, setArtifacts] = useState<GedArtifact[]>([]);
@@ -292,20 +503,9 @@ export function GedTab({ patientId }: GedTabProps) {
   const [viewerError, setViewerError] = useState<string | null>(null);
   const [viewerLoading, setViewerLoading] = useState(false);
 
-  const [uploadPayload, setUploadPayload] = useState<GedDocumentInput>({
-    title: '',
-    category: 'clinical',
-    doc_type: 'laudo',
-    doc_domain: 'Clinico',
-    doc_source: 'Ficha',
-    doc_origin: 'Ficha_Documentos',
-    description: null,
-    tags: [],
-  });
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadItems, setUploadItems] = useState<GedQuickUploadItem[]>([]);
   const [uploading, setUploading] = useState(false);
 
-  const [bulkScope, setBulkScope] = useState<BulkImportScope>('single');
   const [bulkFile, setBulkFile] = useState<File | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [bulkItems, setBulkItems] = useState<GedImportItem[]>([]);
@@ -326,7 +526,17 @@ export function GedTab({ patientId }: GedTabProps) {
   const [secureToken, setSecureToken] = useState<string | null>(null);
   const [secureBusy, setSecureBusy] = useState(false);
   const [printBusy, setPrintBusy] = useState(false);
+  const [archiveBusy, setArchiveBusy] = useState(false);
+  const [bulkOriginalBusy, setBulkOriginalBusy] = useState(false);
   const [allowCapture, setAllowCapture] = useState(false);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isCustodyOpen, setIsCustodyOpen] = useState(false);
+  const [custodyTab, setCustodyTab] = useState<'links' | 'artifacts'>('links');
+  const [custodyLoading, setCustodyLoading] = useState(false);
+  const [custodyError, setCustodyError] = useState<string | null>(null);
+  const [custodyLinks, setCustodyLinks] = useState<GedSecureLinkWithDocument[]>([]);
+  const [custodyArtifacts, setCustodyArtifacts] = useState<GedArtifactWithDocument[]>([]);
 
   const isDev = process.env.NODE_ENV === 'development';
   const shareLink = useMemo(() => {
@@ -334,15 +544,118 @@ export function GedTab({ patientId }: GedTabProps) {
     return `${window.location.origin}/ged/original?token=${secureToken}`;
   }, [secureToken]);
 
+  const needsReviewCount = useMemo(
+    () => documents.filter((doc) => doc.document_status === 'Rascunho').length,
+    [documents],
+  );
+
+  const activeSecureLinks = useMemo(() => {
+    if (custodyLinks.length === 0) return 0;
+    const now = Date.now();
+    return custodyLinks.filter((link) => {
+      if (link.revoked_at || link.consumed_at) return false;
+      const expiresAt = link.expires_at ? new Date(link.expires_at).getTime() : null;
+      return !expiresAt || expiresAt > now;
+    }).length;
+  }, [custodyLinks]);
+
+  const documentPathMap = useMemo(() => {
+    const map = new Map<string, { displayPath: string; folderPath: string }>();
+    documents.forEach((doc) => {
+      map.set(doc.id, resolveDocPathInfo(doc, importPathMap));
+    });
+    return map;
+  }, [documents, importPathMap]);
+
+  const folderTree = useMemo(() => {
+    const folders: string[] = [];
+    documentPathMap.forEach((value) => {
+      if (value.folderPath) {
+        folders.push(value.folderPath);
+      }
+    });
+    return buildFolderTree(folders);
+  }, [documentPathMap]);
+
+  const visibleDocuments = useMemo(() => {
+    if (isSearchActive || !folderFilter) return documents;
+    return documents.filter((doc) => {
+      const path = documentPathMap.get(doc.id)?.folderPath;
+      if (!path) return false;
+      return path === folderFilter || path.startsWith(`${folderFilter}/`);
+    });
+  }, [documents, documentPathMap, folderFilter, isSearchActive]);
+
+  const selectedDocs = useMemo(
+    () => documents.filter((doc) => selectedIds.has(doc.id)),
+    [documents, selectedIds],
+  );
+  const selectedCount = selectedDocs.length;
+  const selectedSingle = selectedCount === 1 ? selectedDocs[0] : null;
+
+  const selectedDocSummary = useMemo(
+    () => documents.find((doc) => doc.id === selectedDocId) ?? null,
+    [documents, selectedDocId],
+  );
+  const displayDoc = selectedDoc ?? selectedDocSummary;
+
   const watermarkText = useMemo(() => {
-    if (!selectedDoc) return '';
-    return `Conecta Care • ${selectedDoc.title ?? 'Documento'} • ${formatDateTime(new Date().toISOString())}`;
-  }, [selectedDoc]);
+    if (!displayDoc) return '';
+    return `Conecta Care • ${displayDoc.title ?? 'Documento'} • ${formatDateTime(new Date().toISOString())}`;
+  }, [displayDoc]);
+
+  const applyNavFilter = useCallback((key: string, patch: Partial<GedDocumentFilters>) => {
+    setActiveNav(key);
+    setSearchQuery('');
+    setIsSearchActive(false);
+    setNavFilter(patch);
+    setFolderFilter(null);
+    setFilters((prev) => ({
+      ...prev,
+      search: undefined,
+      doc_domain: undefined,
+      category: undefined,
+      ...(patch.doc_type ? { doc_type: undefined } : {}),
+      ...(patch.doc_status ? { doc_status: undefined } : {}),
+    }));
+  }, []);
+
+  const toggleNavSection = useCallback((section: NavSectionKey) => {
+    setNavSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  }, []);
+
+  const toggleFolderExpand = useCallback((path: string) => {
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      if (next.has(path)) {
+        next.delete(path);
+      } else {
+        next.add(path);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectFolder = useCallback((path: string | null) => {
+    setActiveNav(path ? `folder:${path}` : 'all');
+    setFolderFilter(path);
+    setNavFilter({});
+    setSearchQuery('');
+    setIsSearchActive(false);
+  }, []);
+
+  const effectiveFilters = useMemo(
+    () => ({
+      ...(isSearchActive ? {} : navFilter),
+      ...filters,
+    }),
+    [filters, isSearchActive, navFilter],
+  );
 
   const loadDocuments = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await listGedDocuments(patientId, filters);
+      const data = await listGedDocuments(patientId, effectiveFilters);
       setDocuments(data);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao carregar GED';
@@ -355,12 +668,59 @@ export function GedTab({ patientId }: GedTabProps) {
     } finally {
       setLoading(false);
     }
-  }, [dispatchToast, filters, patientId]);
+  }, [dispatchToast, effectiveFilters, patientId]);
+
+  const loadImportPaths = useCallback(async () => {
+    try {
+      const items = await listGedImportPaths(patientId);
+      const map = new Map<string, string>();
+      items.forEach((item) => {
+        if (item.document_id && item.file_path) {
+          map.set(item.document_id, normalizePath(item.file_path));
+        }
+      });
+      setImportPathMap(map);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Falha ao carregar pastas do GED';
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{message}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    }
+  }, [dispatchToast, patientId]);
+
+  const loadCustody = useCallback(async () => {
+    setCustodyLoading(true);
+    setCustodyError(null);
+    try {
+      const data = await listGedCustodyOverview(patientId);
+      setCustodyLinks(data.links as GedSecureLinkWithDocument[]);
+      setCustodyArtifacts(data.artifacts as GedArtifactWithDocument[]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Falha ao carregar custodia';
+      setCustodyError(message);
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{message}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setCustodyLoading(false);
+    }
+  }, [dispatchToast, patientId]);
 
   const loadDetails = useCallback(
     async (documentId: string) => {
       setViewerLoading(true);
       setViewerError(null);
+      setPreviewUrl(null);
+      setPreviewMime(null);
+      setLogs([]);
+      setArtifacts([]);
+      setSecureLinks([]);
       try {
         const details = await getGedDocumentDetails(documentId);
         setSelectedDoc(details.document);
@@ -392,41 +752,162 @@ export function GedTab({ patientId }: GedTabProps) {
   }, [loadDocuments]);
 
   useEffect(() => {
-    if (selectedDocId) {
-      void loadDetails(selectedDocId);
+    void loadImportPaths();
+  }, [loadImportPaths]);
+
+  useEffect(() => {
+    if (!isCustodyOpen) return;
+    void loadCustody();
+  }, [isCustodyOpen, loadCustody]);
+
+  useEffect(() => {
+    void loadCustody();
+  }, [loadCustody]);
+
+  useEffect(() => {
+    if (folderTree.length === 0) return;
+    setExpandedFolders((prev) => {
+      if (prev.size > 0) return prev;
+      const next = new Set(prev);
+      folderTree.forEach((node) => {
+        next.add(node.path);
+      });
+      return next;
+    });
+  }, [folderTree]);
+
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      if (prev.size === 0) return prev;
+      const next = new Set<string>();
+      documents.forEach((doc) => {
+        if (prev.has(doc.id)) {
+          next.add(doc.id);
+        }
+      });
+      return next;
+    });
+  }, [documents]);
+
+  const handleSelectDocument = useCallback(
+    (doc: GedDocumentRow) => {
+      setSelectedDoc(doc);
+      setSelectedDocId(doc.id);
+      setSecureToken(null);
+      setIsViewerOpen(true);
+      void loadDetails(doc.id);
+    },
+    [loadDetails],
+  );
+
+  const buildDefaultPayload = useCallback((fileName: string): GedDocumentInput => {
+    const title = fileName.replace(/\.[^/.]+$/, '');
+    return {
+      title: title || 'Documento',
+      category: 'clinical',
+      doc_type: 'laudo',
+      doc_domain: 'Clinico',
+      doc_source: 'Ficha',
+      doc_origin: 'Ficha_Documentos',
+      description: null,
+      tags: [],
+    };
+  }, []);
+
+  const createUploadId = useCallback(() => {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return crypto.randomUUID();
     }
-  }, [selectedDocId, loadDetails]);
+    return `upload-${Date.now()}-${Math.round(Math.random() * 100000)}`;
+  }, []);
+
+  const handleAddUploadFiles = useCallback(
+    (files: FileList) => {
+      const incoming = Array.from(files);
+      const remaining = Math.max(0, MAX_QUICK_UPLOAD - uploadItems.length);
+      setUploadItems((prev) => {
+        const batch = incoming.slice(0, Math.max(0, MAX_QUICK_UPLOAD - prev.length));
+        if (batch.length === 0) return prev;
+        const next = batch.map((file, index) => ({
+          id: createUploadId(),
+          file,
+          expanded: prev.length === 0 && index === 0,
+          payload: buildDefaultPayload(file.name),
+        }));
+        return [...prev, ...next];
+      });
+      if (incoming.length > remaining) {
+        dispatchToast(
+          <Toast>
+            <ToastTitle>{`Limite de ${MAX_QUICK_UPLOAD} arquivos por envio rapido.`}</ToastTitle>
+          </Toast>,
+          { intent: 'warning' },
+        );
+      }
+    },
+    [buildDefaultPayload, createUploadId, dispatchToast, uploadItems.length],
+  );
+
+  const handleToggleUploadItem = useCallback((id: string) => {
+    setUploadItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, expanded: !item.expanded } : item)),
+    );
+  }, []);
+
+  const handleUpdateUploadItem = useCallback((id: string, payload: GedDocumentInput) => {
+    setUploadItems((prev) => prev.map((item) => (item.id === id ? { ...item, payload } : item)));
+  }, []);
+
+  const handleRemoveUploadItem = useCallback((id: string) => {
+    setUploadItems((prev) => prev.filter((item) => item.id !== id));
+  }, []);
+
+  const handleClearUploadItems = useCallback(() => {
+    setUploadItems([]);
+  }, []);
 
   const handleUpload = async () => {
-    if (!uploadFile) {
+    if (uploadItems.length === 0) {
       dispatchToast(
         <Toast>
-          <ToastTitle>Selecione um arquivo</ToastTitle>
+          <ToastTitle>Selecione arquivos para enviar</ToastTitle>
         </Toast>,
         { intent: 'warning' },
       );
       return;
     }
     setUploading(true);
+    const failed: GedQuickUploadItem[] = [];
     try {
-      await uploadGedDocument(patientId, uploadFile, uploadPayload);
-      dispatchToast(
-        <Toast>
-          <ToastTitle>Documento enviado com sucesso</ToastTitle>
-        </Toast>,
-        { intent: 'success' },
-      );
-      setUploadFile(null);
-      setUploadPayload((prev) => ({ ...prev, title: '', description: null }));
+      for (const item of uploadItems) {
+        try {
+          await uploadGedDocument(patientId, item.file, item.payload);
+        } catch (error) {
+          failed.push(item);
+        }
+      }
+
+      if (failed.length > 0) {
+        setUploadItems(failed);
+        dispatchToast(
+          <Toast>
+            <ToastTitle>{`Falha ao enviar ${failed.length} arquivo(s). Revise e tente novamente.`}</ToastTitle>
+          </Toast>,
+          { intent: 'error' },
+        );
+      } else {
+        setUploadItems([]);
+        dispatchToast(
+          <Toast>
+            <ToastTitle>Arquivos enviados com sucesso</ToastTitle>
+          </Toast>,
+          { intent: 'success' },
+        );
+        setIsUploadOpen(false);
+      }
+
       await loadDocuments();
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao enviar documento';
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{message}</ToastTitle>
-        </Toast>,
-        { intent: 'error' },
-      );
+      await loadImportPaths();
     } finally {
       setUploading(false);
     }
@@ -441,6 +922,9 @@ export function GedTab({ patientId }: GedTabProps) {
         window.open(result.artifactUrl, '_blank', 'noopener,noreferrer');
       }
       await loadDetails(selectedDoc.id);
+      if (isCustodyOpen) {
+        await loadCustody();
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao imprimir';
       dispatchToast(
@@ -467,6 +951,9 @@ export function GedTab({ patientId }: GedTabProps) {
         { intent: 'success' },
       );
       await loadDetails(selectedDoc.id);
+      if (isCustodyOpen) {
+        await loadCustody();
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao criar link seguro';
       dispatchToast(
@@ -485,7 +972,13 @@ export function GedTab({ patientId }: GedTabProps) {
     setSecureBusy(true);
     try {
       const result = await consumeGedSecureLink(secureToken);
-      window.open(result.url, '_blank', 'noopener,noreferrer');
+      const anchor = document.createElement('a');
+      anchor.href = result.url;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
       setSecureToken(null);
       if (selectedDoc) {
         await loadDetails(selectedDoc.id);
@@ -516,6 +1009,9 @@ export function GedTab({ patientId }: GedTabProps) {
       if (selectedDoc) {
         await loadDetails(selectedDoc.id);
       }
+      if (isCustodyOpen) {
+        await loadCustody();
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao revogar link';
       dispatchToast(
@@ -527,6 +1023,132 @@ export function GedTab({ patientId }: GedTabProps) {
     } finally {
       setSecureBusy(false);
     }
+  };
+
+  const handleArchiveSelection = async () => {
+    if (selectedIds.size === 0) return;
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(`Arquivar ${selectedIds.size} documento(s)?`)
+    ) {
+      return;
+    }
+    setArchiveBusy(true);
+    try {
+      const ids = Array.from(selectedIds);
+      const result = await archiveGedDocuments(ids);
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{`${result.archived} documento(s) arquivado(s).`}</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      clearSelection();
+      await loadDocuments();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Falha ao arquivar documentos';
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{message}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setArchiveBusy(false);
+    }
+  };
+
+  const handleBulkOriginals = async () => {
+    if (selectedDocs.length === 0) return;
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(`Gerar pacote ZIP com ${selectedDocs.length} original(is)? Essa acao consome os links.`)
+    ) {
+      return;
+    }
+    setBulkOriginalBusy(true);
+    try {
+      const tokens: Array<{ doc: GedDocumentRow; token: string }> = [];
+
+      for (const doc of selectedDocs) {
+        const result = await createGedSecureLink(doc.id);
+        tokens.push({ doc, token: result.token });
+      }
+
+      const { default: JSZip } = await import('jszip');
+      const zip = new JSZip();
+
+      for (let index = 0; index < tokens.length; index += 1) {
+        const { doc, token } = tokens[index];
+        const download = await consumeGedSecureLink(token);
+        const response = await fetch(download.url);
+        if (!response.ok) {
+          throw new Error(`Falha ao baixar original (${doc.title ?? doc.file_name ?? doc.id})`);
+        }
+        const blob = await response.blob();
+        const rawName = doc.original_file_name ?? doc.file_name ?? doc.title ?? `documento-${index + 1}`;
+        const fileName = safeSegment(rawName || `documento-${index + 1}`);
+        zip.file(fileName, blob);
+      }
+
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      const stamp = new Date().toISOString().slice(0, 10);
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(zipBlob);
+      link.href = url;
+      link.download = `ged-originais-${stamp}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Pacote ZIP gerado com sucesso.</ToastTitle>
+        </Toast>,
+        { intent: 'success' },
+      );
+      clearSelection();
+      if (isCustodyOpen) {
+        await loadCustody();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Falha ao gerar pacote de originais';
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{message}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    } finally {
+      setBulkOriginalBusy(false);
+    }
+  };
+
+  const handleDownloadArtifact = async (artifactId: string) => {
+    try {
+      const result = await getGedArtifactDownloadUrl(artifactId);
+      const popup = window.open(result.url, '_blank', 'noopener,noreferrer');
+      if (!popup) {
+        window.location.assign(result.url);
+      }
+      if (isCustodyOpen) {
+        await loadCustody();
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Falha ao abrir artefato';
+      dispatchToast(
+        <Toast>
+          <ToastTitle>{message}</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    }
+  };
+
+  const openCustodyCenter = (tab: 'links' | 'artifacts') => {
+    setCustodyTab(tab);
+    setIsCustodyOpen(true);
   };
 
   const handleBulkImport = async () => {
@@ -541,7 +1163,7 @@ export function GedTab({ patientId }: GedTabProps) {
     }
     setBulkBusy(true);
     try {
-      const result = await startGedBulkImport(bulkScope, bulkFile, bulkScope === 'single' ? patientId : null);
+      const result = await startGedBulkImport('single', bulkFile, patientId);
       setBulkJobId(result.jobId);
       const items = await listBulkImportItems(result.jobId);
       setBulkItems(items as GedImportItem[]);
@@ -552,6 +1174,7 @@ export function GedTab({ patientId }: GedTabProps) {
         { intent: result.failedItems > 0 ? 'warning' : 'success' },
       );
       await loadDocuments();
+      await loadImportPaths();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao importar ZIP';
       dispatchToast(
@@ -580,6 +1203,7 @@ export function GedTab({ patientId }: GedTabProps) {
         { intent: 'success' },
       );
       await loadDocuments();
+      await loadImportPaths();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao revisar item';
       dispatchToast(
@@ -593,379 +1217,257 @@ export function GedTab({ patientId }: GedTabProps) {
     }
   };
 
-  const selectedPreviewType = previewMime ?? selectedDoc?.mime_type ?? '';
-  const isPdf = selectedPreviewType.includes('pdf');
-  const isImage = selectedPreviewType.startsWith('image/');
-  const isDicom = selectedDoc ? isDicomFile(selectedDoc.file_name ?? '', selectedDoc.mime_type) : false;
+  const handleCloseUpload = useCallback(() => {
+    setIsUploadOpen(false);
+  }, []);
+
+  const handleCloseImport = useCallback(() => {
+    setIsImportOpen(false);
+    setReviewItem(null);
+  }, []);
+
+  const toggleSelection = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const handleSearch = useCallback(() => {
+    const trimmed = searchQuery.trim();
+    setIsSearchActive(Boolean(trimmed));
+    setActiveNav(trimmed ? 'search' : 'all');
+    setFilters((prev) => ({
+      ...prev,
+      search: trimmed || undefined,
+    }));
+  }, [searchQuery]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    setIsSearchActive(false);
+    setActiveNav(folderFilter ? `folder:${folderFilter}` : 'all');
+    setFilters((prev) => ({
+      ...prev,
+      search: undefined,
+    }));
+  }, [folderFilter]);
+
+  const isDicom = displayDoc ? isDicomFile(displayDoc.file_name ?? '', displayDoc.mime_type) : false;
+  const renderFolderNodes = useCallback(
+    (nodes: FolderNode[], depth = 0) =>
+      nodes.map((node) => {
+        const isExpanded = expandedFolders.has(node.path);
+        const isActive = activeNav === `folder:${node.path}`;
+        const hasChildren = node.children.length > 0;
+
+        return (
+          <div key={node.path}>
+            <button
+              type="button"
+              className={mergeClasses(styles.navFolderButton, isActive && styles.navItemActive)}
+              onClick={() => {
+                handleSelectFolder(node.path);
+                if (hasChildren) {
+                  toggleFolderExpand(node.path);
+                }
+              }}
+              style={{ paddingLeft: `${10 + depth * 12}px` }}
+              aria-expanded={hasChildren ? isExpanded : undefined}
+            >
+              <span>{node.name}</span>
+              <span className={styles.navFolderMeta}>
+                <span className={styles.navFolderCount}>{node.count}</span>
+                {hasChildren ? (isExpanded ? <ChevronDownRegular /> : <ChevronRightRegular />) : null}
+              </span>
+            </button>
+            {hasChildren && isExpanded && <div className={styles.navGroup}>{renderFolderNodes(node.children, depth + 1)}</div>}
+          </div>
+        );
+      }),
+    [activeNav, expandedFolders, handleSelectFolder, styles, toggleFolderExpand],
+  );
 
   return (
     <div className={styles.container}>
       <Toaster toasterId={toasterId} />
 
-      <div className={styles.commandBar}>
-        <Button icon={<ArrowClockwiseRegular />} onClick={loadDocuments} disabled={loading}>
-          Recarregar
-        </Button>
-        <Button icon={<PrintRegular />} onClick={handlePrint} disabled={!selectedDoc || printBusy || isDicom}>
-          Imprimir (derivado)
-        </Button>
-        <Button icon={<AddRegular />} onClick={handleSecureLink} disabled={!selectedDoc || secureBusy}>
-          Solicitar original
-        </Button>
-        {isDev && (
-          <Checkbox
-            checked={allowCapture}
-            onChange={(_, data) => setAllowCapture(Boolean(data.checked))}
-            label="Habilitar captura/print (DEV)"
-          />
-        )}
-        <span className={styles.commandPill}>GED Aba 05</span>
-      </div>
+      <div className={styles.driveLayout}>
+        <section className={styles.driveShell}>
+          <div className={styles.driveShellGrid}>
+            <aside className={styles.driveNav}>
+              <div className={styles.navTitle}>GED do paciente</div>
 
-      <div className={styles.grid}>
-        <div className={styles.leftCol}>
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Biblioteca GED</div>
-              {loading && <Spinner size="tiny" />}
-            </div>
-            <div className={styles.cardBody}>
-              <div className={styles.formGrid}>
-                <Field label="Categoria">
-                  <Select
-                    value={filters.category ?? ''}
-                    onChange={(event) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        category: event.target.value ? (event.target.value as GedDocumentFilters['category']) : undefined,
-                      }))
-                    }
+              <button
+                type="button"
+                className={styles.navSectionButton}
+                onClick={() => toggleNavSection('folders')}
+                aria-expanded={navSections.folders}
+              >
+                <span>Pastas</span>
+                {navSections.folders ? <ChevronDownRegular /> : <ChevronRightRegular />}
+              </button>
+              {navSections.folders && (
+                <div className={styles.navGroup}>
+                  <button
+                    type="button"
+                    className={mergeClasses(styles.navItem, activeNav === 'all' && styles.navItemActive)}
+                    onClick={() => handleSelectFolder(null)}
                   >
-                    <option value="">Todas</option>
-                    {gedCategoryOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Tipo">
-                  <Select
-                    value={filters.doc_type ?? ''}
-                    onChange={(event) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        doc_type: event.target.value ? (event.target.value as GedDocumentFilters['doc_type']) : undefined,
-                      }))
-                    }
-                  >
-                    <option value="">Todos</option>
-                    {gedDocTypeOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Status">
-                  <Select
-                    value={filters.doc_status ?? ''}
-                    onChange={(event) =>
-                      setFilters((prev) => ({
-                        ...prev,
-                        doc_status: event.target.value
-                          ? (event.target.value as GedDocumentFilters['doc_status'])
-                          : undefined,
-                      }))
-                    }
-                  >
-                    <option value="">Todos</option>
-                    {gedDocStatusEnumOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Busca">
-                  <Input
-                    value={filters.search ?? ''}
-                    onChange={(event) => setFilters((prev) => ({ ...prev, search: event.target.value }))}
-                    placeholder="Titulo do documento"
-                  />
-                </Field>
-              </div>
+                    Tudo
+                  </button>
+                  {folderTree.length === 0 && <p className={styles.muted}>Nenhuma pasta detectada.</p>}
+                  {folderTree.length > 0 && renderFolderNodes(folderTree)}
+                </div>
+              )}
 
-              <div style={{ marginTop: '12px' }} className={styles.list}>
-                {documents.length === 0 && <p className={styles.muted}>Nenhum documento encontrado.</p>}
-                {documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className={`${styles.listRow} ${selectedDocId === doc.id ? styles.listRowActive : ''}`}
-                    onClick={() => setSelectedDocId(doc.id)}
+              <button
+                type="button"
+                className={styles.navSectionButton}
+                onClick={() => toggleNavSection('views')}
+                aria-expanded={navSections.views}
+              >
+                <span>Views</span>
+                {navSections.views ? <ChevronDownRegular /> : <ChevronRightRegular />}
+              </button>
+              {navSections.views && (
+                <div className={styles.navGroup}>
+                  <button
+                    type="button"
+                    className={mergeClasses(styles.navItem, activeNav === 'importados' && styles.navItemActive)}
+                    onClick={() => applyNavFilter('importados', { doc_source: 'Importacao' })}
                   >
-                    <div>
-                      <div className={styles.listCellTitle}>{doc.title}</div>
-                      <div className={styles.listCellMeta}>{doc.subcategory || '—'}</div>
-                    </div>
-                    <div className={styles.listCellMeta}>{doc.category}</div>
-                    <div className={styles.listCellMeta}>{doc.document_status}</div>
-                    <div className={styles.listCellMeta}>{formatDateTime(doc.uploaded_at)}</div>
+                    Importados em massa
+                  </button>
+                  <button
+                    type="button"
+                    className={mergeClasses(styles.navItem, activeNav === 'needs_review' && styles.navItemActive)}
+                    onClick={() => applyNavFilter('needs_review', { doc_status: 'Rascunho' })}
+                  >
+                    Needs review
+                  </button>
+                  <button
+                    type="button"
+                    className={mergeClasses(styles.navItem, activeNav === 'nao_classificado' && styles.navItemActive)}
+                    onClick={() => applyNavFilter('nao_classificado', { category: 'other' })}
+                  >
+                    Nao classificado
+                  </button>
+                </div>
+              )}
+
+              <button
+                type="button"
+                className={styles.navSectionButton}
+                onClick={() => toggleNavSection('custody')}
+                aria-expanded={navSections.custody}
+              >
+                <span>Custodia</span>
+                {navSections.custody ? <ChevronDownRegular /> : <ChevronRightRegular />}
+              </button>
+              {navSections.custody && (
+                <div className={styles.navGroup}>
+                  <button
+                    type="button"
+                    className={styles.navItem}
+                    onClick={() => openCustodyCenter('links')}
+                  >
+                    Links seguros
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.navItem}
+                    onClick={() => openCustodyCenter('artifacts')}
+                  >
+                    Artefatos
+                  </button>
+                  <button type="button" className={styles.navItem} onClick={() => openCustodyCenter('links')}>
+                    Solicitacoes de original
+                  </button>
+                </div>
+              )}
+            </aside>
+
+            <div className={styles.driveMain}>
+              <div className={styles.driveHeader}>
+                <div>
+                  <div className={styles.driveTitle}>Biblioteca GED</div>
+                  <div className={styles.driveSub}>Biblioteca central de documentos do paciente</div>
+                </div>
+                <div className={styles.driveCounters}>
+                  <div className={styles.counter}>
+                    Total <span className={styles.counterValue}>{documents.length}</span>
                   </div>
-                ))}
+                  <div className={styles.counter}>
+                    Needs review <span className={styles.counterValue}>{needsReviewCount}</span>
+                  </div>
+                  <div className={styles.counter}>
+                    Links ativos <span className={styles.counterValue}>{activeSecureLinks}</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </section>
 
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Viewer protegido</div>
-              {viewerLoading && <Spinner size="tiny" />}
-            </div>
-            <div className={styles.cardBody}>
-              {!selectedDoc && <p className={styles.muted}>Selecione um documento para visualizar.</p>}
-              {selectedDoc && (
-                <div className={styles.viewerWrap}>
-                  <div className={styles.viewerBanner}>Documento em custodia Conecta Care</div>
-                  <div className={styles.viewerContent}>
-                    {viewerError && <p className={styles.muted}>{viewerError}</p>}
-                    {!viewerError && !previewUrl && <p className={styles.muted}>Pré-visualização indisponível.</p>}
-                    {isDicom && <p className={styles.muted}>DICOM (custodia apenas). Solicite o original.</p>}
-                    {!isDicom && previewUrl && isPdf && (
-                      <iframe title="GED preview" src={previewUrl} className={styles.viewerFrame} />
-                    )}
-                    {!isDicom && previewUrl && isImage && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={previewUrl} alt="Documento" className={styles.viewerImage} />
-                    )}
-                    {!isDicom && previewUrl && !isPdf && !isImage && (
-                      <p className={styles.muted}>Formato nao suportado para viewer. Use o download do original.</p>
-                    )}
-                    {!allowCapture && previewUrl && !isDicom && (
-                      <div
-                        className={styles.watermark}
-                        style={{
-                          backgroundImage: buildWatermarkPattern(watermarkText),
-                          backgroundRepeat: 'repeat',
+              <div className={styles.driveToolbar}>
+                <Button appearance="primary" icon={<AddRegular />} onClick={() => setIsUploadOpen(true)}>
+                  Upload rapido
+                </Button>
+                <Button onClick={() => setIsImportOpen(true)}>Importar ZIP</Button>
+                <Button onClick={() => openCustodyCenter('links')}>Gestao de custodia</Button>
+                <Button icon={<ArrowClockwiseRegular />} onClick={loadDocuments} disabled={loading}>
+                  Recarregar
+                </Button>
+                {loading && <Spinner size="tiny" />}
+              </div>
+
+              <div className={styles.driveFilters}>
+                <div className={styles.filters}>
+                  <Field label="Busca">
+                    <div className={styles.searchRow}>
+                      <Input
+                        className={styles.searchInput}
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            handleSearch();
+                          }
                         }}
+                        placeholder="Titulo, tag, hash, ID..."
                       />
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
-
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Upload rapido</div>
-            </div>
-            <div className={styles.cardBody}>
-              <div className={styles.formGrid}>
-                <Field label="Titulo">
-                  <Input
-                    value={uploadPayload.title}
-                    onChange={(event) => setUploadPayload((prev) => ({ ...prev, title: event.target.value }))}
-                    placeholder="Titulo do documento"
-                  />
-                </Field>
-                <Field label="Categoria">
-                  <Select
-                    value={uploadPayload.category}
-                    onChange={(event) =>
-                      setUploadPayload((prev) => ({
-                        ...prev,
-                        category: event.target.value as GedDocumentInput['category'],
-                      }))
-                    }
-                  >
-                    {gedCategoryOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Tipo">
-                  <Select
-                    value={uploadPayload.doc_type}
-                    onChange={(event) =>
-                      setUploadPayload((prev) => ({
-                        ...prev,
-                        doc_type: event.target.value as GedDocumentInput['doc_type'],
-                      }))
-                    }
-                  >
-                    {gedDocTypeOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Dominio">
-                  <Select
-                    value={uploadPayload.doc_domain}
-                    onChange={(event) =>
-                      setUploadPayload((prev) => ({
-                        ...prev,
-                        doc_domain: event.target.value as GedDocumentInput['doc_domain'],
-                      }))
-                    }
-                  >
-                    {gedDocDomainOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Fonte">
-                  <Select
-                    value={uploadPayload.doc_source}
-                    onChange={(event) =>
-                      setUploadPayload((prev) => ({
-                        ...prev,
-                        doc_source: event.target.value as GedDocumentInput['doc_source'],
-                      }))
-                    }
-                  >
-                    {gedDocSourceOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Origem">
-                  <Select
-                    value={uploadPayload.doc_origin}
-                    onChange={(event) =>
-                      setUploadPayload((prev) => ({
-                        ...prev,
-                        doc_origin: event.target.value as GedDocumentInput['doc_origin'],
-                      }))
-                    }
-                  >
-                    {gedDocOriginOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </Field>
-                <Field label="Descricao" className={styles.formFull}>
-                  <Textarea
-                    value={uploadPayload.description ?? ''}
-                    onChange={(event) => setUploadPayload((prev) => ({ ...prev, description: event.target.value }))}
-                  />
-                </Field>
-                <Field label="Arquivo" className={styles.formFull}>
-                  <input
-                    className={styles.fileInput}
-                    type="file"
-                    onChange={(event) => setUploadFile(event.currentTarget.files?.[0] ?? null)}
-                  />
-                </Field>
-              </div>
-              <div style={{ marginTop: '12px' }} className={styles.inlineActions}>
-                <Button appearance="primary" onClick={handleUpload} disabled={uploading}>
-                  {uploading ? 'Enviando...' : 'Enviar documento'}
-                </Button>
-              </div>
-            </div>
-          </section>
-
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Importacao em massa (ZIP)</div>
-            </div>
-            <div className={styles.cardBody}>
-              <div className={styles.formGrid}>
-                <Field label="Escopo">
-                  <Select value={bulkScope} onChange={(event) => setBulkScope(event.target.value as BulkImportScope)}>
-                    <option value="single">Somente este paciente</option>
-                    <option value="multi">Multi-paciente (manifest obrigatorio)</option>
-                  </Select>
-                </Field>
-                <Field label="ZIP" className={styles.formFull}>
-                  <input
-                    className={styles.fileInput}
-                    type="file"
-                    onChange={(event) => setBulkFile(event.currentTarget.files?.[0] ?? null)}
-                  />
-                </Field>
-              </div>
-              <div style={{ marginTop: '12px' }} className={styles.inlineActions}>
-                <Button appearance="primary" onClick={handleBulkImport} disabled={bulkBusy}>
-                  {bulkBusy ? 'Processando...' : 'Iniciar importacao'}
-                </Button>
-              </div>
-              {bulkJobId && (
-                <div style={{ marginTop: '12px' }}>
-                  <p className={styles.muted}>Job: {bulkJobId}</p>
-                  {bulkItems.length > 0 && (
-                    <div className={styles.list}>
-                      {bulkItems.map((item) => (
-                        <div key={item.id} className={styles.listRow}>
-                          <div>
-                            <div className={styles.listCellTitle}>{item.original_file_name ?? item.file_path}</div>
-                            <div className={styles.listCellMeta}>{item.status}</div>
-                          </div>
-                          <div className={styles.listCellMeta}>{item.error_detail ?? '—'}</div>
-                          <div className={styles.listCellMeta}>{item.patient_id ?? '—'}</div>
-                          <div className={styles.inlineActions}>
-                            {item.status === 'needs_review' && (
-                              <Button
-                                size="small"
-                                onClick={() => {
-                                  setReviewItem(item);
-                                  setReviewPayload((prev) => ({
-                                    ...prev,
-                                    title: item.original_file_name ?? prev.title,
-                                  }));
-                                }}
-                              >
-                                Revisar
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
+                      <Button icon={<SearchRegular />} onClick={handleSearch}>
+                        Buscar
+                      </Button>
+                      {isSearchActive && (
+                        <Button appearance="secondary" onClick={handleClearSearch}>
+                          Limpar
+                        </Button>
+                      )}
                     </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </section>
-
-          {reviewItem && (
-            <section className={styles.card}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitle}>Revisao de item</div>
-                <Button size="small" onClick={() => setReviewItem(null)}>
-                  Fechar
-                </Button>
-              </div>
-              <div className={styles.cardBody}>
-                <div className={styles.formGrid}>
-                  <Field label="Titulo">
-                    <Input
-                      value={reviewPayload.title}
-                      onChange={(event) => setReviewPayload((prev) => ({ ...prev, title: event.target.value }))}
-                    />
                   </Field>
-                  <Field label="Categoria">
+                  <Field label="Dominio">
                     <Select
-                      value={reviewPayload.category}
-                      onChange={(event) =>
-                        setReviewPayload((prev) => ({
+                      value={filters.doc_domain ?? ''}
+                      onChange={(event) => {
+                        setActiveNav((prev) => (isSearchActive ? prev : 'custom'));
+                        setFilters((prev) => ({
                           ...prev,
-                          category: event.target.value as GedDocumentInput['category'],
-                        }))
-                      }
+                          doc_domain: event.target.value
+                            ? (event.target.value as GedDocumentFilters['doc_domain'])
+                            : undefined,
+                        }));
+                      }}
                     >
-                      {gedCategoryOptions.map((option) => (
+                      <option value="">Todos</option>
+                      {gedDocDomainOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
                         </option>
@@ -974,14 +1476,18 @@ export function GedTab({ patientId }: GedTabProps) {
                   </Field>
                   <Field label="Tipo">
                     <Select
-                      value={reviewPayload.doc_type}
-                      onChange={(event) =>
-                        setReviewPayload((prev) => ({
+                      value={filters.doc_type ?? ''}
+                      onChange={(event) => {
+                        setActiveNav((prev) => (isSearchActive ? prev : 'custom'));
+                        setFilters((prev) => ({
                           ...prev,
-                          doc_type: event.target.value as GedDocumentInput['doc_type'],
-                        }))
-                      }
+                          doc_type: event.target.value
+                            ? (event.target.value as GedDocumentFilters['doc_type'])
+                            : undefined,
+                        }));
+                      }}
                     >
+                      <option value="">Todos</option>
                       {gedDocTypeOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
@@ -989,34 +1495,21 @@ export function GedTab({ patientId }: GedTabProps) {
                       ))}
                     </Select>
                   </Field>
-                  <Field label="Dominio">
+                  <Field label="Status">
                     <Select
-                      value={reviewPayload.doc_domain}
-                      onChange={(event) =>
-                        setReviewPayload((prev) => ({
+                      value={filters.doc_status ?? ''}
+                      onChange={(event) => {
+                        setActiveNav((prev) => (isSearchActive ? prev : 'custom'));
+                        setFilters((prev) => ({
                           ...prev,
-                          doc_domain: event.target.value as GedDocumentInput['doc_domain'],
-                        }))
-                      }
+                          doc_status: event.target.value
+                            ? (event.target.value as GedDocumentFilters['doc_status'])
+                            : undefined,
+                        }));
+                      }}
                     >
-                      {gedDocDomainOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </Select>
-                  </Field>
-                  <Field label="Fonte">
-                    <Select
-                      value={reviewPayload.doc_source}
-                      onChange={(event) =>
-                        setReviewPayload((prev) => ({
-                          ...prev,
-                          doc_source: event.target.value as GedDocumentInput['doc_source'],
-                        }))
-                      }
-                    >
-                      {gedDocSourceOptions.map((option) => (
+                      <option value="">Todos</option>
+                      {gedDocStatusEnumOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
                         </option>
@@ -1025,14 +1518,18 @@ export function GedTab({ patientId }: GedTabProps) {
                   </Field>
                   <Field label="Origem">
                     <Select
-                      value={reviewPayload.doc_origin}
-                      onChange={(event) =>
-                        setReviewPayload((prev) => ({
+                      value={filters.doc_origin ?? ''}
+                      onChange={(event) => {
+                        setActiveNav((prev) => (isSearchActive ? prev : 'custom'));
+                        setFilters((prev) => ({
                           ...prev,
-                          doc_origin: event.target.value as GedDocumentInput['doc_origin'],
-                        }))
-                      }
+                          doc_origin: event.target.value
+                            ? (event.target.value as GedDocumentFilters['doc_origin'])
+                            : undefined,
+                        }));
+                      }}
                     >
+                      <option value="">Todas</option>
                       {gedDocOriginOptions.map((option) => (
                         <option key={option} value={option}>
                           {option}
@@ -1041,136 +1538,192 @@ export function GedTab({ patientId }: GedTabProps) {
                     </Select>
                   </Field>
                 </div>
-                <div style={{ marginTop: '12px' }} className={styles.inlineActions}>
-                  <Button appearance="primary" onClick={handleReviewSubmit} disabled={bulkBusy}>
-                    Aprovar item
-                  </Button>
-                </div>
               </div>
-            </section>
-          )}
-        </div>
 
-        <aside className={styles.rightCol}>
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Detalhes</div>
-            </div>
-            <div className={styles.cardBody}>
-              {!selectedDoc && <p className={styles.muted}>Selecione um documento.</p>}
-              {selectedDoc && (
-                <dl className={styles.detailsList}>
-                  <dt>Titulo</dt>
-                  <dd>{selectedDoc.title}</dd>
-                  <dt>Categoria</dt>
-                  <dd>{selectedDoc.category}</dd>
-                  <dt>Tipo</dt>
-                  <dd>{selectedDoc.subcategory ?? '—'}</dd>
-                  <dt>Status</dt>
-                  <dd>{selectedDoc.document_status}</dd>
-                  <dt>Hash</dt>
-                  <dd>{selectedDoc.file_hash ?? '—'}</dd>
-                  <dt>Uploaded</dt>
-                  <dd>{formatDateTime(selectedDoc.uploaded_at)}</dd>
-                </dl>
-              )}
-            </div>
-          </section>
-
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Artefatos</div>
-            </div>
-            <div className={styles.cardBody}>
-              {artifacts.length === 0 && <p className={styles.muted}>Nenhum artefato gerado.</p>}
-              {artifacts.length > 0 && (
-                <div className={styles.list}>
-                  {artifacts.map((artifact) => (
-                    <div key={artifact.id} className={styles.listRow}>
-                      <div>
-                        <div className={styles.listCellTitle}>{artifact.artifact_type}</div>
-                        <div className={styles.listCellMeta}>{formatDateTime(artifact.created_at)}</div>
-                      </div>
-                      <div className={styles.listCellMeta}>{artifact.mime_type ?? '—'}</div>
-                      <div className={styles.listCellMeta}>{artifact.file_hash.slice(0, 10)}...</div>
-                      <div />
-                    </div>
-                  ))}
+              {selectedCount > 0 && (
+                <div className={styles.selectionBar}>
+                  <span className={styles.selectionText}>{selectedCount} selecionado(s)</span>
+                  <div className={styles.inlineActions}>
+                    <Button
+                      size="small"
+                      appearance="primary"
+                      onClick={() => selectedSingle && handleSelectDocument(selectedSingle)}
+                      disabled={!selectedSingle}
+                    >
+                      Abrir
+                    </Button>
+                    <Button size="small" onClick={handleArchiveSelection} disabled={archiveBusy}>
+                      Arquivar
+                    </Button>
+                    <Button size="small" onClick={handleBulkOriginals} disabled={bulkOriginalBusy}>
+                      Solicitar originais (ZIP)
+                    </Button>
+                    <Button size="small" appearance="secondary" onClick={clearSelection}>
+                      Limpar selecao
+                    </Button>
+                    {(archiveBusy || bulkOriginalBusy) && <Spinner size="tiny" />}
+                  </div>
                 </div>
               )}
-            </div>
-          </section>
 
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Link seguro do original</div>
-            </div>
-            <div className={styles.cardBody}>
-              {!selectedDoc && <p className={styles.muted}>Selecione um documento.</p>}
-              {selectedDoc && (
-                <div className={styles.list}>
-                  {secureToken && (
-                    <div className={styles.inlineActions}>
-                      <Button appearance="primary" onClick={handleConsumeSecureLink} disabled={secureBusy}>
-                        Baixar original (download unico)
-                      </Button>
-                      {shareLink && (
-                        <Button
-                          onClick={() => navigator.clipboard.writeText(shareLink)}
-                          disabled={secureBusy}
-                        >
-                          Copiar link
-                        </Button>
-                      )}
-                      <Button onClick={() => setSecureToken(null)} disabled={secureBusy}>
-                        Limpar token
-                      </Button>
-                    </div>
+              <div className={styles.tableWrap}>
+                <div
+                  className={mergeClasses(
+                    styles.tableRow,
+                    styles.tableRowHeader,
+                    isSearchActive && styles.tableRowSearch,
                   )}
-                  {shareLink && <p className={styles.muted}>Link seguro: {shareLink}</p>}
-                  {secureLinks.map((link) => (
-                    <div key={link.id} className={styles.listRow}>
-                      <div>
-                        <div className={styles.listCellTitle}>Expira em {formatDateTime(link.expires_at)}</div>
-                        <div className={styles.listCellMeta}>Downloads: {link.downloads_count}</div>
-                      </div>
-                      <div className={styles.listCellMeta}>{link.revoked_at ? 'Revogado' : 'Ativo'}</div>
-                      <div className={styles.inlineActions}>
-                        {!link.revoked_at && (
-                          <Button size="small" onClick={() => handleRevokeLink(link.id)} disabled={secureBusy}>
-                            Revogar
-                          </Button>
-                        )}
-                      </div>
-                      <div />
-                    </div>
-                  ))}
-                  {secureLinks.length === 0 && <p className={styles.muted}>Nenhum link ativo.</p>}
+                >
+                  <div></div>
+                  <div>Arquivo</div>
+                  <div>Tipo</div>
+                  <div>Status</div>
+                  <div>Origem</div>
+                  <div>Atualizado</div>
+                  {isSearchActive && <div>Caminho</div>}
                 </div>
-              )}
-            </div>
-          </section>
+                {visibleDocuments.length === 0 && !loading && (
+                  <p className={styles.muted} style={{ padding: '12px 16px' }}>
+                    Nenhum documento encontrado.
+                  </p>
+                )}
+                {visibleDocuments.map((doc) => {
+                  const statusClass =
+                    doc.document_status === 'Ativo'
+                      ? styles.tagOk
+                      : doc.document_status === 'Arquivado' || doc.document_status === 'Substituido'
+                        ? styles.tagWarn
+                        : styles.tagDanger;
 
-          <section className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardTitle}>Auditoria</div>
-            </div>
-            <div className={styles.cardBody}>
-              {logs.length === 0 && <p className={styles.muted}>Sem eventos.</p>}
-              {logs.length > 0 && (
-                <div className={styles.timelineList}>
-                  {logs.map((log) => (
-                    <div key={log.id} className={styles.timelineItem}>
-                      <div className={styles.timelineTitle}>{log.action}</div>
-                      <div className={styles.timelineMeta}>{formatDateTime(log.happened_at)}</div>
+                  return (
+                    <div
+                      key={doc.id}
+                      className={mergeClasses(
+                        styles.tableRow,
+                        selectedDocId === doc.id && styles.tableRowActive,
+                        isSearchActive && styles.tableRowSearch,
+                      )}
+                      onClick={() => handleSelectDocument(doc)}
+                    >
+                      <div>
+                        <Checkbox
+                          checked={selectedIds.has(doc.id)}
+                          onChange={(event) => {
+                            event.stopPropagation();
+                            toggleSelection(doc.id);
+                          }}
+                          onClick={(event) => event.stopPropagation()}
+                          aria-label="Selecionar documento"
+                        />
+                      </div>
+                      <div>
+                        <div className={styles.tableCellTitle}>{doc.title ?? 'Documento'}</div>
+                        <div className={styles.tableCellMeta}>
+                          {doc.subcategory ?? '—'} • {doc.domain_type ?? '—'}
+                        </div>
+                      </div>
+                      <div className={styles.tableCellMeta}>{doc.subcategory ?? doc.category ?? '—'}</div>
+                      <div>
+                        <span className={mergeClasses(styles.tag, statusClass)}>{doc.document_status ?? '—'}</span>
+                      </div>
+                      <div className={styles.tableCellMeta}>{doc.origin_module ?? doc.source_module ?? '—'}</div>
+                      <div className={styles.tableCellMeta}>{formatDateTime(doc.uploaded_at)}</div>
+                      {isSearchActive && (
+                        <div className={styles.tableCellMeta}>
+                          {documentPathMap.get(doc.id)?.displayPath ??
+                            `${doc.domain_type ?? 'Misto'}/${doc.subcategory ?? doc.category ?? 'outros'}`}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
+                  );
+                })}
+              </div>
             </div>
-          </section>
-        </aside>
+          </div>
+        </section>
       </div>
+
+      <GedQuickUploadModal
+        open={isUploadOpen}
+        items={uploadItems}
+        uploading={uploading}
+        maxFiles={MAX_QUICK_UPLOAD}
+        onClose={handleCloseUpload}
+        onAddFiles={handleAddUploadFiles}
+        onToggleItem={handleToggleUploadItem}
+        onRemoveItem={handleRemoveUploadItem}
+        onUpdateItem={handleUpdateUploadItem}
+        onSubmit={handleUpload}
+        onClearAll={handleClearUploadItems}
+      />
+
+      <GedBulkImportModal
+        open={isImportOpen}
+        bulkFile={bulkFile}
+        bulkBusy={bulkBusy}
+        bulkJobId={bulkJobId}
+        bulkItems={bulkItems}
+        reviewItem={reviewItem}
+        reviewPayload={reviewPayload}
+        onClose={handleCloseImport}
+        onFileChange={setBulkFile}
+        onStartImport={handleBulkImport}
+        onReviewSelect={(item) => {
+          setReviewItem(item);
+          setReviewPayload((prev) => ({
+            ...prev,
+            title: item.original_file_name ?? prev.title,
+          }));
+        }}
+        onReviewChange={setReviewPayload}
+        onReviewSubmit={handleReviewSubmit}
+      />
+
+      <GedCustodyCenterModal
+        open={isCustodyOpen}
+        activeTab={custodyTab}
+        loading={custodyLoading}
+        error={custodyError}
+        links={custodyLinks}
+        artifacts={custodyArtifacts}
+        formatDateTime={formatDateTime}
+        onClose={() => setIsCustodyOpen(false)}
+        onTabChange={setCustodyTab}
+        onRevokeLink={handleRevokeLink}
+        onDownloadArtifact={handleDownloadArtifact}
+      />
+
+      <GedDocumentViewerModal
+        open={isViewerOpen && Boolean(selectedDocId)}
+        document={displayDoc}
+        previewUrl={previewUrl}
+        previewMime={previewMime}
+        viewerLoading={viewerLoading}
+        viewerError={viewerError}
+        isDicom={isDicom}
+        allowCapture={allowCapture}
+        onToggleCapture={(checked) => setAllowCapture(checked)}
+        isDev={isDev}
+        watermarkPattern={displayDoc ? buildWatermarkPattern(watermarkText) : ''}
+        onPrint={handlePrint}
+        printBusy={printBusy}
+        onSecureLink={handleSecureLink}
+        secureBusy={secureBusy}
+        secureToken={secureToken}
+        shareLink={shareLink}
+        onConsumeSecureLink={handleConsumeSecureLink}
+        onClearToken={() => setSecureToken(null)}
+        secureLinks={secureLinks}
+        artifacts={artifacts}
+        logs={logs}
+        formatDateTime={formatDateTime}
+        onRevokeLink={handleRevokeLink}
+        onClose={() => {
+          setIsViewerOpen(false);
+          setAllowCapture(false);
+          setSecureToken(null);
+        }}
+      />
     </div>
   );
 }
