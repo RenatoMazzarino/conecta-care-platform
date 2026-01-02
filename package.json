@@ -25,6 +25,7 @@
     "next": "^16.0.10",
     "papaparse": "^5.4.1",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-hook-form": "^7.69.0",
