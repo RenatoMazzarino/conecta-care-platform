@@ -243,6 +243,15 @@ type GedDocumentLog = Database['public']['Tables']['patient_document_logs']['Row
 type GedArtifact = Database['public']['Tables']['document_artifacts']['Row'];
 type GedSecureLink = Database['public']['Tables']['document_secure_links']['Row'];
 
+function resolveLinkStatus(link: GedSecureLink) {
+  if (link.revoked_at) return 'Revogado';
+  const expiresAt = link.expires_at ? new Date(link.expires_at).getTime() : null;
+  if (expiresAt && expiresAt < Date.now()) return 'Expirado';
+  if ((link.downloads_count ?? 0) >= (link.max_downloads ?? 1)) return 'Consumido';
+  if (link.consumed_at) return 'Consumido';
+  return 'Ativo';
+}
+
 type GedDocumentViewerModalProps = {
   open: boolean;
   document: GedDocumentRow | null;
@@ -260,6 +269,7 @@ type GedDocumentViewerModalProps = {
   onSecureLink: () => void;
   secureBusy: boolean;
   secureToken: string | null;
+  secureLinkId: string | null;
   shareLink: string;
   onConsumeSecureLink: () => void;
   onClearToken: () => void;
@@ -289,6 +299,7 @@ export function GedDocumentViewerModal({
   onSecureLink,
   secureBusy,
   secureToken,
+  secureLinkId,
   shareLink,
   onConsumeSecureLink,
   onClearToken,
@@ -599,8 +610,18 @@ export function GedDocumentViewerModal({
                             Baixar original (download unico)
                           </Button>
                           {shareLink && (
+                            <Button onClick={() => window.open(shareLink, '_blank', 'noopener,noreferrer')} disabled={secureBusy}>
+                              Abrir link
+                            </Button>
+                          )}
+                          {shareLink && (
                             <Button onClick={() => navigator.clipboard.writeText(shareLink)} disabled={secureBusy}>
                               Copiar link
+                            </Button>
+                          )}
+                          {secureLinkId && (
+                            <Button onClick={() => onRevokeLink(secureLinkId)} disabled={secureBusy}>
+                              Revogar
                             </Button>
                           )}
                           <Button onClick={onClearToken} disabled={secureBusy}>
@@ -609,26 +630,29 @@ export function GedDocumentViewerModal({
                         </div>
                       )}
                       {shareLink && <p className={styles.muted}>Link seguro: {shareLink}</p>}
-                      {secureLinks.map((link) => (
-                        <div key={link.id} className={styles.listRow}>
-                          <div>
-                            <div className={styles.listCellTitle}>
-                              Expira em {formatDateTime(link.expires_at)}
+                      {secureLinks.map((link) => {
+                        const status = resolveLinkStatus(link);
+                        return (
+                          <div key={link.id} className={styles.listRow}>
+                            <div>
+                              <div className={styles.listCellTitle}>
+                                Expira em {formatDateTime(link.expires_at)}
+                              </div>
+                              <div className={styles.listCellMeta}>Downloads: {link.downloads_count}</div>
                             </div>
-                            <div className={styles.listCellMeta}>Downloads: {link.downloads_count}</div>
+                            <div className={styles.listCellMeta}>{status}</div>
+                            <div className={styles.inlineActions}>
+                              {status === 'Ativo' && (
+                                <Button size="small" onClick={() => onRevokeLink(link.id)} disabled={secureBusy}>
+                                  Revogar
+                                </Button>
+                              )}
+                            </div>
+                            <div />
                           </div>
-                          <div className={styles.listCellMeta}>{link.revoked_at ? 'Revogado' : 'Ativo'}</div>
-                          <div className={styles.inlineActions}>
-                            {!link.revoked_at && (
-                              <Button size="small" onClick={() => onRevokeLink(link.id)} disabled={secureBusy}>
-                                Revogar
-                              </Button>
-                            )}
-                          </div>
-                          <div />
-                        </div>
-                      ))}
-                      {secureLinks.length === 0 && <p className={styles.muted}>Nenhum link ativo.</p>}
+                        );
+                      })}
+                      {secureLinks.length === 0 && <p className={styles.muted}>Nenhum link encontrado.</p>}
                     </div>
                   )}
                 </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import type { MouseEvent } from 'react';
 import { ChevronDownRegular, ChevronRightRegular, FolderRegular } from '@fluentui/react-icons';
 import { makeStyles, tokens } from '@fluentui/react-components';
 
@@ -17,6 +18,7 @@ type GedFolderTreeProps = {
   selectedId: string | null;
   onToggle: (id: string) => void;
   onSelect: (id: string) => void;
+  onContextMenu?: (event: MouseEvent, id: string) => void;
 };
 
 const useStyles = makeStyles({
@@ -68,7 +70,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function GedFolderTree({ nodes, expandedIds, selectedId, onToggle, onSelect }: GedFolderTreeProps) {
+export function GedFolderTree({ nodes, expandedIds, selectedId, onToggle, onSelect, onContextMenu }: GedFolderTreeProps) {
   const styles = useStyles();
 
   const renderNode = (node: GedFolderNode) => {
@@ -82,6 +84,7 @@ export function GedFolderTree({ nodes, expandedIds, selectedId, onToggle, onSele
           className={`${styles.node} ${selectedId === node.id ? styles.nodeActive : ''}`}
           style={{ paddingLeft }}
           onClick={() => onSelect(node.id)}
+          onContextMenu={(event) => onContextMenu?.(event, node.id)}
         >
           <span
             className={styles.nodeToggle}

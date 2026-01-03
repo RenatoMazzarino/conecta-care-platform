@@ -142,12 +142,14 @@ export async function POST(request: Request) {
     return new Response('Link expirado', { status: 410 });
   }
 
-  if (link.downloads_count >= link.max_downloads) {
+  const maxDownloads = link.max_downloads ?? 1;
+  if ((link.downloads_count ?? 0) >= maxDownloads) {
     await updateRequestItemStatus(supabase, link.id, 'consumed');
     return new Response('Link ja consumido', { status: 410 });
   }
 
-  const requestIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null;
+  const forwarded = request.headers.get('x-forwarded-for') || '';
+  const requestIp = forwarded.split(',')[0]?.trim() || request.headers.get('x-real-ip') || null;
   const requestAgent = request.headers.get('user-agent') || null;
   const baseMetadata =
     link.metadata && typeof link.metadata === 'object' && !Array.isArray(link.metadata)
@@ -175,7 +177,7 @@ export async function POST(request: Request) {
   }
 
   const nextDownloads = (link.downloads_count ?? 0) + 1;
-  const shouldRevoke = nextDownloads >= link.max_downloads;
+  const shouldRevoke = nextDownloads >= maxDownloads;
 
   const { error: updateError } = await supabase
     .from('document_secure_links')

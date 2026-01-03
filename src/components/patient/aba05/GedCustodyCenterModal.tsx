@@ -31,7 +31,7 @@ const useStyles = makeStyles({
     boxShadow: tokens.shadow8,
     width: '96vw',
     maxWidth: '1300px',
-    height: '90vh',
+    height: '92vh',
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
@@ -50,7 +50,7 @@ const useStyles = makeStyles({
   },
   body: {
     padding: '16px',
-    overflow: 'hidden',
+    overflowY: 'auto',
     display: 'grid',
     gap: '12px',
     flex: 1,
@@ -93,17 +93,15 @@ const useStyles = makeStyles({
   list: {
     border: `1px solid ${tokens.colorNeutralStroke2}`,
     borderRadius: '8px',
-    overflow: 'hidden',
+    overflow: 'visible',
     backgroundColor: tokens.colorNeutralBackground1,
     minHeight: 0,
     display: 'grid',
   },
   listInner: {
-    overflowY: 'auto',
     padding: '12px',
     display: 'grid',
     gap: '12px',
-    minHeight: 0,
   },
   itemList: {
     display: 'grid',
@@ -168,6 +166,10 @@ const useStyles = makeStyles({
     padding: '12px',
     display: 'grid',
     gap: '8px',
+  },
+  cardBodyScroll: {
+    maxHeight: '280px',
+    overflowY: 'auto',
   },
   definitionList: {
     margin: 0,
@@ -272,6 +274,7 @@ function resolveLinkStatus(link: GedSecureLinkItem) {
   if (link.computed_status) return link.computed_status;
   if (link.revoked_at) return 'Revogado';
   if (link.consumed_at) return 'Consumido';
+  if ((link.downloads_count ?? 0) >= (link.max_downloads ?? 1)) return 'Consumido';
   return 'Ativo';
 }
 
@@ -558,7 +561,7 @@ export function GedCustodyCenterModal({
                         </div>
                       </div>
                       {isExpanded && (
-                        <div className={styles.cardBody}>
+                        <div className={`${styles.cardBody} ${styles.cardBodyScroll}`}>
                           <dl className={styles.definitionList}>
                             <dt>Solicitado por</dt>
                             <dd>{request.requested_by_user_id ?? '—'}</dd>
@@ -715,6 +718,8 @@ export function GedCustodyCenterModal({
                   const doc = artifact.document;
                   const isExpanded = expandedArtifacts.has(artifact.id);
                   const log = artifact.log;
+                  const logIp = extractMetadataField(log?.details, 'ip');
+                  const logUa = extractMetadataField(log?.details, 'user_agent');
 
                   return (
                     <div key={artifact.id} className={styles.card}>
@@ -760,6 +765,10 @@ export function GedCustodyCenterModal({
                             <dd>{formatDateTime(log?.happened_at)}</dd>
                             <dt>Usuario</dt>
                             <dd>{log?.user_id ?? artifact.created_by ?? '—'}</dd>
+                            <dt>IP</dt>
+                            <dd>{logIp ?? '—'}</dd>
+                            <dt>UA</dt>
+                            <dd>{logUa ?? '—'}</dd>
                           </dl>
                           <div className={styles.inlineActions}>
                             <Button size="small" onClick={() => onDownloadArtifact(artifact.id)}>

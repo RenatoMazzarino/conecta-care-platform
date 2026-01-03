@@ -25,6 +25,7 @@ function resolveLinkStatus(link: GedSecureLink, now: number): LinkStatusLabel {
   if (link.revoked_at) return 'Revogado';
   const expiresAt = link.expires_at ? new Date(link.expires_at).getTime() : null;
   if (expiresAt && expiresAt < now) return 'Expirado';
+  if ((link.downloads_count ?? 0) >= (link.max_downloads ?? 1)) return 'Consumido';
   if (link.consumed_at) return 'Consumido';
   return 'Ativo';
 }

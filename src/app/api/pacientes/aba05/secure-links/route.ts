@@ -78,9 +78,11 @@ export async function POST(request: Request) {
   const now = new Date();
   const expiresAt = new Date(now.getTime() + ttlHours * 60 * 60 * 1000).toISOString();
 
+  const forwarded = request.headers.get('x-forwarded-for') || '';
+  const requestIp = forwarded.split(',')[0]?.trim() || request.headers.get('x-real-ip') || null;
   const metadata = {
     user_agent: request.headers.get('user-agent') || null,
-    ip: request.headers.get('x-forwarded-for') || null,
+    ip: requestIp,
     request_id: parsed.data.requestId ?? null,
   };
 

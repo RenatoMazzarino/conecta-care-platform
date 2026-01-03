@@ -1,5 +1,6 @@
 'use client';
 
+import type { MouseEvent } from 'react';
 import { Checkbox, makeStyles, tokens } from '@fluentui/react-components';
 import type { Database } from '@/types/supabase';
 
@@ -11,6 +12,7 @@ type GedFileTableProps = {
   onToggleSelect: (id: string, selected: boolean) => void;
   onSelectAll: (selected: boolean) => void;
   onOpen: (doc: GedDocumentRow) => void;
+  onContextMenu?: (event: MouseEvent, doc: GedDocumentRow) => void;
   showPath: boolean;
   getPathLabel: (doc: GedDocumentRow) => string;
 };
@@ -104,6 +106,7 @@ export function GedFileTable({
   onToggleSelect,
   onSelectAll,
   onOpen,
+  onContextMenu,
   showPath,
   getPathLabel,
 }: GedFileTableProps) {
@@ -138,6 +141,7 @@ export function GedFileTable({
             key={doc.id}
             className={`${styles.row} ${showPath ? styles.rowWide : ''}`}
             onClick={() => onOpen(doc)}
+            onContextMenu={(event) => onContextMenu?.(event, doc)}
           >
             <Checkbox
               checked={selectedIds.has(doc.id)}

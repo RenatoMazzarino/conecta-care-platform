@@ -1,8 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type MouseEvent } from 'react';
 import {
-  Button,
   Spinner,
   Toaster,
   Toast,
@@ -19,8 +18,9 @@ import { GedSearchBar } from './GedSearchBar';
 import { GedFileTable } from './GedFileTable';
 import { GedCommandBar } from './GedCommandBar';
 import { GedBreadcrumbs } from './GedBreadcrumbs';
-import { GedBulkActionsBar } from './GedBulkActionsBar';
+import { GedContextMenu, type GedContextMenuItem } from './GedContextMenu';
 import { GedFolderModal, type GedFolderModalMode } from './GedFolderModal';
+import { GedMoveDocumentsModal } from './GedMoveDocumentsModal';
 import { GedDocumentViewerModal } from '@/components/patient/aba05/GedDocumentViewerModal';
 import { GedBulkImportModal } from '@/components/patient/aba05/GedBulkImportModal';
 import { GedQuickUploadModal, type GedQuickUploadItem } from '@/components/patient/aba05/GedQuickUploadModal';
@@ -31,10 +31,11 @@ import { getGedDocumentDetails } from '@/features/pacientes/actions/aba05/getGed
 import { getGedDocumentPreview } from '@/features/pacientes/actions/aba05/getGedDocumentPreview';
 import { uploadGedDocument } from '@/features/pacientes/actions/aba05/uploadGedDocument';
 import { printGedDocument } from '@/features/pacientes/actions/aba05/printGedDocument';
-import { createGedSecureLink } from '@/features/pacientes/actions/aba05/createGedSecureLink';
 import { consumeGedSecureLink } from '@/features/pacientes/actions/aba05/consumeGedSecureLink';
 import { revokeGedSecureLink } from '@/features/pacientes/actions/aba05/revokeGedSecureLink';
 import { archiveGedDocuments } from '@/features/pacientes/actions/aba05/archiveGedDocuments';
+import { unarchiveGedDocuments } from '@/features/pacientes/actions/aba05/unarchiveGedDocuments';
+import { moveGedDocuments } from '@/features/pacientes/actions/aba05/moveGedDocuments';
 import { getGedArtifactDownloadLink } from '@/features/pacientes/actions/aba05/getGedArtifactDownloadLink';
 import { listGedCustodyOverview } from '@/features/pacientes/actions/aba05/listGedCustodyOverview';
 import { startGedBulkImport, reviewBulkImportItem, listBulkImportItems } from '@/features/pacientes/actions/aba05/bulkImport';
@@ -205,6 +206,12 @@ type GedOriginalRequest = GedOriginalRequestRow & {
   items?: GedOriginalRequestItem[] | null;
 };
 
+type GedContextMenuState = {
+  type: 'file' | 'folder';
+  targetId: string;
+  position: { x: number; y: number };
+};
+
 const MAX_QUICK_UPLOAD = 12;
 
 function buildFolderTree(folders: GedFolderRow[]): GedFolderNode[] {
@@ -271,6 +278,7 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
 
   const [folders, setFolders] = useState<GedFolderRow[]>([]);
   const [documents, setDocuments] = useState<GedDocumentWithFolder[]>([]);
+  const [documentTotal, setDocumentTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -297,11 +305,14 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
   const [artifacts, setArtifacts] = useState<Database['public']['Tables']['document_artifacts']['Row'][]>([]);
   const [secureLinks, setSecureLinks] = useState<Database['public']['Tables']['document_secure_links']['Row'][]>([]);
   const [secureToken, setSecureToken] = useState<string | null>(null);
+  const [secureLinkId, setSecureLinkId] = useState<string | null>(null);
   const [secureBusy, setSecureBusy] = useState(false);
   const [printBusy, setPrintBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [archiveBusy, setArchiveBusy] = useState(false);
+  const [restoreBusy, setRestoreBusy] = useState(false);
   const [bulkOriginalBusy, setBulkOriginalBusy] = useState(false);
+  const [moveBusy, setMoveBusy] = useState(false);
   const [allowCapture, setAllowCapture] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -331,6 +342,9 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     description: null,
     tags: [],
   });
+  const [contextMenu, setContextMenu] = useState<GedContextMenuState | null>(null);
+  const [moveModalOpen, setMoveModalOpen] = useState(false);
+  const [moveTargets, setMoveTargets] = useState<string[]>([]);
 
   const isDev = process.env.NODE_ENV === 'development';
   const shareLink = useMemo(() => {
@@ -348,8 +362,6 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     () => (selectedFolderId ? folderMap.get(selectedFolderId) ?? null : null),
     [folderMap, selectedFolderId],
   );
-
-  const canEditFolder = Boolean(selectedFolder && !selectedFolder.is_system);
 
   const folderTree = useMemo(() => buildFolderTree(folders), [folders]);
 
@@ -377,6 +389,7 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     const pathCrumbs = segments.map((id) => ({ id, label: folderMap.get(id)?.name ?? 'Pasta' }));
     return [{ id: null, label: 'GED' }, ...pathCrumbs];
   }, [selectedFolderId, folderMap]);
+
 
   const watermarkText = useMemo(() => {
     if (!selectedDoc) return '';
@@ -473,7 +486,15 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     try {
       await ensurePatientGedFolders(patientId);
       const data = await listGedFolders(patientId);
-      setFolders(data);
+      const seen = new Set<string>();
+      const unique = data.filter((folder) => {
+        const normalized = (folder.name_norm || folder.name).toLowerCase();
+        const key = folder.is_system ? `system:${normalized}` : `${folder.parent_id ?? 'root'}:${normalized}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      setFolders(unique);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao carregar pastas';
       dispatchToast(
@@ -487,23 +508,25 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
 
   const effectiveFilters = useMemo(() => {
     const viewStatus = activeView === 'archived' ? 'Arquivado' : activeView === 'needs_review' ? 'Rascunho' : undefined;
-    const scopeFolderId = activeView === 'all' && !globalSearch ? selectedFolderId ?? undefined : undefined;
+    const isGlobalSearch = globalSearch;
+    const scopeFolderId = !isGlobalSearch ? selectedFolderId ?? undefined : undefined;
 
     return {
       ...filters,
-      doc_status: viewStatus ?? filters.doc_status,
+      doc_status: isGlobalSearch ? filters.doc_status : viewStatus ?? filters.doc_status,
       search: searchQuery || undefined,
       folder_id: scopeFolderId ?? undefined,
-      global_search: activeView === 'all' ? globalSearch : true,
-      include_archived: activeView === 'archived',
+      global_search: isGlobalSearch,
+      include_archived: isGlobalSearch ? true : activeView === 'archived',
     } satisfies GedDocumentFilters;
   }, [activeView, filters, globalSearch, searchQuery, selectedFolderId]);
 
   const loadDocuments = useCallback(async () => {
     setLoading(true);
     try {
-      const data = (await listGedDocuments(patientId, effectiveFilters)) as GedDocumentWithFolder[];
-      setDocuments(data);
+      const data = await listGedDocuments(patientId, effectiveFilters);
+      setDocuments(data as GedDocumentWithFolder[]);
+      setDocumentTotal(data.length);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao carregar documentos';
       dispatchToast(
@@ -529,7 +552,65 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
       setCustodyArtifacts(overview.artifacts as GedArtifactWithDocument[]);
       setCustodyDownloads(overview.downloadsCount ?? 0);
       setCustodyPrints(overview.printsCount ?? 0);
-      setCustodyRequests(requests as GedOriginalRequest[]);
+      let nextRequests = requests as GedOriginalRequest[];
+      if (nextRequests.length === 0 && (overview.links?.length ?? 0) > 0) {
+        const map = new Map<string, GedOriginalRequest>();
+        overview.links.forEach((link) => {
+          const metadata = link.metadata as Record<string, unknown> | null;
+          const requestId = typeof metadata?.request_id === 'string' ? metadata.request_id : null;
+          if (!requestId) return;
+          const status = link.revoked_at
+            ? 'revoked'
+            : link.consumed_at
+              ? 'completed'
+              : link.expires_at && new Date(link.expires_at).getTime() < Date.now()
+                ? 'expired'
+                : 'in_progress';
+          const existing = map.get(requestId);
+          const base: GedOriginalRequest = existing ?? ({
+            id: requestId,
+            tenant_id: link.tenant_id,
+            patient_id: patientId,
+            requested_by_user_id: link.requested_by ?? link.issued_by ?? '—',
+            status,
+            created_at: link.requested_at ?? link.created_at ?? null,
+            updated_at: link.created_at ?? null,
+            notes: null,
+            deleted_at: null,
+            items: [] as GedOriginalRequestItem[],
+          } as GedOriginalRequest);
+          const itemStatus = link.revoked_at
+            ? 'revoked'
+            : link.consumed_at
+              ? 'consumed'
+              : link.expires_at && new Date(link.expires_at).getTime() < Date.now()
+                ? 'expired'
+                : 'issued';
+          base.items = [
+            ...(base.items ?? []),
+            {
+              id: link.id,
+              tenant_id: link.tenant_id,
+              request_id: requestId,
+              document_id: link.document_id,
+              secure_link_id: link.id,
+              status: itemStatus,
+              created_at: link.requested_at ?? link.created_at ?? null,
+              updated_at: link.created_at ?? null,
+              deleted_at: null,
+              document: link.document ?? null,
+              link,
+            },
+          ];
+          map.set(requestId, base);
+        });
+        nextRequests = Array.from(map.values()).sort((a, b) => {
+          const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return bTime - aTime;
+        });
+      }
+      setCustodyRequests(nextRequests);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao carregar custodia';
       setCustodyError(message);
@@ -654,6 +735,24 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     setActiveView('all');
   }, []);
 
+  const handleToggleGlobalSearch = useCallback((enabled: boolean) => {
+    setGlobalSearch(enabled);
+    if (enabled) {
+      setActiveView('all');
+    }
+  }, []);
+
+  const handleSelectView = useCallback((view: 'archived' | 'needs_review') => {
+    setActiveView(view);
+    setGlobalSearch(false);
+  }, []);
+
+  const handleToggleArchivedView = useCallback(() => {
+    setActiveView((prev) => (prev === 'archived' ? 'all' : 'archived'));
+    setGlobalSearch(false);
+    setSelectedIds(new Set());
+  }, []);
+
   const handleToggleFolder = useCallback((folderId: string) => {
     setExpandedFolders((prev) => {
       const next = new Set(prev);
@@ -665,6 +764,41 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
       return next;
     });
   }, []);
+
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  const openContextMenu = useCallback((event: MouseEvent, payload: Omit<GedContextMenuState, 'position'>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const menuWidth = 220;
+    const menuHeight = 200;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const x = Math.min(event.clientX, Math.max(0, viewportWidth - menuWidth));
+    const y = Math.min(event.clientY, Math.max(0, viewportHeight - menuHeight));
+    setContextMenu({
+      ...payload,
+      position: { x, y },
+    });
+  }, []);
+
+  const handleFileContextMenu = useCallback(
+    (event: MouseEvent, doc: GedDocumentRow) => {
+      setSelectedIds(new Set([doc.id]));
+      openContextMenu(event, { type: 'file', targetId: doc.id });
+    },
+    [openContextMenu],
+  );
+
+  const handleFolderContextMenu = useCallback(
+    (event: MouseEvent, folderId: string) => {
+      setSelectedFolderId(folderId);
+      openContextMenu(event, { type: 'folder', targetId: folderId });
+    },
+    [openContextMenu],
+  );
 
   const handleSearch = useCallback(() => {
     setSearchQuery(searchInput.trim());
@@ -732,7 +866,10 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     [folderPathLabels],
   );
 
-  const handleOpenFolderModal = useCallback((mode: GedFolderModalMode) => {
+  const handleOpenFolderModal = useCallback((mode: GedFolderModalMode, folderId?: string | null) => {
+    if (folderId !== undefined) {
+      setSelectedFolderId(folderId);
+    }
     setFolderModalMode(mode);
     setFolderModalOpen(true);
   }, []);
@@ -764,11 +901,12 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     [dispatchToast, folderModalMode, loadFolders, patientId, selectedFolderId],
   );
 
-  const handleDeleteFolder = useCallback(async () => {
-    if (!selectedFolderId) return;
+  const deleteFolderById = useCallback(async (folderId: string) => {
     try {
-      await deleteGedFolder(selectedFolderId);
-      setSelectedFolderId(null);
+      await deleteGedFolder(folderId);
+      if (selectedFolderId === folderId) {
+        setSelectedFolderId(null);
+      }
       await loadFolders();
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao remover pasta';
@@ -780,6 +918,7 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
       );
     }
   }, [dispatchToast, loadFolders, selectedFolderId]);
+
 
   const handleUpload = useCallback(async () => {
     setUploading(true);
@@ -803,15 +942,81 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     }
   }, [dispatchToast, handleCloseUpload, loadDocuments, patientId, selectedFolderId, uploadItems]);
 
+  const archiveDocuments = useCallback(
+    async (documentIds: string[], options?: { clearSelection?: boolean }) => {
+      if (documentIds.length === 0) return;
+      setArchiveBusy(true);
+      try {
+        await archiveGedDocuments(documentIds);
+        if (options?.clearSelection) {
+          setSelectedIds(new Set());
+        }
+        await loadDocuments();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Falha ao arquivar documentos';
+        dispatchToast(
+          <Toast>
+            <ToastTitle>{message}</ToastTitle>
+          </Toast>,
+          { intent: 'error' },
+        );
+      } finally {
+        setArchiveBusy(false);
+      }
+    },
+    [dispatchToast, loadDocuments],
+  );
+
   const handleArchive = useCallback(async () => {
-    if (selectedIds.size === 0) return;
-    setArchiveBusy(true);
+    await archiveDocuments(Array.from(selectedIds), { clearSelection: true });
+  }, [archiveDocuments, selectedIds]);
+
+  const restoreDocuments = useCallback(
+    async (documentIds: string[], options?: { clearSelection?: boolean }) => {
+      if (documentIds.length === 0) return;
+      setRestoreBusy(true);
+      try {
+        await unarchiveGedDocuments(documentIds);
+        if (options?.clearSelection) {
+          setSelectedIds(new Set());
+        }
+        await loadDocuments();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Falha ao desarquivar documentos';
+        dispatchToast(
+          <Toast>
+            <ToastTitle>{message}</ToastTitle>
+          </Toast>,
+          { intent: 'error' },
+        );
+      } finally {
+        setRestoreBusy(false);
+      }
+    },
+    [dispatchToast, loadDocuments],
+  );
+
+  const handleRestore = useCallback(async () => {
+    await restoreDocuments(Array.from(selectedIds), { clearSelection: true });
+  }, [restoreDocuments, selectedIds]);
+
+  const openMoveModalFor = useCallback((documentIds: string[]) => {
+    if (documentIds.length === 0) return;
+    setMoveTargets(documentIds);
+    setMoveModalOpen(true);
+  }, []);
+
+  const handleMoveConfirm = useCallback(async (folderId: string | null) => {
+    if (moveTargets.length === 0) return;
+    setMoveBusy(true);
     try {
-      await archiveGedDocuments(Array.from(selectedIds));
+      await moveGedDocuments(moveTargets, folderId);
+      setMoveTargets([]);
+      setMoveModalOpen(false);
       setSelectedIds(new Set());
       await loadDocuments();
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao arquivar documentos';
+      const message = error instanceof Error ? error.message : 'Falha ao mover documentos';
       dispatchToast(
         <Toast>
           <ToastTitle>{message}</ToastTitle>
@@ -819,34 +1024,53 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
         { intent: 'error' },
       );
     } finally {
-      setArchiveBusy(false);
+      setMoveBusy(false);
     }
-  }, [dispatchToast, loadDocuments, selectedIds]);
+  }, [dispatchToast, loadDocuments, moveTargets]);
+
+  const requestOriginals = useCallback(
+    async (documentIds: string[], options?: { setToken?: boolean; clearSelection?: boolean }) => {
+      if (documentIds.length === 0) return null;
+      setBulkOriginalBusy(true);
+      try {
+        const result = await createGedOriginalRequest(patientId, documentIds);
+        if (options?.setToken) {
+          setSecureToken(result.issued?.[0]?.token ?? null);
+          setSecureLinkId(result.issued?.[0]?.linkId ?? null);
+        }
+        if (options?.clearSelection) {
+          setSelectedIds(new Set());
+        }
+        dispatchToast(
+          <Toast>
+            <ToastTitle>Requisicao de originais criada.</ToastTitle>
+          </Toast>,
+          { intent: 'success' },
+        );
+        if (isCustodyOpen) {
+          await loadCustody();
+        }
+        return result;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Falha ao solicitar originais';
+        dispatchToast(
+          <Toast>
+            <ToastTitle>{message}</ToastTitle>
+          </Toast>,
+          { intent: 'error' },
+        );
+        return null;
+      } finally {
+        setBulkOriginalBusy(false);
+      }
+    },
+    [dispatchToast, isCustodyOpen, loadCustody, patientId],
+  );
 
   const handleRequestOriginals = useCallback(async () => {
     if (selectedIds.size === 0) return;
-    setBulkOriginalBusy(true);
-    try {
-      await createGedOriginalRequest(patientId, Array.from(selectedIds));
-      setSelectedIds(new Set());
-      dispatchToast(
-        <Toast>
-          <ToastTitle>Requisicao de originais criada.</ToastTitle>
-        </Toast>,
-        { intent: 'success' },
-      );
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao solicitar originais';
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{message}</ToastTitle>
-        </Toast>,
-        { intent: 'error' },
-      );
-    } finally {
-      setBulkOriginalBusy(false);
-    }
-  }, [dispatchToast, patientId, selectedIds]);
+    await requestOriginals(Array.from(selectedIds), { clearSelection: true });
+  }, [requestOriginals, selectedIds]);
 
   const handlePrint = useCallback(async () => {
     if (!selectedDocId) return;
@@ -893,25 +1117,16 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     setIsCustodyOpen(true);
   }, []);
 
-  const handleCreateSecureLink = useCallback(async () => {
+  const handleRequestOriginalFromViewer = useCallback(async () => {
     if (!selectedDocId) return;
     setSecureBusy(true);
     try {
-      const result = await createGedSecureLink(selectedDocId);
-      setSecureToken(result.token);
+      await requestOriginals([selectedDocId], { setToken: true });
       await handleSelectDocument({ ...(selectedDoc ?? { id: selectedDocId } as GedDocumentRow) });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Falha ao gerar link seguro';
-      dispatchToast(
-        <Toast>
-          <ToastTitle>{message}</ToastTitle>
-        </Toast>,
-        { intent: 'error' },
-      );
     } finally {
       setSecureBusy(false);
     }
-  }, [dispatchToast, handleSelectDocument, selectedDoc, selectedDocId]);
+  }, [handleSelectDocument, requestOriginals, selectedDoc, selectedDocId]);
 
   const handleConsumeSecureLink = useCallback(async () => {
     if (!secureToken) return;
@@ -924,7 +1139,11 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
       link.rel = 'noopener noreferrer';
       link.click();
       setSecureToken(null);
+      setSecureLinkId(null);
       await handleSelectDocument({ ...(selectedDoc ?? { id: selectedDocId } as GedDocumentRow) });
+      if (isCustodyOpen) {
+        await loadCustody();
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Falha ao consumir link seguro';
       dispatchToast(
@@ -936,7 +1155,7 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     } finally {
       setSecureBusy(false);
     }
-  }, [dispatchToast, handleSelectDocument, secureToken, selectedDoc, selectedDocId]);
+  }, [dispatchToast, handleSelectDocument, isCustodyOpen, loadCustody, secureToken, selectedDoc, selectedDocId]);
 
   const handleRevokeLink = useCallback(async (linkId: string) => {
     setSecureBusy(true);
@@ -959,7 +1178,73 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
     }
   }, [dispatchToast, handleSelectDocument, isCustodyOpen, loadCustody, selectedDoc, selectedDocId]);
 
+  const contextMenuItems = useMemo<GedContextMenuItem[]>(() => {
+    if (!contextMenu) return [];
+    if (contextMenu.type === 'folder') {
+      const folder = folderMap.get(contextMenu.targetId);
+      if (!folder) return [];
+      const canEdit = !folder.is_system;
+      return [
+        {
+          label: 'Renomear',
+          onClick: () => handleOpenFolderModal('rename', folder.id),
+          disabled: !canEdit,
+        },
+        {
+          label: 'Mover',
+          onClick: () => handleOpenFolderModal('move', folder.id),
+          disabled: !canEdit,
+        },
+        {
+          label: 'Remover',
+          onClick: () => deleteFolderById(folder.id),
+          disabled: !canEdit,
+          intent: 'danger',
+        },
+      ];
+    }
+    const doc = documents.find((item) => item.id === contextMenu.targetId);
+    if (!doc) return [];
+    const isArchived = (doc.document_status ?? doc.status) === 'Arquivado';
+    return [
+      {
+        label: 'Abrir',
+        onClick: () => handleSelectDocument(doc),
+      },
+      {
+        label: 'Mover',
+        onClick: () => openMoveModalFor([doc.id]),
+      },
+      {
+        label: isArchived ? 'Desarquivar' : 'Arquivar',
+        onClick: () => (isArchived ? restoreDocuments([doc.id]) : archiveDocuments([doc.id])),
+        disabled: isArchived ? restoreBusy : archiveBusy,
+      },
+      {
+        label: 'Solicitar original',
+        onClick: () => requestOriginals([doc.id]),
+        disabled: bulkOriginalBusy,
+      },
+    ];
+  }, [
+    archiveBusy,
+    archiveDocuments,
+    bulkOriginalBusy,
+    contextMenu,
+    deleteFolderById,
+    documents,
+    folderMap,
+    handleOpenFolderModal,
+    handleSelectDocument,
+    openMoveModalFor,
+    requestOriginals,
+    restoreBusy,
+    restoreDocuments,
+  ]);
+
   const isDicom = selectedDoc ? isDicomFile(selectedDoc.file_name ?? selectedDoc.title ?? 'documento', selectedDoc.mime_type) : false;
+  const hasSelection = selectedIds.size > 0 && !archiveBusy && !bulkOriginalBusy && !restoreBusy && !moveBusy;
+  const archivedView = activeView === 'archived';
 
   return (
     <section className={styles.wrapper}>
@@ -977,16 +1262,6 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
             >
               Tudo
             </button>
-            {systemFolders.map((folder) => (
-              <button
-                key={folder.id}
-                type="button"
-                className={mergeClasses(styles.navItem, selectedFolderId === folder.id && activeView === 'all' && styles.navItemActive)}
-                onClick={() => handleSelectFolder(folder.id)}
-              >
-                {folder.name}
-              </button>
-            ))}
 
             <div className={styles.navSection}>Pastas</div>
             <GedFolderTree
@@ -995,33 +1270,14 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
               selectedId={selectedFolderId}
               onToggle={handleToggleFolder}
               onSelect={(id) => handleSelectFolder(id)}
+              onContextMenu={handleFolderContextMenu}
             />
-
-            <div className={styles.navSection}>Acoes de pasta</div>
-            <div className={styles.inlineActions}>
-              <Button appearance="secondary" onClick={() => handleOpenFolderModal('rename')} disabled={!canEditFolder}>
-                Renomear
-              </Button>
-              <Button appearance="secondary" onClick={() => handleOpenFolderModal('move')} disabled={!canEditFolder}>
-                Mover
-              </Button>
-              <Button appearance="secondary" onClick={handleDeleteFolder} disabled={!canEditFolder}>
-                Remover
-              </Button>
-            </div>
 
             <div className={styles.navSection}>Views</div>
             <button
               type="button"
-              className={mergeClasses(styles.navItem, activeView === 'archived' && styles.navItemActive)}
-              onClick={() => setActiveView('archived')}
-            >
-              Arquivados
-            </button>
-            <button
-              type="button"
               className={mergeClasses(styles.navItem, activeView === 'needs_review' && styles.navItemActive)}
-              onClick={() => setActiveView('needs_review')}
+              onClick={() => handleSelectView('needs_review')}
             >
               Needs review
             </button>
@@ -1034,7 +1290,7 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
                 <div className={styles.subtitle}>Biblioteca central de documentos do paciente</div>
               </div>
               <div className={styles.counters}>
-                <div className={styles.counter}>Total <span className={styles.counterValue}>{documents.length}</span></div>
+                <div className={styles.counter}>Total <span className={styles.counterValue}>{documentTotal}</span></div>
                 <div className={styles.counter}>Selecionados <span className={styles.counterValue}>{selectedIds.size}</span></div>
               </div>
             </div>
@@ -1045,9 +1301,13 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
               onImportZip={() => setIsImportOpen(true)}
               onOpenCustody={handleOpenCustody}
               onArchiveSelected={handleArchive}
+              onRestoreSelected={handleRestore}
+              onMoveSelected={() => openMoveModalFor(Array.from(selectedIds))}
               onRequestOriginals={handleRequestOriginals}
               onReload={loadDocuments}
-              hasSelection={selectedIds.size > 0 && !archiveBusy && !bulkOriginalBusy}
+              onToggleArchivedView={handleToggleArchivedView}
+              hasSelection={hasSelection}
+              archivedView={archivedView}
             />
 
             <GedBreadcrumbs items={breadcrumbs} onSelect={(id) => handleSelectFolder(id)} />
@@ -1058,20 +1318,11 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
                 onQueryChange={setSearchInput}
                 onSearch={handleSearch}
                 globalSearch={globalSearch}
-                onToggleGlobal={setGlobalSearch}
+                onToggleGlobal={handleToggleGlobalSearch}
                 filters={filters}
                 onFiltersChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
               />
             </div>
-
-            {selectedIds.size > 0 && (
-              <GedBulkActionsBar
-                selectedCount={selectedIds.size}
-                onArchive={handleArchive}
-                onRequestOriginals={handleRequestOriginals}
-                onClear={() => setSelectedIds(new Set())}
-              />
-            )}
 
             <div className={styles.tableWrap}>
               {loading ? (
@@ -1085,6 +1336,7 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
                   onToggleSelect={handleToggleSelect}
                   onSelectAll={handleSelectAll}
                   onOpen={handleSelectDocument}
+                  onContextMenu={handleFileContextMenu}
                   showPath={globalSearch || activeView !== 'all'}
                   getPathLabel={getPathLabel}
                 />
@@ -1094,6 +1346,13 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
         </div>
       </div>
 
+      <GedContextMenu
+        open={Boolean(contextMenu) && contextMenuItems.length > 0}
+        position={contextMenu?.position ?? null}
+        items={contextMenuItems}
+        onClose={closeContextMenu}
+      />
+
       <GedFolderModal
         key={`${folderModalMode}-${selectedFolder?.id ?? 'root'}-${folderModalOpen ? 'open' : 'closed'}`}
         open={folderModalOpen}
@@ -1102,6 +1361,19 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
         activeFolder={selectedFolder}
         onConfirm={handleConfirmFolderModal}
         onClose={() => setFolderModalOpen(false)}
+      />
+
+      <GedMoveDocumentsModal
+        open={moveModalOpen}
+        folders={folders}
+        currentFolderId={selectedFolderId}
+        selectedCount={moveTargets.length}
+        busy={moveBusy}
+        onClose={() => {
+          setMoveModalOpen(false);
+          setMoveTargets([]);
+        }}
+        onConfirm={handleMoveConfirm}
       />
 
       <GedQuickUploadModal
@@ -1162,6 +1434,7 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
         onClose={() => {
           setViewerOpen(false);
           setSecureToken(null);
+          setSecureLinkId(null);
         }}
         document={selectedDoc}
         previewUrl={previewUrl}
@@ -1178,12 +1451,16 @@ export function GedExplorerPage({ patientId }: { patientId: string }) {
         watermarkPattern={watermarkPattern}
         onPrint={handlePrint}
         printBusy={printBusy}
-        onSecureLink={handleCreateSecureLink}
+        onSecureLink={handleRequestOriginalFromViewer}
         secureBusy={secureBusy}
         secureToken={secureToken}
+        secureLinkId={secureLinkId}
         shareLink={shareLink}
         onConsumeSecureLink={handleConsumeSecureLink}
-        onClearToken={() => setSecureToken(null)}
+        onClearToken={() => {
+          setSecureToken(null);
+          setSecureLinkId(null);
+        }}
         formatDateTime={formatDateTime}
         onRevokeLink={handleRevokeLink}
         onDownloadArtifact={handleDownloadArtifact}

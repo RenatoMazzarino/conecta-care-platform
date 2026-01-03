@@ -8,6 +8,7 @@ import {
   DocumentAddRegular,
   ArchiveRegular,
   LinkRegular,
+  FolderRegular,
 } from '@fluentui/react-icons';
 
 type GedCommandBarProps = {
@@ -16,9 +17,13 @@ type GedCommandBarProps = {
   onImportZip: () => void;
   onOpenCustody: () => void;
   onArchiveSelected: () => void;
+  onRestoreSelected: () => void;
+  onMoveSelected: () => void;
   onRequestOriginals: () => void;
   onReload: () => void;
+  onToggleArchivedView: () => void;
   hasSelection: boolean;
+  archivedView: boolean;
 };
 
 const useStyles = makeStyles({
@@ -39,9 +44,13 @@ export function GedCommandBar({
   onImportZip,
   onOpenCustody,
   onArchiveSelected,
+  onRestoreSelected,
+  onMoveSelected,
   onRequestOriginals,
   onReload,
+  onToggleArchivedView,
   hasSelection,
+  archivedView,
 }: GedCommandBarProps) {
   const styles = useStyles();
 
@@ -60,12 +69,20 @@ export function GedCommandBar({
         Centro de Custodia
       </Button>
       <Button
-        icon={<ArchiveRegular />}
+        icon={<FolderRegular />}
         appearance="secondary"
-        onClick={onArchiveSelected}
+        onClick={onMoveSelected}
         disabled={!hasSelection}
       >
-        Arquivar
+        Mover
+      </Button>
+      <Button
+        icon={<ArchiveRegular />}
+        appearance="secondary"
+        onClick={archivedView ? onRestoreSelected : onArchiveSelected}
+        disabled={!hasSelection}
+      >
+        {archivedView ? 'Desarquivar' : 'Arquivar'}
       </Button>
       <Button
         icon={<LinkRegular />}
@@ -74,6 +91,9 @@ export function GedCommandBar({
         disabled={!hasSelection}
       >
         Solicitar originais
+      </Button>
+      <Button icon={<ArchiveRegular />} appearance="secondary" onClick={onToggleArchivedView}>
+        {archivedView ? 'Ver ativos' : 'Ver arquivados'}
       </Button>
       <span className={styles.spacer} />
       <Button icon={<ArrowClockwiseRegular />} appearance="secondary" onClick={onReload}>
