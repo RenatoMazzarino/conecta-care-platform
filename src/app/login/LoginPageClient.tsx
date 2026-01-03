@@ -44,13 +44,18 @@ const useStyles = makeStyles({
     color: tokens.colorPaletteRedForeground1,
     fontSize: tokens.fontSizeBase200,
   },
+  success: {
+    color: tokens.colorPaletteGreenForeground1,
+    fontSize: tokens.fontSizeBase200,
+  },
 });
 
 export interface LoginPageClientProps {
   nextPath?: string;
+  logoutNotice?: boolean;
 }
 
-export function LoginPageClient({ nextPath }: LoginPageClientProps) {
+export function LoginPageClient({ nextPath, logoutNotice }: LoginPageClientProps) {
   const styles = useStyles();
   const router = useRouter();
 
@@ -63,10 +68,14 @@ export function LoginPageClient({ nextPath }: LoginPageClientProps) {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(
+    logoutNotice ? 'Logout realizado com sucesso. Faça login para continuar.' : null,
+  );
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+    setSuccessMessage(null);
     setIsSubmitting(true);
 
     try {
@@ -99,6 +108,7 @@ export function LoginPageClient({ nextPath }: LoginPageClientProps) {
         />
 
         <form className={styles.form} onSubmit={(e) => void handleSubmit(e)}>
+          {successMessage && <div className={styles.success}>{successMessage}</div>}
           <Field label="E-mail" required>
             <Input
               type="email"
@@ -138,4 +148,3 @@ export function LoginPageClient({ nextPath }: LoginPageClientProps) {
     </div>
   );
 }
-

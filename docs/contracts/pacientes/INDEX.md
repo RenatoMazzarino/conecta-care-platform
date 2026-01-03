@@ -1,6 +1,6 @@
 # Índice de Contratos — Módulo Pacientes
 
-Status: ATUAL — ABA01 a ABA04 concluidas.
+Status: ATUAL — ABA01 a ABA05 concluidas; ABA06/ABA07 a definir.
 
 Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apontador canônico para os contratos do módulo e deve ser atualizado conforme novos contratos forem aprovados.
 
@@ -12,14 +12,13 @@ Este índice consolida os contratos por ABA do módulo Pacientes. Ele é o apont
 | ABA02 — Endereço & Logística | Concluida | [ABA02_ENDERECO_LOGISTICA.md](./ABA02_ENDERECO_LOGISTICA.md) |
 | ABA03 — Rede de Apoio | Concluida | [ABA03_REDE_APOIO.md](./ABA03_REDE_APOIO.md) |
 | ABA04 — Admin & Financeiro | Concluida | [ABA04_ADMIN_FINANCEIRO.md](./ABA04_ADMIN_FINANCEIRO.md) |
-| ABA05 — (Unificada na ABA04) | — | — |
+| ABA05 — GED (Documentos) | Concluida | [ABA05_GED.md](./ABA05_GED.md) |
 | ABA06 — Clínico | A definir | — |
-| ABA07 — Documentos (GED) | A definir | — |
-| ABA08 — Histórico & Auditoria | A definir | — |
+| ABA07 — Histórico & Auditoria | A definir | — |
 
 Notas:
 
-- Os nomes das ABAs seguem o padrão visual de navegação documentado em `AGENT.md` e a arquitetura canônica em `docs/architecture/SYSTEM_ARCHITECTURE.md`.
+- Os nomes das ABAs seguem o padrão visual de navegação documentado em [AGENT.md](../../../AGENT.md) e a arquitetura canônica em [docs/architecture/SYSTEM_ARCHITECTURE.md](../../architecture/SYSTEM_ARCHITECTURE.md).
 - Quando um contrato for aprovado e implementado para uma ABA, substitua “A definir” por “Concluida” e adicione o link do documento correspondente.
 
 Anexos ABA02:
@@ -28,17 +27,23 @@ Anexos ABA02:
 
 ## Referências ABA03
 
-- Contrato e cobertura de legado: `docs/contracts/pacientes/ABA03_REDE_APOIO.md`
-- Plano associado: `docs/reviews/PLANO_PACIENTES_ABA03_REDE_APOIO.md`
+- Contrato e cobertura de legado: [docs/contracts/pacientes/ABA03_REDE_APOIO.md](./ABA03_REDE_APOIO.md)
+- Plano associado: [docs/reviews/PLANO_PACIENTES_ABA03_REDE_APOIO.md](../../reviews/PLANO_PACIENTES_ABA03_REDE_APOIO.md)
 
 ## Referências ABA04
 
-- Contrato: `docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md`
-- Plano associado: `docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md`
+- Contrato: [docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md](./ABA04_ADMIN_FINANCEIRO.md)
+- Plano associado: [docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md](../../reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md)
+
+## Referências ABA05
+
+- Contrato: [docs/contracts/pacientes/ABA05_GED.md](./ABA05_GED.md)
+- Plano associado: [docs/reviews/PLANO_PACIENTES_ABA05_GED.md](../../reviews/PLANO_PACIENTES_ABA05_GED.md)
 
 ## Evidências
 
-- Contrato ABA01 aprovado: `docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md`.
-- Contrato ABA02 aprovado: `docs/contracts/pacientes/ABA02_ENDERECO_LOGISTICA.md`.
-- Contrato ABA03 aprovado: `docs/contracts/pacientes/ABA03_REDE_APOIO.md`.
-- Contrato ABA04 aprovado: `docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md`.
+- Contrato ABA01 aprovado: [docs/contracts/pacientes/ABA01_DADOS_PESSOAIS.md](./ABA01_DADOS_PESSOAIS.md).
+- Contrato ABA02 aprovado: [docs/contracts/pacientes/ABA02_ENDERECO_LOGISTICA.md](./ABA02_ENDERECO_LOGISTICA.md).
+- Contrato ABA03 aprovado: [docs/contracts/pacientes/ABA03_REDE_APOIO.md](./ABA03_REDE_APOIO.md).
+- Contrato ABA04 aprovado: [docs/contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md](./ABA04_ADMIN_FINANCEIRO.md).
+- Contrato ABA05 aprovado: [docs/contracts/pacientes/ABA05_GED.md](./ABA05_GED.md).

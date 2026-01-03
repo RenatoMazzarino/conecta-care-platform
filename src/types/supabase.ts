@@ -1386,6 +1386,7 @@ export type Database = {
           file_name_original: string | null
           file_path: string
           file_size_bytes: number | null
+          folder_id: string | null
           finance_entry_id: string | null
           financial_record_id: string | null
           id: string
@@ -1454,6 +1455,7 @@ export type Database = {
           file_name_original?: string | null
           file_path: string
           file_size_bytes?: number | null
+          folder_id?: string | null
           finance_entry_id?: string | null
           financial_record_id?: string | null
           id?: string
@@ -1522,6 +1524,7 @@ export type Database = {
           file_name_original?: string | null
           file_path?: string
           file_size_bytes?: number | null
+          folder_id?: string | null
           finance_entry_id?: string | null
           financial_record_id?: string | null
           id?: string
@@ -1571,6 +1574,73 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "patient_documents_folder_id_fkey"
+            columns: ["folder_id"]
+            referencedRelation: "patient_ged_folders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_ged_folders: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          depth: number
+          id: string
+          is_system: boolean
+          name: string
+          name_norm: string
+          parent_id: string | null
+          path: string
+          patient_id: string
+          sort_order: number | null
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          depth?: number
+          id?: string
+          is_system?: boolean
+          name: string
+          name_norm?: string
+          parent_id?: string | null
+          path?: string
+          patient_id: string
+          sort_order?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          depth?: number
+          id?: string
+          is_system?: boolean
+          name?: string
+          name_norm?: string
+          parent_id?: string | null
+          path?: string
+          patient_id?: string
+          sort_order?: number | null
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_ged_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            referencedRelation: "patient_ged_folders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_ged_folders_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
         ]
       }
       patient_document_logs: {
@@ -1609,6 +1679,445 @@ export type Database = {
             foreignKeyName: "patient_document_logs_document_id_fkey"
             columns: ["document_id"]
             referencedRelation: "patient_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_artifacts: {
+        Row: {
+          artifact_type: string
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          document_id: string
+          document_log_id: string
+          file_hash: string
+          file_size_bytes: number | null
+          id: string
+          mime_type: string | null
+          patient_id: string
+          storage_path: string
+          tenant_id: string
+        }
+        Insert: {
+          artifact_type?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          document_id: string
+          document_log_id: string
+          file_hash: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          patient_id: string
+          storage_path: string
+          tenant_id?: string
+        }
+        Update: {
+          artifact_type?: string
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          document_id?: string
+          document_log_id?: string
+          file_hash?: string
+          file_size_bytes?: number | null
+          id?: string
+          mime_type?: string | null
+          patient_id?: string
+          storage_path?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_artifacts_document_id_fkey"
+            columns: ["document_id"]
+            referencedRelation: "patient_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_artifacts_document_log_id_fkey"
+            columns: ["document_log_id"]
+            referencedRelation: "patient_document_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_artifacts_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_time_stamps: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          document_hash: string
+          document_id: string
+          id: string
+          issued_at: string
+          provider: string
+          receipt_payload: Json
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          document_hash: string
+          document_id: string
+          id?: string
+          issued_at: string
+          provider?: string
+          receipt_payload: Json
+          tenant_id?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          document_hash?: string
+          document_id?: string
+          id?: string
+          issued_at?: string
+          provider?: string
+          receipt_payload?: Json
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_time_stamps_document_id_fkey"
+            columns: ["document_id"]
+            referencedRelation: "patient_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_secure_links: {
+        Row: {
+          consumed_at: string | null
+          consumed_by: string | null
+          created_at: string
+          deleted_at: string | null
+          document_id: string
+          downloads_count: number
+          expires_at: string
+          id: string
+          issued_at: string | null
+          issued_by: string | null
+          last_accessed_at: string | null
+          max_downloads: number
+          metadata: Json | null
+          requested_at: string | null
+          requested_by: string | null
+          revoked_at: string | null
+          revoked_by: string | null
+          tenant_id: string
+          token_hash: string
+        }
+        Insert: {
+          consumed_at?: string | null
+          consumed_by?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          document_id: string
+          downloads_count?: number
+          expires_at: string
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          last_accessed_at?: string | null
+          max_downloads?: number
+          metadata?: Json | null
+          requested_at?: string | null
+          requested_by?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          tenant_id?: string
+          token_hash: string
+        }
+        Update: {
+          consumed_at?: string | null
+          consumed_by?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          document_id?: string
+          downloads_count?: number
+          expires_at?: string
+          id?: string
+          issued_at?: string | null
+          issued_by?: string | null
+          last_accessed_at?: string | null
+          max_downloads?: number
+          metadata?: Json | null
+          requested_at?: string | null
+          requested_by?: string | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          tenant_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_secure_links_document_id_fkey"
+            columns: ["document_id"]
+            referencedRelation: "patient_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ged_original_requests: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          id: string
+          notes: string | null
+          patient_id: string
+          requested_by_user_id: string
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id: string
+          requested_by_user_id: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          requested_by_user_id?: string
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ged_original_requests_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ged_original_request_items: {
+        Row: {
+          created_at: string
+          deleted_at: string | null
+          document_id: string
+          id: string
+          request_id: string
+          secure_link_id: string | null
+          status: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deleted_at?: string | null
+          document_id: string
+          id?: string
+          request_id: string
+          secure_link_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deleted_at?: string | null
+          document_id?: string
+          id?: string
+          request_id?: string
+          secure_link_id?: string | null
+          status?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ged_original_request_items_document_id_fkey"
+            columns: ["document_id"]
+            referencedRelation: "patient_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ged_original_request_items_request_id_fkey"
+            columns: ["request_id"]
+            referencedRelation: "ged_original_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ged_original_request_items_secure_link_id_fkey"
+            columns: ["secure_link_id"]
+            referencedRelation: "document_secure_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_import_jobs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          failed_items: number
+          finished_at: string | null
+          id: string
+          manifest_path: string | null
+          manifest_type: string | null
+          metadata: Json | null
+          needs_review_items: number
+          patient_id: string | null
+          processed_items: number
+          source: string
+          started_at: string | null
+          status: string
+          tenant_id: string
+          total_items: number
+          zip_storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          failed_items?: number
+          finished_at?: string | null
+          id?: string
+          manifest_path?: string | null
+          manifest_type?: string | null
+          metadata?: Json | null
+          needs_review_items?: number
+          patient_id?: string | null
+          processed_items?: number
+          source?: string
+          started_at?: string | null
+          status?: string
+          tenant_id?: string
+          total_items?: number
+          zip_storage_path: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          failed_items?: number
+          finished_at?: string | null
+          id?: string
+          manifest_path?: string | null
+          manifest_type?: string | null
+          metadata?: Json | null
+          needs_review_items?: number
+          patient_id?: string | null
+          processed_items?: number
+          source?: string
+          started_at?: string | null
+          status?: string
+          tenant_id?: string
+          total_items?: number
+          zip_storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_import_jobs_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_import_job_items: {
+        Row: {
+          attempts: number
+          checksum_sha256: string | null
+          created_at: string
+          deleted_at: string | null
+          document_id: string | null
+          error_code: string | null
+          error_detail: string | null
+          file_path: string
+          file_size_bytes: number | null
+          id: string
+          inferred_taxonomy: Json | null
+          job_id: string
+          manifest_payload: Json | null
+          mime_type: string | null
+          original_file_name: string | null
+          patient_id: string | null
+          processed_at: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          attempts?: number
+          checksum_sha256?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          document_id?: string | null
+          error_code?: string | null
+          error_detail?: string | null
+          file_path: string
+          file_size_bytes?: number | null
+          id?: string
+          inferred_taxonomy?: Json | null
+          job_id: string
+          manifest_payload?: Json | null
+          mime_type?: string | null
+          original_file_name?: string | null
+          patient_id?: string | null
+          processed_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Update: {
+          attempts?: number
+          checksum_sha256?: string | null
+          created_at?: string
+          deleted_at?: string | null
+          document_id?: string | null
+          error_code?: string | null
+          error_detail?: string | null
+          file_path?: string
+          file_size_bytes?: number | null
+          id?: string
+          inferred_taxonomy?: Json | null
+          job_id?: string
+          manifest_payload?: Json | null
+          mime_type?: string | null
+          original_file_name?: string | null
+          patient_id?: string | null
+          processed_at?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_import_job_items_document_id_fkey"
+            columns: ["document_id"]
+            referencedRelation: "patient_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_import_job_items_job_id_fkey"
+            columns: ["job_id"]
+            referencedRelation: "document_import_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_import_job_items_patient_id_fkey"
+            columns: ["patient_id"]
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]
@@ -1703,7 +2212,67 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      create_ged_artifact_bundle: {
+        Args: {
+          p_artifact_id: string
+          p_artifact_type: string
+          p_created_by: string
+          p_document_id: string
+          p_file_hash: string
+          p_file_size_bytes: number
+          p_log_action: string
+          p_log_details: Json
+          p_mime_type: string
+          p_patient_id: string
+          p_storage_path: string
+        }
+        Returns: {
+          artifact_id: string
+          log_id: string
+        }[]
+      }
+      create_ged_document_bundle: {
+        Args: {
+          p_category: string
+          p_created_by: string
+          p_doc_domain: string
+          p_doc_origin: string
+          p_doc_source: string
+          p_doc_type: string
+          p_document_id: string
+          p_document_status?: string
+          p_document_validation_payload?: Json | null
+          p_extension: string
+          p_file_extension: string
+          p_file_hash: string
+          p_file_name: string
+          p_file_size_bytes: number
+          p_folder_id: string | null
+          p_log_action?: string
+          p_log_details?: Json
+          p_mime_type: string
+          p_original_file_name: string
+          p_patient_id: string
+          p_status?: string
+          p_storage_path: string
+          p_storage_provider: string
+          p_tags: string[] | null
+          p_title: string
+          p_uploaded_by: string
+          p_description?: string | null
+          p_tsa_issued_at: string
+          p_tsa_payload: Json
+          p_tsa_provider: string
+        }
+        Returns: string
+      }
+      move_ged_folder: {
+        Args: {
+          folder_id: string
+          new_parent_id: string | null
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

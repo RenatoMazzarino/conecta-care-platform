@@ -28,6 +28,18 @@ export async function ensureSession(supabase: SupabaseClient<Database>) {
     throw makeActionError('UNAUTHENTICATED', 'Faca login para acessar');
   }
 
+  if (session) {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      await supabase.auth.signOut();
+      throw makeActionError('UNAUTHENTICATED', 'Sessao expirada. Faca login novamente.');
+    }
+  }
+
   return session ?? null;
 }
 
