@@ -7,6 +7,7 @@ import {
   ArrowClockwiseRegular,
   DismissRegular,
   EditRegular,
+  FolderOpenRegular,
   PrintRegular,
   SaveRegular,
   ShareRegular,
@@ -716,6 +717,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
             <button className={styles.cmd} type="button">
               <ShareRegular />
               Compartilhar
+            </button>
+            <button className={styles.cmd} type="button" onClick={() => router.push(`/pacientes/${patientId}/ged`)}>
+              <FolderOpenRegular />
+              GED
             </button>
 
             {isEditableTabSelected && isEditingActiveTab && (
