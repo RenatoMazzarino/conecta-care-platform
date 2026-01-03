@@ -288,14 +288,14 @@ create or replace function public.create_ged_document_bundle(
   p_original_file_name text,
   p_uploaded_by uuid,
   p_created_by uuid,
+  p_tsa_provider text,
+  p_tsa_payload jsonb,
+  p_tsa_issued_at timestamptz,
   p_document_status text default 'Ativo',
   p_status text default 'Ativo',
   p_document_validation_payload jsonb default null,
   p_log_action text default 'upload',
-  p_log_details jsonb default '{}'::jsonb,
-  p_tsa_provider text,
-  p_tsa_payload jsonb,
-  p_tsa_issued_at timestamptz
+  p_log_details jsonb default '{}'::jsonb
 )
 returns uuid
 language plpgsql
