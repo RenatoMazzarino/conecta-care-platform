@@ -31,5 +31,39 @@ export async function revokeGedSecureLink(linkId: string) {
     throw new Error(error.message);
   }
 
+  const { data: requestItems } = await supabase
+    .from('ged_original_request_items')
+    .update({ status: 'revoked' })
+    .eq('secure_link_id', parsed.data)
+    .is('deleted_at', null)
+    .select('request_id');
+
+  const requestId = requestItems?.[0]?.request_id ?? null;
+  if (requestId) {
+    const { data: items, error: statusError } = await supabase
+      .from('ged_original_request_items')
+      .select('status')
+      .eq('request_id', requestId)
+      .is('deleted_at', null);
+
+    if (!statusError && items && items.length > 0) {
+      const statuses = items.map((item) => item.status);
+      const allConsumed = statuses.every((status) => status === 'consumed');
+      const allRevoked = statuses.every((status) => status === 'revoked');
+      const allExpired = statuses.every((status) => status === 'expired');
+
+      let nextStatus = 'in_progress';
+      if (allConsumed) nextStatus = 'completed';
+      else if (allRevoked) nextStatus = 'revoked';
+      else if (allExpired) nextStatus = 'expired';
+
+      await supabase
+        .from('ged_original_requests')
+        .update({ status: nextStatus })
+        .eq('id', requestId)
+        .is('deleted_at', null);
+    }
+  }
+
   return { ok: true };
 }

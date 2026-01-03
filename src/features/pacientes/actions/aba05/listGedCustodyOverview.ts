@@ -9,15 +9,25 @@ type GedDocumentRow = Database['public']['Tables']['patient_documents']['Row'];
 type GedSecureLink = Database['public']['Tables']['document_secure_links']['Row'];
 type GedArtifact = Database['public']['Tables']['document_artifacts']['Row'];
 type GedLog = Database['public']['Tables']['patient_document_logs']['Row'];
+type LinkStatusLabel = 'Ativo' | 'Consumido' | 'Expirado' | 'Revogado';
 
 type GedSecureLinkWithDocument = GedSecureLink & {
   document?: Pick<GedDocumentRow, 'id' | 'title' | 'domain_type' | 'subcategory' | 'category' | 'uploaded_at'> | null;
+  computed_status?: LinkStatusLabel;
 };
 
 type GedArtifactWithDocument = GedArtifact & {
   document?: Pick<GedDocumentRow, 'id' | 'title' | 'domain_type' | 'subcategory' | 'category' | 'uploaded_at'> | null;
   log?: Pick<GedLog, 'id' | 'action' | 'happened_at' | 'user_id' | 'details'> | null;
 };
+
+function resolveLinkStatus(link: GedSecureLink, now: number): LinkStatusLabel {
+  if (link.revoked_at) return 'Revogado';
+  const expiresAt = link.expires_at ? new Date(link.expires_at).getTime() : null;
+  if (expiresAt && expiresAt < now) return 'Expirado';
+  if (link.consumed_at) return 'Consumido';
+  return 'Ativo';
+}
 
 export async function listGedCustodyOverview(patientId: string) {
   const parsed = patientIdSchema.safeParse(patientId);
@@ -55,9 +65,26 @@ export async function listGedCustodyOverview(patientId: string) {
     .order('created_at', { ascending: false })
     .returns<GedArtifactWithDocument[]>();
 
-  const [links, artifacts] = await Promise.all([linksPromise, artifactsPromise]);
+  const downloadsPromise = supabase
+    .from('patient_document_logs')
+    .select('id, document:patient_documents!inner(id)', { count: 'exact', head: true })
+    .eq('document.patient_id', parsed.data)
+    .eq('action', 'download_artifact');
 
-  for (const result of [links, artifacts]) {
+  const printsPromise = supabase
+    .from('patient_document_logs')
+    .select('id, document:patient_documents!inner(id)', { count: 'exact', head: true })
+    .eq('document.patient_id', parsed.data)
+    .eq('action', 'print');
+
+  const [links, artifacts, downloads, prints] = await Promise.all([
+    linksPromise,
+    artifactsPromise,
+    downloadsPromise,
+    printsPromise,
+  ]);
+
+  for (const result of [links, artifacts, downloads, prints]) {
     if (result?.error) {
       if (isTenantMissingError(result.error)) {
         console.error('[patients] tenant_id ausente', result.error);
@@ -67,8 +94,16 @@ export async function listGedCustodyOverview(patientId: string) {
     }
   }
 
+  const now = Date.now();
+  const linksWithStatus = (links.data ?? []).map((link) => ({
+    ...link,
+    computed_status: resolveLinkStatus(link, now),
+  }));
+
   return {
-    links: links.data ?? [],
+    links: linksWithStatus,
     artifacts: artifacts.data ?? [],
+    downloadsCount: downloads.count ?? 0,
+    printsCount: prints.count ?? 0,
   };
 }

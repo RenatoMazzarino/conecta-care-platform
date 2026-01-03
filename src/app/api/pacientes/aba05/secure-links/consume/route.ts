@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/supabase';
+import type { Database, Json } from '@/types/supabase';
 
 const requestSchema = z.object({
   token: z.string().min(10),
@@ -38,6 +38,56 @@ function hashToken(token: string, pepper: string) {
 
 function resolveBucket() {
   return process.env.NEXT_PUBLIC_SUPABASE_GED_BUCKET || 'ged-documents';
+}
+
+async function updateRequestStatus(supabase: ReturnType<typeof getSupabaseUserClient>, requestId: string) {
+  const { data: items, error } = await supabase
+    .from('ged_original_request_items')
+    .select('status')
+    .eq('request_id', requestId)
+    .is('deleted_at', null);
+
+  if (error || !items || items.length === 0) {
+    return;
+  }
+
+  const statuses = items.map((item) => item.status);
+  const allConsumed = statuses.every((status) => status === 'consumed');
+  const allRevoked = statuses.every((status) => status === 'revoked');
+  const allExpired = statuses.every((status) => status === 'expired');
+
+  let nextStatus = 'in_progress';
+  if (allConsumed) nextStatus = 'completed';
+  else if (allRevoked) nextStatus = 'revoked';
+  else if (allExpired) nextStatus = 'expired';
+
+  await supabase
+    .from('ged_original_requests')
+    .update({ status: nextStatus })
+    .eq('id', requestId)
+    .is('deleted_at', null);
+}
+
+async function updateRequestItemStatus(
+  supabase: ReturnType<typeof getSupabaseUserClient>,
+  linkId: string,
+  status: 'revoked' | 'expired' | 'consumed',
+) {
+  const { data: updated, error } = await supabase
+    .from('ged_original_request_items')
+    .update({ status })
+    .eq('secure_link_id', linkId)
+    .is('deleted_at', null)
+    .select('request_id');
+
+  if (error || !updated || updated.length === 0) {
+    return;
+  }
+
+  const requestId = updated[0]?.request_id;
+  if (requestId) {
+    await updateRequestStatus(supabase, requestId);
+  }
 }
 
 export async function POST(request: Request) {
@@ -83,16 +133,31 @@ export async function POST(request: Request) {
   }
 
   if (link.revoked_at) {
+    await updateRequestItemStatus(supabase, link.id, 'revoked');
     return new Response('Link revogado', { status: 410 });
   }
 
   if (new Date(link.expires_at).getTime() < now.getTime()) {
+    await updateRequestItemStatus(supabase, link.id, 'expired');
     return new Response('Link expirado', { status: 410 });
   }
 
   if (link.downloads_count >= link.max_downloads) {
+    await updateRequestItemStatus(supabase, link.id, 'consumed');
     return new Response('Link ja consumido', { status: 410 });
   }
+
+  const requestIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || null;
+  const requestAgent = request.headers.get('user-agent') || null;
+  const baseMetadata =
+    link.metadata && typeof link.metadata === 'object' && !Array.isArray(link.metadata)
+      ? (link.metadata as Record<string, Json>)
+      : {};
+  const mergedMetadata: Json = {
+    ...baseMetadata,
+    consume_ip: requestIp,
+    consume_user_agent: requestAgent,
+  };
 
   const { data: document, error: documentError } = await supabase
     .from('patient_documents')
@@ -121,6 +186,7 @@ export async function POST(request: Request) {
       consumed_by: user.id,
       revoked_at: shouldRevoke ? now.toISOString() : link.revoked_at,
       revoked_by: shouldRevoke ? user.id : link.revoked_by,
+      metadata: mergedMetadata,
     })
     .eq('id', link.id);
 
@@ -142,15 +208,17 @@ export async function POST(request: Request) {
       document_id: document.id,
       action: 'access_original',
       user_id: user.id,
-      details: { link_id: link.id },
+      details: { link_id: link.id, ip: requestIp, user_agent: requestAgent },
     },
     {
       document_id: document.id,
       action: 'consume_original',
       user_id: user.id,
-      details: { link_id: link.id },
+      details: { link_id: link.id, ip: requestIp, user_agent: requestAgent },
     },
   ]);
+
+  await updateRequestItemStatus(supabase, link.id, 'consumed');
 
   return NextResponse.json({
     url: signed.signedUrl,

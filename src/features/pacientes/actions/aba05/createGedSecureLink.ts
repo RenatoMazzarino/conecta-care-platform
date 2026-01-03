@@ -6,10 +6,11 @@ import { resolveAccessToken, resolveSecureLinkTtlHours } from './shared';
 const schema = z.object({
   documentId: z.string().uuid(),
   ttlHours: z.number().int().positive().optional(),
+  requestId: z.string().uuid().optional(),
 });
 
-export async function createGedSecureLink(documentId: string, ttlHours?: number) {
-  const parsed = schema.safeParse({ documentId, ttlHours });
+export async function createGedSecureLink(documentId: string, ttlHours?: number, requestId?: string) {
+  const parsed = schema.safeParse({ documentId, ttlHours, requestId });
   if (!parsed.success) {
     throw new Error('Payload invalido para link seguro');
   }
@@ -30,6 +31,7 @@ export async function createGedSecureLink(documentId: string, ttlHours?: number)
     body: JSON.stringify({
       documentId: parsed.data.documentId,
       ttlHours: parsed.data.ttlHours ?? resolveSecureLinkTtlHours(),
+      requestId: parsed.data.requestId,
     }),
   });
 

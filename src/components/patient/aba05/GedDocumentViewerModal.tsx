@@ -268,6 +268,7 @@ type GedDocumentViewerModalProps = {
   logs: GedDocumentLog[];
   formatDateTime: (value?: string | null) => string;
   onRevokeLink: (linkId: string) => void;
+  onDownloadArtifact: (artifactId: string) => void;
   onClose: () => void;
 };
 
@@ -296,6 +297,7 @@ export function GedDocumentViewerModal({
   logs,
   formatDateTime,
   onRevokeLink,
+  onDownloadArtifact,
   onClose,
 }: GedDocumentViewerModalProps) {
   const styles = useStyles();
@@ -571,7 +573,11 @@ export function GedDocumentViewerModal({
                           <div className={styles.listCellMeta}>
                             {artifact.file_hash ? `${artifact.file_hash.slice(0, 10)}...` : '--'}
                           </div>
-                          <div />
+                          <div className={styles.inlineActions}>
+                            <Button size="small" onClick={() => onDownloadArtifact(artifact.id)}>
+                              Baixar
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>

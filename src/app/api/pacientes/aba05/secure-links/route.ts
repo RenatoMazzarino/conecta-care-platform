@@ -7,6 +7,7 @@ import type { Database } from '@/types/supabase';
 const requestSchema = z.object({
   documentId: z.string().uuid(),
   ttlHours: z.number().int().positive().optional(),
+  requestId: z.string().uuid().optional(),
 });
 
 function getSupabaseUserClient(accessToken: string) {
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
   const metadata = {
     user_agent: request.headers.get('user-agent') || null,
     ip: request.headers.get('x-forwarded-for') || null,
+    request_id: parsed.data.requestId ?? null,
   };
 
   const { data: link, error: insertError } = await supabase
@@ -108,13 +110,13 @@ export async function POST(request: Request) {
       document_id: parsed.data.documentId,
       action: 'request_original',
       user_id: user.id,
-      details: { expires_at: expiresAt },
+      details: { expires_at: expiresAt, request_id: parsed.data.requestId ?? null },
     },
     {
       document_id: parsed.data.documentId,
       action: 'grant_original',
       user_id: user.id,
-      details: { link_id: link?.id ?? null },
+      details: { link_id: link?.id ?? null, request_id: parsed.data.requestId ?? null },
     },
   ]);
 
