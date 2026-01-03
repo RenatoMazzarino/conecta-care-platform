@@ -1,8 +1,8 @@
 # Relatório de Verificação de Links da Documentação
 
-Data: 2026-01-02 20:09:26
+Data: 2026-01-03 00:09:38
 
-Total de links verificados: 174
+Total de links verificados: 169
 Links quebrados: 0
 
 **Nenhum link relativo quebrado encontrado.**
@@ -155,16 +155,11 @@ Links quebrados: 0
 - [docs/reviews/analise-governanca-estrutura-2025-12-19/PLANO_GOVERNANCA_REPO_P0-P3.md] → "../../../package.json" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md] → "../contracts/pacientes/ABA04_ADMIN_FINANCEIRO.md" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA04_ADMIN_FINANCEIRO.md] → "../legacy_maps/pacientes/ABA04_ADMIN_FINANCEIRO_LEGADO_MAP.md" → OK
-- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md" → OK
-- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/ged-viewer-dynamics.html" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../AGENT.md" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../contracts/pacientes/ABA05_GED.md" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../architecture/decisions/ADR-007-ged-custodia-watermark-time-stamp.md" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/ged-viewer-dynamics.html" → OK
 - [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/modelo_final_aparencia_pagina_do_paciente.htm" → OK
-- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../db/snapshots_legado/conectacare-2025-11-29.sql" → OK
-- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/ged-viewer-dynamics.html" → OK
-- [docs/reviews/PLANO_PACIENTES_ABA05_GED.md] → "../../html/ged-viewer-dynamics.html" → OK
 - [docs/runbooks/ONBOARDING.md] → "./env.md" → OK
 - [docs/runbooks/ONBOARDING.md] → "./local-dev-supabase.md" → OK
 - [docs/runbooks/ONBOARDING.md] → "./auth-tenancy.md" → OK

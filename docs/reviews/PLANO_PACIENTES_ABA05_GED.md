@@ -3,40 +3,44 @@
 ## 0) Baseline
 
 - Status: Aprovado
-- `git status -sb` → `## feat/pacientes-aba05-ged` (com alteracoes locais)
+- `git status -sb` → `## feat/pacientes-aba05-ged...` (com alteracoes locais)
 - `git rev-parse --abbrev-ref HEAD` → `feat/pacientes-aba05-ged`
-- `git rev-parse HEAD` → `ee7ad1183078496bc36a1998d02af8f2f3786b36`
-- `npm run docs:links` → OK (relatorio em [docs/reviews/analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md](analise-governanca-estrutura-2025-12-19/DOCS_LINK_CHECK.md))
-- `npm run docs:lint` → OK
+- `git rev-parse HEAD` → `ed75f06cafec42845ea5e26366b068c3fc2a8b30`
+- `npm run docs:links` → Pendente (nao executado nesta revisao)
+- `npm run docs:lint` → Pendente (nao executado nesta revisao)
 
 Premissas de greenfield:
 
 - Nao existe backfill legado; constraints (hash/time stamp) valem desde o primeiro insert.
 - `file_hash` e calculado no pipeline de upload/import antes da gravacao.
+- Pastas sao persistidas no banco; storage sempre por `doc_id` (sem refletir estrutura de pastas).
 
 ## 1) Objetivo
 
-- Implementar a Aba 05 (GED) end-to-end com custodia, watermark, TSA SERPRO, impressao derivada, artifacts, link seguro e retencao.
-- Consolidar taxonomia enterprise e viewer protegido usando [html/ged-viewer-dynamics.html](../../html/ged-viewer-dynamics.html) como referencia.
-- Entregar onboarding enterprise com importacao em massa (ZIP + manifest + fallback) e fila `needs_review`.
+- Implementar o GED vNext como pagina dedicada do paciente (Explorer/OneDrive).
+- Persistir pastas no banco e permitir create/rename/move com pastas sistema protegidas.
+- Garantir custodia completa (hash + TSA SERPRO + logs), viewer protegido e impressao/baixa derivada.
+- Centralizar auditoria no Centro de Custodia (requisicoes mae + itens + IP/UA).
+- Suportar importacao em massa (ZIP) em contexto single-paciente.
 
 ## 2) Escopo
 
 **IN:**
 
-- Migrations com `patient_documents`, `patient_document_logs`, `document_artifacts`, `document_time_stamps`, `document_secure_links`.
-- Migrations com `document_import_jobs` e `document_import_job_items`.
-- Storage privado com naming por IDs e validacoes por categoria.
-- Actions completas (upload, TSA, artifacts, secure links, logs).
-- Actions de bulk import (job + itens + retry + relatorio).
-- UI GED (lista, upload, viewer, print, auditoria, solicitacao de original).
-- UI de importacao em massa (status do job, erros e fila `needs_review`).
-- Testes unitarios/integracao para hash, TSA mock/real, artifacts e link seguro.
+- Rota dedicada `/pacientes/[id]/ged` com CTA na aba antiga.
+- Migrations para `patient_ged_folders`, `ged_original_requests`, `ged_original_request_items`.
+- `folder_id` em `patient_documents`.
+- RPCs atomicas: `create_ged_document_bundle` e `create_ged_artifact_bundle`.
+- RPC `move_ged_folder` para atualizar subarvore.
+- Actions completas para pastas, busca por escopo, arquivamento e requisicoes de original.
+- Endpoint server-side para download de artefato com log IP/UA.
+- UI Explorer (arvore, breadcrumbs, busca com toggle) + Centro de Custodia.
 
 **OUT:**
 
-- Validacoes/aprovacoes de dominio (CPF, laudos) em outras abas.
-- Portal de pacientes ou funcionalidades de terceiros nao previstas no contrato.
+- Importacao multi-paciente (escopo de outro modulo/admin).
+- Validacoes de dominio (CPF, laudos) em outras abas.
+- Storage refletindo estrutura de pastas.
 
 ## 3) Referencias obrigatorias
 
@@ -45,112 +49,119 @@ Premissas de greenfield:
 - [docs/architecture/decisions/ADR-007-ged-custodia-watermark-time-stamp.md](../architecture/decisions/ADR-007-ged-custodia-watermark-time-stamp.md)
 - [html/ged-viewer-dynamics.html](../../html/ged-viewer-dynamics.html)
 - [html/modelo_final_aparencia_pagina_do_paciente.htm](../../html/modelo_final_aparencia_pagina_do_paciente.htm)
-- [db/snapshots_legado/conectacare-2025-11-29.sql](../../db/snapshots_legado/conectacare-2025-11-29.sql) (referencia externa)
-- [SERPRO (ACT ICP-Brasil)](https://www.serpro.gov.br/)
 
 ## 4) Estado atual / inventario
 
-- Referencia externa: `patient_documents` e `patient_document_logs` aparecem no schema de referencia (sem backfill).
-- Viewer de referencia: [html/ged-viewer-dynamics.html](../../html/ged-viewer-dynamics.html).
-- Aba Documentos (GED) hoje e placeholder na UI principal.
-- Importacao em massa ainda nao existe no runtime; sera implementada via jobs.
+- GED hoje existe como aba dentro do paciente; pagina dedicada ainda nao existe.
+- Pastas sao apenas virtuais; nao ha persistencia em DB.
+- Custodia (secure links, artifacts, TSA) ja esta especificada e precisa ser expandida para requisicoes mae.
 
 ## 5) Fases de implementacao
 
 ### Fase 1 — Dados (Migrations)
 
-1. Ajustar `patient_documents`:
-   - `file_hash` NOT NULL e calculado antes da gravacao; constraint valida desde o primeiro insert.
-   - `subcategory` como `doc_type` canonico.
-   - indices por `category`, `document_status`, `origin_module`, `uploaded_at`.
-2. Criar `document_artifacts` com unique `(document_log_id)`.
-3. Criar `document_time_stamps` com unique `(document_id)` (tabela canonica unica).
-4. Criar `document_secure_links` com unique `(token_hash)` e campos de consumo (`consumed_at/consumed_by`).
-5. Criar `document_import_jobs` e `document_import_job_items` (jobs + itens de ZIP).
-6. RLS em todas as tabelas (`tenant_id` + soft delete), incluindo jobs/itens.
-7. Storage policies (bucket privado, sem PHI, limites por categoria e MIME).
+1. Criar `patient_ged_folders` (path materializado + depth + is_system).
+2. Adicionar `folder_id` em `patient_documents` (FK).
+3. Criar `ged_original_requests` e `ged_original_request_items`.
+4. Criar RPC `move_ged_folder` (move + atualizar subarvore).
+5. Criar RPCs atomicas:
+   - `create_ged_document_bundle` (document + TSA + log)
+   - `create_ged_artifact_bundle` (artifact + log)
+6. Indices e constraints (unicidade de nomes por pasta, path, status).
+7. RLS em todas as tabelas novas.
 
 ### Fase 2 — Types
 
-1. Gerar types Supabase.
-2. Adicionar schemas Zod para:
-   - Documentos, logs, artifacts, time stamps, secure links.
+1. Gerar types Supabase atualizados.
+2. Zod schemas para:
+   - pastas (`patient_ged_folders`)
+   - requisicoes mae/itens (`ged_original_requests` / `ged_original_request_items`)
+   - filtros de busca com escopo (pasta vs GED global)
 
-### Fase 3 — Actions
+### Fase 3 — Actions / Services
 
-1. Upload/ingestao (hash + storage + TSA + log).
-2. Viewer protegido (log `view`).
-3. Impressao derivada (artifact + log).
-4. Secure links (request/grant/access/consume/revoke/renew).
-5. Integracao SERPRO (TimestampProvider) com mock DEV quando nao houver sandbox.
-6. Secure links com TTL padrao 72h em producao e 7 dias no DEV.
-7. Download-only para DICOM nivel 1 (custodia sem viewer).
-8. Bulk import actions: criar job, upload ZIP, parse manifest, criar itens, marcar `needs_review`, commit itens aprovados.
+1. `ensurePatientGedFolders(patientId)` para seed on-demand.
+2. CRUD de pastas + move via RPC.
+3. Listagem de documentos por pasta + subpastas.
+4. Busca global (ignora pasta) com coluna Caminho.
+5. Arquivar em massa (status -> Arquivado).
+6. Requisicoes de original (mae + itens) e integracao com secure links.
+7. Secure links: capturar IP/UA no consumo server-side.
+8. Upload e print via RPCs atomicas (evitar docs fantasmas).
+9. Endpoint `/api/ged/artifacts/[id]/download` com log IP/UA e redirect.
 
-### Fase 4 — Bulk Import (Jobs)
+### Fase 4 — UI (Pagina GED)
 
-1. Criar pipeline de importacao: upload ZIP -> criar job -> processar itens.
-2. Validar manifest (JSON/CSV) e aplicar taxonomia; fallback por pastas.
-3. Gerar `needs_review` quando faltar taxonomia ou houver conflito (sem bloquear custodia).
-4. Garantir hash + TSA + log por arquivo importado (inclusive `needs_review`).
-5. Permitir aprovar/commit de itens revisados para criar `patient_documents`.
-6. Relatorio final por job (total/importados/needs_review/falhas).
+1. Rota `/pacientes/[id]/ged` com layout do paciente.
+2. Botao/icone "GED" no header do paciente.
+3. Aba antiga GED vira CTA para abrir a pagina.
+4. UI Explorer:
+   - arvore de pastas (estavel)
+   - breadcrumbs
+   - command bar
+   - busca + toggle "Buscar em todo GED"
+   - tabela estilo OneDrive
+   - selecao em massa + barra de acoes
+5. Viewer modal protegido (banner + watermark overlay).
 
-### Fase 5 — UI
+### Fase 5 — Centro de Custodia
 
-1. Lista GED com filtros de taxonomia.
-2. Modal de upload com validacoes por categoria.
-3. Viewer protegido baseado em [html/ged-viewer-dynamics.html](../../html/ged-viewer-dynamics.html).
-4. Impressao derivada + historico de artifacts.
-5. Fluxo "Solicitar original" e estado do link seguro.
-6. Tela de importacao em massa (jobs, progresso, erros, needs_review).
+1. Subview/modal com contadores.
+2. Lista de requisicoes mae com accordion por item.
+3. Mini auditoria por item (solicitado, link gerado, acesso, download, expiracao, IP/UA).
 
 ### Fase 6 — Testes
 
-1. Unit: hash SHA-256, validacoes de MIME/size, TTL de links.
-2. Integracao: TSA SERPRO (mock/real), artifacts gerados, download unico.
-3. Integracao: bulk import (manifest JSON/CSV, fallback, needs_review, idempotencia do manifest).
-4. RLS: tenant isolation + acesso ao original por usuario autenticado do tenant.
+1. Unit: RPC bundles (document + artifact), hash SHA-256.
+2. Unit: move de pasta (path/ depth atualizados).
+3. Integracao: busca por pasta vs global.
+4. Integracao: requisicao mae + secure link + consumo unico.
+5. Integracao: download de artefato via endpoint (log IP/UA).
+6. RLS: tenant isolation e acesso por paciente.
 
 ### Fase 7 — Validacao final
 
-- `npm run docs:links`
-- `npm run docs:lint`
+- `npm run verify`
 - Checklist de seguranca (watermark, download unico, logs completos).
 
 ## 6) Inventario de artefatos
 
 **Novos arquivos (previstos):**
-- `supabase/migrations/202512XX_aba05_ged.sql`
-- `src/features/pacientes/actions/aba05/`
-- `src/features/pacientes/schemas/aba05Ged.schema.ts`
-- `src/components/patient/GedTab.tsx`
+
+- `supabase/migrations/2026XXXX_pacientes_aba05_ged_folders.sql`
+- `src/app/pacientes/[id]/ged/page.tsx`
+- `src/components/patient/ged/` (Explorer layout, FolderTree, SearchBar, FileList)
+- `src/components/patient/ged/CustodyCenter.tsx`
+- `src/features/pacientes/actions/aba05/gedFolders.ts`
+- `src/features/pacientes/actions/aba05/gedOriginalRequests.ts`
+- `src/app/api/ged/artifacts/[id]/download/route.ts`
 
 **Alteracoes previstas:**
-- `src/app/pacientes/[id]/PatientPageClient.tsx`
-- `src/types/supabase.ts`
+
+- `supabase/migrations/202512281200_pacientes_aba05_ged.sql` (ajustes de colunas/indices)
+- `src/components/patient/GedTab.tsx` (virar CTA)
+- `src/app/pacientes/[id]/PatientPageClient.tsx` (botao GED)
+- `src/features/pacientes/actions/aba05/uploadGedDocument.ts` (RPC bundle)
+- `src/features/pacientes/actions/aba05/printGedDocument.ts` (RPC bundle)
 
 ## 7) Criterios de aceite (DoD)
 
-- [ ] Migrations aplicadas com RLS e indices.
-- [ ] Actions completas (upload/view/print/secure links).
-- [ ] Viewer protegido e watermark overlay ativos (com toggle DEV).
-- [ ] Artefatos de impressao salvos e auditados.
-- [ ] TSA SERPRO funcionando (mock/real no DEV).
-- [ ] Secure links com expiracao e download unico.
-- [ ] Bulk import com manifest + fallback e fila `needs_review`.
-- [ ] `npm run docs:links` e `npm run docs:lint` OK.
+- [ ] GED abre como pagina dedicada via botao no header do paciente.
+- [ ] Pastas persistidas e operaveis (create/rename/move/delete) com pastas sistema protegidas.
+- [ ] Busca por pasta + subpastas e busca global com coluna Caminho.
+- [ ] Selecoes em massa exibem barra de acoes (Arquivar, Solicitar originais).
+- [ ] Centro de Custodia com contadores + requisicoes mae + auditoria por item (IP/UA).
+- [ ] Impressao e download sempre via artefato derivado com cabecalho + watermark.
+- [ ] Original apenas via secure link autenticado e auditado.
+- [ ] `npm run verify` OK.
 
 ## 8) Decisoes fechadas
 
-- Custodia com hash SHA-256 e original imutavel.
-- Watermark overlay + banner de custodia.
-- Impressao derivada com artifacts (sem virar versao).
-- TSA SERPRO com tabela unica.
-- Secure links autenticados com expiracao e download unico (TTL prod 72h; DEV 7 dias).
-- Retencao default 20 anos, com excecoes por categoria.
-- Taxonomia enterprise e pastas virtuais definidas.
-- MIME/size por categoria definidos no contrato.
-- Politica de acesso ao original: usuario autenticado do tenant com acesso ao paciente.
-- Bulk import via ZIP (manifest JSON/CSV + fallback por pastas).
-- DICOM nivel 1: custodia e download-only.
+- GED sai da aba e vira pagina dedicada do paciente.
+- Pastas sao persistidas no banco; storage nao reflete estrutura.
+- Busca padrao respeita pasta atual + subpastas; toggle para busca global.
+- Arquivar = muda status; documento permanece na pasta e aparece em "Arquivados".
+- Impressao/download publico apenas por artefato derivado.
+- Originais apenas via secure link com auditoria completa.
+- Requisicoes de original em massa usam requisicao mae + itens.
+- Importacao ZIP no GED do paciente e sempre single-paciente.
