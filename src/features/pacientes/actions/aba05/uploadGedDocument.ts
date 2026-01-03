@@ -16,7 +16,12 @@ const patientIdSchema = z.string().uuid();
 
 export type GedUploadInput = z.infer<typeof gedDocumentInputSchema>;
 
-export async function uploadGedDocument(patientId: string, file: File, payload: GedUploadInput) {
+export async function uploadGedDocument(
+  patientId: string,
+  file: File,
+  payload: GedUploadInput,
+  folderId?: string | null,
+) {
   const parsedPatientId = patientIdSchema.safeParse(patientId);
   if (!parsedPatientId.success) {
     throw new Error('ID do paciente invalido (esperado UUID)');
@@ -30,6 +35,9 @@ export async function uploadGedDocument(patientId: string, file: File, payload: 
   const supabase = getSupabaseClient();
   const session = await ensureSession(supabase);
   const userId = safeUserId(session);
+  if (!userId) {
+    throw new Error('Usuario nao autenticado');
+  }
   const { tenantId } = await resolveTenantId(supabase, parsedPatientId.data);
 
   const fileBuffer = await file.arrayBuffer();
@@ -57,92 +65,61 @@ export async function uploadGedDocument(patientId: string, file: File, payload: 
   }
 
   try {
-    const extension = extractFileExtension(file.name);
+    const extension = extractFileExtension(file.name) ?? 'bin';
     const documentStatus = 'Ativo';
 
-    const { data: document, error: documentError } = await supabase
-      .from('patient_documents')
-      .insert({
-        id: documentId,
-        patient_id: parsedPatientId.data,
-        file_name: file.name,
-        file_path: storagePath,
-        storage_path: storagePath,
-        storage_provider: 'Supabase',
-        file_size_bytes: file.size,
-        mime_type: file.type,
-        title: parsedPayload.title,
-        description: parsedPayload.description ?? null,
-        category: parsedPayload.category,
-        subcategory: parsedPayload.doc_type,
-        domain_type: parsedPayload.doc_domain,
-        source_module: parsedPayload.doc_source,
-        origin_module: parsedPayload.doc_origin,
-        tags: parsedPayload.tags ?? null,
-        file_hash: fileHash,
-        file_extension: extension,
-        extension,
-        original_file_name: file.name,
-        file_name_original: file.name,
-        document_status: documentStatus,
-        status: documentStatus,
-        uploaded_by: userId,
-        created_by: userId,
-      })
-      .select('*')
-      .maybeSingle();
-
-    if (documentError) {
-      if (isTenantMissingError(documentError)) {
-        console.error('[patients] tenant_id ausente', documentError);
-        throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
-      }
-      throw new Error(documentError.message);
-    }
-
-    if (!document) {
-      throw new Error('Falha ao registrar documento');
-    }
-
-    const { error: timeStampError } = await supabase.from('document_time_stamps').insert({
-      document_id: document.id,
-      document_hash: fileHash,
-      provider: receipt.provider,
-      receipt_payload: receipt.receipt_payload as Json,
-      issued_at: receipt.issued_at,
-      created_by: userId,
-    });
-
-    if (timeStampError) {
-      if (isTenantMissingError(timeStampError)) {
-        console.error('[patients] tenant_id ausente', timeStampError);
-        throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
-      }
-      throw new Error(timeStampError.message);
-    }
-
-    const { error: logError } = await supabase.from('patient_document_logs').insert({
-      document_id: document.id,
-      action: 'upload',
-      user_id: userId,
-      details: {
+    const { data: bundle, error: bundleError } = await supabase.rpc('create_ged_document_bundle', {
+      p_document_id: documentId,
+      p_patient_id: parsedPatientId.data,
+      p_folder_id: folderId ?? null,
+      p_file_name: file.name,
+      p_storage_path: storagePath,
+      p_storage_provider: 'Supabase',
+      p_file_size_bytes: file.size,
+      p_mime_type: file.type,
+      p_title: parsedPayload.title,
+      p_description: parsedPayload.description ?? null,
+      p_category: parsedPayload.category,
+      p_doc_type: parsedPayload.doc_type,
+      p_doc_domain: parsedPayload.doc_domain,
+      p_doc_source: parsedPayload.doc_source,
+      p_doc_origin: parsedPayload.doc_origin,
+      p_tags: parsedPayload.tags ?? null,
+      p_file_hash: fileHash,
+      p_file_extension: extension,
+      p_extension: extension,
+      p_original_file_name: file.name,
+      p_uploaded_by: userId,
+      p_created_by: userId,
+      p_document_status: documentStatus,
+      p_status: documentStatus,
+      p_document_validation_payload: null,
+      p_log_action: 'upload',
+      p_log_details: {
         file_name: file.name,
         storage_path: storagePath,
         file_hash: fileHash,
         tsa_provider: receipt.provider,
         tsa_issued_at: receipt.issued_at,
       } as Json,
+      p_tsa_provider: receipt.provider,
+      p_tsa_payload: receipt.receipt_payload as Json,
+      p_tsa_issued_at: receipt.issued_at,
     });
 
-    if (logError) {
-      if (isTenantMissingError(logError)) {
-        console.error('[patients] tenant_id ausente', logError);
+    if (bundleError) {
+      if (isTenantMissingError(bundleError)) {
+        console.error('[patients] tenant_id ausente', bundleError);
         throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
       }
-      throw new Error(logError.message);
+      throw new Error(bundleError.message);
     }
 
-    return { document };
+    if (!bundle) {
+      throw new Error('Falha ao registrar documento');
+    }
+
+    return { documentId };
   } catch (error) {
     await supabase.storage.from(bucket).remove([storagePath]);
     throw error;

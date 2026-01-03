@@ -38,6 +38,9 @@ export async function printGedDocument(documentId: string) {
   const supabase = getSupabaseClient();
   const session = await ensureSession(supabase);
   const userId = safeUserId(session);
+  if (!userId) {
+    throw new Error('Usuario nao autenticado');
+  }
 
   const { data: document, error } = await supabase
     .from('patient_documents')
@@ -105,53 +108,31 @@ export async function printGedDocument(documentId: string) {
   }
 
   try {
-    const { data: log, error: logError } = await supabase
-      .from('patient_document_logs')
-      .insert({
-        document_id: document.id,
-        action: 'print',
-        user_id: userId,
-        details: {
-          artifact_id: artifactId,
-          storage_path: artifactPath,
-          file_hash: artifactHash,
-          mime_type: 'application/pdf',
-        } as Json,
-      })
-      .select('*')
-      .maybeSingle();
-
-    if (logError) {
-      if (isTenantMissingError(logError)) {
-        console.error('[patients] tenant_id ausente', logError);
-        throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
-      }
-      throw new Error(logError.message);
-    }
-
-    if (!log) {
-      throw new Error('Falha ao registrar log de impressao');
-    }
-
-    const { error: artifactError } = await supabase.from('document_artifacts').insert({
-      id: artifactId,
-      patient_id: document.patient_id,
-      document_id: document.id,
-      document_log_id: log.id,
-      artifact_type: 'print',
-      storage_path: artifactPath,
-      file_hash: artifactHash,
-      file_size_bytes: pdfBytes.byteLength,
-      mime_type: 'application/pdf',
-      created_by: userId,
+    const { error: bundleError } = await supabase.rpc('create_ged_artifact_bundle', {
+      p_document_id: document.id,
+      p_patient_id: document.patient_id,
+      p_artifact_id: artifactId,
+      p_artifact_type: 'print',
+      p_storage_path: artifactPath,
+      p_file_hash: artifactHash,
+      p_file_size_bytes: pdfBytes.byteLength,
+      p_mime_type: 'application/pdf',
+      p_created_by: userId,
+      p_log_action: 'print',
+      p_log_details: {
+        artifact_id: artifactId,
+        storage_path: artifactPath,
+        file_hash: artifactHash,
+        mime_type: 'application/pdf',
+      } as Json,
     });
 
-    if (artifactError) {
-      if (isTenantMissingError(artifactError)) {
-        console.error('[patients] tenant_id ausente', artifactError);
+    if (bundleError) {
+      if (isTenantMissingError(bundleError)) {
+        console.error('[patients] tenant_id ausente', bundleError);
         throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
       }
-      throw new Error(artifactError.message);
+      throw new Error(bundleError.message);
     }
 
     const { data: signed } = await supabase.storage.from(bucket).createSignedUrl(artifactPath, 60 * 10);

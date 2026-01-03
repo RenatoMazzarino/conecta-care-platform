@@ -24,6 +24,7 @@ import {
 import { resolveTimestampProvider } from '@/features/pacientes/services/aba05/timestampProvider';
 
 const jobIdSchema = z.string().uuid();
+const folderIdSchema = z.string().uuid();
 
 const bulkImportScopeSchema = z.enum(['single', 'multi']);
 
@@ -183,7 +184,8 @@ async function createDocumentFromImport(params: {
   supabase: ReturnType<typeof getSupabaseClient>;
   documentId: string;
   patientId: string;
-  userId: string | null;
+  folderId?: string | null;
+  userId: string;
   fileName: string;
   storagePath: string;
   fileBuffer: ArrayBuffer;
@@ -199,73 +201,102 @@ async function createDocumentFromImport(params: {
   description?: string | null;
   status: string;
   needsReview: boolean;
+  receipt: { provider: string; receipt_payload: Json; issued_at: string };
   manifestPayload?: Json | null;
+  logDetails?: Json | null;
 }) {
   const { supabase } = params;
-  const extension = extractFileExtension(params.fileName);
+  const extension = extractFileExtension(params.fileName) ?? 'bin';
   const hash = await computeSha256Hex(params.fileBuffer);
 
-  const { data: document, error } = await supabase
-    .from('patient_documents')
-    .insert({
-      id: params.documentId,
-      patient_id: params.patientId,
-      file_name: params.fileName,
-      file_path: params.storagePath,
-      storage_path: params.storagePath,
-      storage_provider: 'Supabase',
-      file_size_bytes: params.fileBuffer.byteLength,
-      mime_type: params.mimeType,
-      title: params.title ?? params.fileName,
-      description: params.description ?? null,
-      category: params.taxonomy.category,
-      subcategory: params.taxonomy.doc_type,
-      domain_type: params.taxonomy.doc_domain,
-      source_module: params.taxonomy.doc_source,
-      origin_module: params.taxonomy.doc_origin,
-      document_status: params.status,
-      status: params.status,
-      file_hash: hash,
-      file_extension: extension,
-      extension,
-      original_file_name: params.fileName,
-      file_name_original: params.fileName,
-      uploaded_by: params.userId,
-      created_by: params.userId,
-      document_validation_payload: params.needsReview
-        ? ({ needs_review: true, manifest_payload: params.manifestPayload ?? null } as Json)
-        : null,
-    })
-    .select('*')
-    .maybeSingle();
+  const extraDetails =
+    params.logDetails && typeof params.logDetails === 'object' && !Array.isArray(params.logDetails)
+      ? (params.logDetails as Record<string, Json>)
+      : {};
+
+  const logDetails: Json = {
+    source: 'bulk_import',
+    storage_path: params.storagePath,
+    file_hash: hash,
+    ...extraDetails,
+  };
+  const documentValidationPayload: Json | null = params.needsReview
+    ? ({ needs_review: true, manifest_payload: params.manifestPayload ?? null } as Json)
+    : null;
+
+  const { data: bundle, error } = await supabase.rpc('create_ged_document_bundle', {
+    p_document_id: params.documentId,
+    p_patient_id: params.patientId,
+    p_folder_id: params.folderId ?? null,
+    p_file_name: params.fileName,
+    p_storage_path: params.storagePath,
+    p_storage_provider: 'Supabase',
+    p_file_size_bytes: params.fileBuffer.byteLength,
+    p_mime_type: params.mimeType,
+    p_title: params.title ?? params.fileName,
+    p_description: params.description ?? null,
+    p_category: params.taxonomy.category,
+    p_doc_type: params.taxonomy.doc_type,
+    p_doc_domain: params.taxonomy.doc_domain,
+    p_doc_source: params.taxonomy.doc_source,
+    p_doc_origin: params.taxonomy.doc_origin,
+    p_tags: null,
+    p_file_hash: hash,
+    p_file_extension: extension,
+    p_extension: extension,
+    p_original_file_name: params.fileName,
+    p_uploaded_by: params.userId,
+    p_created_by: params.userId,
+    p_document_status: params.status,
+    p_status: params.status,
+    p_document_validation_payload: documentValidationPayload,
+    p_log_action: 'upload',
+    p_log_details: logDetails,
+    p_tsa_provider: params.receipt.provider,
+    p_tsa_payload: params.receipt.receipt_payload,
+    p_tsa_issued_at: params.receipt.issued_at,
+  });
 
   if (error) {
     throw new Error(error.message);
   }
-  if (!document) {
+
+  if (!bundle) {
     throw new Error('Falha ao criar documento do import');
   }
 
-  return { document, hash };
+  return { documentId: params.documentId, hash };
 }
 
 export async function startGedBulkImport(
   scope: BulkImportScope,
   zipFile: File,
   patientId?: string | null,
+  folderId?: string | null,
 ) {
   const parsedScope = bulkImportScopeSchema.parse(scope);
   if (parsedScope === 'single' && !patientId) {
     throw new Error('patient_id obrigatorio para importacao single');
+  }
+  if (parsedScope === 'multi') {
+    throw new Error('Importacao multi-paciente deve ser feita em modulo dedicado');
   }
 
   if (!zipFile) {
     throw new Error('ZIP obrigatorio');
   }
 
+  const parsedFolderId = folderId ? folderIdSchema.safeParse(folderId) : null;
+  if (folderId && parsedFolderId && !parsedFolderId.success) {
+    throw new Error('folder_id invalido');
+  }
+
   const supabase = getSupabaseClient();
   const session = await ensureSession(supabase);
   const userId = safeUserId(session);
+  if (!userId) {
+    throw new Error('Usuario nao autenticado');
+  }
   const { tenantId } = await resolveTenantId(supabase, patientId ?? null);
 
   const { data: job, error: jobError } = await supabase
@@ -308,18 +339,6 @@ export async function startGedBulkImport(
 
   const zip = await JSZip.loadAsync(zipFile);
   const manifest = await parseManifest(zip);
-
-  if (parsedScope === 'multi' && manifest.type === 'none') {
-    await supabase
-      .from('document_import_jobs')
-      .update({
-        status: 'failed',
-        zip_storage_path: zipPath,
-        metadata: { error: 'Manifest obrigatorio para multi-paciente' } as Json,
-      })
-      .eq('id', job.id);
-    throw new Error('Manifest obrigatorio para importacao multi-paciente');
-  }
 
   const manifestMap = manifest.items ? buildManifestMap(manifest.items) : new Map();
   const files = Object.values(zip.files).filter((file) => !file.dir);
@@ -479,55 +498,51 @@ export async function startGedBulkImport(
         throw new Error(finalUploadError.message);
       }
 
-      const { document, hash } = await createDocumentFromImport({
-        supabase,
-        documentId,
-        patientId: patientIdResolved,
-        userId,
-        fileName,
-        storagePath,
-        fileBuffer,
-        mimeType,
-        taxonomy: taxonomy,
-        title: taxonomyFromManifest?.title ?? fileName,
-        description: taxonomyFromManifest?.description ?? null,
-        status,
-        needsReview: status === 'Rascunho',
-        manifestPayload: manifestPayload,
-      });
-
       const receipt = await provider.stamp({
-        documentHash: hash,
+        documentHash: checksum,
         fileName,
         mimeType,
       });
 
-      await supabase.from('document_time_stamps').insert({
-        document_id: document.id,
-        document_hash: hash,
-        provider: receipt.provider,
-        receipt_payload: receipt.receipt_payload as Json,
-        issued_at: receipt.issued_at,
-        created_by: userId,
-      });
-
-      await supabase.from('patient_document_logs').insert({
-        document_id: document.id,
-        action: 'upload',
-        user_id: userId,
-        details: {
-          source: 'bulk_import',
-          file_path: filePath,
-          storage_path: storagePath,
-          file_hash: hash,
-        } as Json,
-      });
+      let createdId: string;
+      try {
+        const created = await createDocumentFromImport({
+          supabase,
+          documentId,
+          patientId: patientIdResolved,
+          folderId: parsedFolderId?.data ?? null,
+          userId,
+          fileName,
+          storagePath,
+          fileBuffer,
+          mimeType,
+          taxonomy: taxonomy,
+          title: taxonomyFromManifest?.title ?? fileName,
+          description: taxonomyFromManifest?.description ?? null,
+          status,
+          needsReview: status === 'Rascunho',
+          receipt: {
+            provider: receipt.provider,
+            receipt_payload: receipt.receipt_payload as Json,
+            issued_at: receipt.issued_at,
+          },
+          manifestPayload: manifestPayload,
+          logDetails: {
+            source: 'bulk_import',
+            file_path: filePath,
+          } as Json,
+        });
+        createdId = created.documentId;
+      } catch (error) {
+        await supabase.storage.from(bucket).remove([storagePath]);
+        throw error;
+      }
 
       await supabase
         .from('document_import_job_items')
         .update({
           status: status === 'Rascunho' ? 'needs_review' : 'imported',
-          document_id: document.id,
+          document_id: createdId,
           checksum_sha256: checksum,
           file_size_bytes: fileBuffer.byteLength,
           mime_type: mimeType,
@@ -640,6 +655,7 @@ export async function reviewBulkImportItem(
   itemId: string,
   payload: z.infer<typeof gedDocumentInputSchema>,
   patientIdOverride?: string | null,
+  folderId?: string | null,
 ) {
   const parsedItemId = jobIdSchema.safeParse(itemId);
   if (!parsedItemId.success) {
@@ -647,9 +663,16 @@ export async function reviewBulkImportItem(
   }
 
   const parsedPayload = gedDocumentInputSchema.parse(payload);
+  const parsedFolderId = folderId ? folderIdSchema.safeParse(folderId) : null;
+  if (folderId && parsedFolderId && !parsedFolderId.success) {
+    throw new Error('folder_id invalido');
+  }
   const supabase = getSupabaseClient();
   const session = await ensureSession(supabase);
   const userId = safeUserId(session);
+  if (!userId) {
+    throw new Error('Usuario nao autenticado');
+  }
 
   const { data: item, error: itemError } = await supabase
     .from('document_import_job_items')
@@ -738,46 +761,45 @@ export async function reviewBulkImportItem(
     throw new Error(uploadError.message);
   }
 
-  const { document, hash } = await createDocumentFromImport({
-    supabase,
-    documentId,
-    patientId: resolvedPatientId,
-    userId,
-    fileName,
-    storagePath,
-    fileBuffer,
-    mimeType,
-    taxonomy: {
-      category: parsedPayload.category,
-      doc_type: parsedPayload.doc_type,
-      doc_domain: parsedPayload.doc_domain,
-      doc_source: parsedPayload.doc_source,
-      doc_origin: parsedPayload.doc_origin,
-    },
-    title: parsedPayload.title,
-    description: parsedPayload.description ?? null,
-    status: 'Ativo',
-    needsReview: false,
-  });
-
+  const checksum = await computeSha256Hex(fileBuffer);
   const provider = resolveTimestampProvider();
-  const receipt = await provider.stamp({ documentHash: hash, fileName, mimeType });
+  const receipt = await provider.stamp({ documentHash: checksum, fileName, mimeType });
 
-  await supabase.from('document_time_stamps').insert({
-    document_id: document.id,
-    document_hash: hash,
-    provider: receipt.provider,
-    receipt_payload: receipt.receipt_payload as Json,
-    issued_at: receipt.issued_at,
-    created_by: userId,
-  });
-
-  await supabase.from('patient_document_logs').insert({
-    document_id: document.id,
-    action: 'upload',
-    user_id: userId,
-    details: { source: 'bulk_import_review', storage_path: storagePath, file_hash: hash } as Json,
-  });
+  let createdId: string;
+  try {
+    const created = await createDocumentFromImport({
+      supabase,
+      documentId,
+      patientId: resolvedPatientId,
+      folderId: parsedFolderId?.data ?? null,
+      userId,
+      fileName,
+      storagePath,
+      fileBuffer,
+      mimeType,
+      taxonomy: {
+        category: parsedPayload.category,
+        doc_type: parsedPayload.doc_type,
+        doc_domain: parsedPayload.doc_domain,
+        doc_source: parsedPayload.doc_source,
+        doc_origin: parsedPayload.doc_origin,
+      },
+      title: parsedPayload.title,
+      description: parsedPayload.description ?? null,
+      status: 'Ativo',
+      needsReview: false,
+      receipt: {
+        provider: receipt.provider,
+        receipt_payload: receipt.receipt_payload as Json,
+        issued_at: receipt.issued_at,
+      },
+      logDetails: { source: 'bulk_import_review' } as Json,
+    });
+    createdId = created.documentId;
+  } catch (error) {
+    await supabase.storage.from(bucket).remove([storagePath]);
+    throw error;
+  }
 
   await supabase
     .from('document_import_job_items')
@@ -785,7 +807,7 @@ export async function reviewBulkImportItem(
       status: 'imported',
       processed_at: new Date().toISOString(),
       patient_id: resolvedPatientId,
-      document_id: document.id,
+      document_id: createdId,
     })
     .eq('id', item.id);
 

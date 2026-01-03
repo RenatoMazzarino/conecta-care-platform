@@ -20,6 +20,9 @@ export const gedFiltersSchema = z.object({
   doc_origin: z.enum(gedDocOriginOptions).optional(),
   doc_status: z.enum(gedDocStatusEnumOptions).optional(),
   search: z.string().trim().min(1).optional(),
+  folder_id: z.string().uuid().optional(),
+  global_search: z.boolean().optional(),
+  include_archived: z.boolean().optional(),
 });
 
 export type GedDocumentFilters = z.infer<typeof gedFiltersSchema>;
@@ -40,12 +43,57 @@ export async function listGedDocuments(patientId: string, filters?: GedDocumentF
 
   let query = supabase
     .from('patient_documents')
-    .select('*')
+    .select('*, folder:patient_ged_folders(id, name, path, parent_id)')
     .eq('patient_id', parsed.data)
     .is('deleted_at', null)
-    .order('uploaded_at', { ascending: false });
+    .order('updated_at', { ascending: false });
 
   const applied = parsedFilters.data;
+
+  const globalSearch = applied?.global_search ?? false;
+  const includeArchived = applied?.include_archived ?? false;
+  const folderId = applied?.folder_id ?? null;
+
+  if (!globalSearch && folderId) {
+    const { data: folder, error: folderError } = await supabase
+      .from('patient_ged_folders')
+      .select('id, path')
+      .eq('id', folderId)
+      .is('deleted_at', null)
+      .maybeSingle();
+
+    if (folderError) {
+      if (isTenantMissingError(folderError)) {
+        console.error('[patients] tenant_id ausente', folderError);
+        throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
+      }
+      throw new Error(folderError.message);
+    }
+
+    if (folder?.path) {
+      const { data: folderRows, error: folderRowsError } = await supabase
+        .from('patient_ged_folders')
+        .select('id')
+        .eq('patient_id', parsed.data)
+        .is('deleted_at', null)
+        .or(`path.eq.${folder.path},path.like.${folder.path}.%`);
+
+      if (folderRowsError) {
+        if (isTenantMissingError(folderRowsError)) {
+          console.error('[patients] tenant_id ausente', folderRowsError);
+          throw makeActionError('TENANT_MISSING', 'Conta sem organizacao vinculada (tenant)');
+        }
+        throw new Error(folderRowsError.message);
+      }
+
+      const folderIds = (folderRows ?? []).map((row) => row.id).filter(Boolean);
+      if (folderIds.length > 0) {
+        query = query.in('folder_id', folderIds);
+      } else {
+        query = query.eq('folder_id', folderId);
+      }
+    }
+  }
 
   if (applied?.category) {
     query = query.eq('category', applied.category);
@@ -64,9 +112,18 @@ export async function listGedDocuments(patientId: string, filters?: GedDocumentF
   }
   if (applied?.doc_status) {
     query = query.eq('document_status', applied.doc_status);
+  } else if (!includeArchived) {
+    query = query.neq('document_status', 'Arquivado');
   }
   if (applied?.search) {
-    query = query.ilike('title', `%${applied.search}%`);
+    const search = applied.search.replace(/%/g, '\\%').replace(/_/g, '\\_');
+    query = query.or(
+      [
+        `title.ilike.%${search}%`,
+        `original_file_name.ilike.%${search}%`,
+        `file_name.ilike.%${search}%`,
+      ].join(','),
+    );
   }
 
   const { data, error } = await query;
