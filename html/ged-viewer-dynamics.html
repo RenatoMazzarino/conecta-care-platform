@@ -1,0 +1,1246 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Conecta Care • Paciente • Documentos (GED) • Viewer protegido (Dynamics ref)</title>
+  <style>
+    :root{
+      --bg: #f3f2f1;
+      --card: #ffffff;
+      --text: #323130;
+      --muted: #605e5c;
+      --border: #edebe9;
+      --brand: #0f6cbd;
+      --brand2: #005a9e;
+      --shadow: 0 1px 2px rgba(0,0,0,.08);
+      --radius: 6px;
+      --gap: 16px;
+      --font: "Segoe UI", -apple-system, BlinkMacSystemFont, "Roboto", "Oxygen", "Ubuntu", sans-serif;
+
+      --warnBg: #fff4ce;
+      --warnBorder: #fde293;
+      --okBg: #dff6dd;
+      --okBorder: #9fd89f;
+      --dangerBg: #fde7e9;
+      --dangerBorder:#f1aeb5;
+
+      --pageBg: #ffffff;
+      --pageBorder: #e1dfdd;
+    }
+
+    *{ box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    /* Top app bar */
+    .topbar{
+      height: 52px;
+      background: #0b2e4f;
+      color: #fff;
+      display:flex;
+      align-items:center;
+      padding: 0 18px;
+      font-weight: 700;
+      letter-spacing: .2px;
+      gap: 10px;
+    }
+    .brandMark{
+      width: 22px; height: 22px;
+      border-radius: 6px;
+      background: linear-gradient(90deg,#ff7a59, #0f6cbd);
+      display:inline-block;
+    }
+    .topbar small{
+      font-weight:600;
+      opacity: .9;
+    }
+
+    /* Command bar (Dynamics style) */
+    .commandbar{
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      padding: 10px 14px;
+      flex-wrap: wrap;
+    }
+    .cmd{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .cmd:hover{ background: #f8f8f8; border-color: #f1f1f1; }
+    .cmd.primary{
+      background: var(--brand);
+      color:#fff;
+      border-color: var(--brand);
+    }
+    .cmd.primary:hover{ background: var(--brand2); border-color: var(--brand2); }
+    .cmd.danger{
+      background: #a4262c;
+      color:#fff;
+      border-color: #a4262c;
+    }
+    .cmd.danger:hover{ filter: brightness(.95); }
+    .cmd.sep{ margin-left:auto; }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 6px;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .pill select, .pill input{
+      border: 0;
+      outline: 0;
+      font-weight: 800;
+      font-size: 12.5px;
+      color: var(--text);
+      background: transparent;
+    }
+    .toggle{
+      display:inline-flex; align-items:center; gap: 8px;
+      padding: 7px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      font-size: 12.5px;
+      font-weight: 800;
+      color: var(--text);
+      cursor:pointer;
+      user-select:none;
+    }
+    .toggle .dot{
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background:#a19f9d;
+    }
+    .toggle.on .dot{ background:#107c10; }
+
+    /* Record header */
+    .recordHeader{
+      max-width: 1280px;
+      margin: 14px auto 0;
+      padding: 0 14px;
+      display:flex;
+      gap: 14px;
+      align-items:center;
+    }
+    .avatar{
+      width: 46px; height: 46px;
+      border-radius: 6px;
+      background: #e6f2fb;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 900;
+      color: var(--brand);
+    }
+    .titleBlock{ min-width: 280px; }
+    .titleBlock h1{
+      font-size: 24px;
+      margin: 0;
+      line-height: 1.15;
+    }
+    .subtitle{
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .metaRow{
+      margin-left:auto;
+      display:flex;
+      gap: 26px;
+      flex-wrap: wrap;
+    }
+    .meta{ min-width: 130px; }
+    .meta .k{
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+      font-weight: 800;
+    }
+    .meta .v{
+      font-weight: 800;
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      gap: 8px;
+    }
+    .dotStatus{
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #107c10;
+    }
+    .link{ color: var(--brand2); font-weight: 900; cursor:pointer; }
+
+    /* Tabs */
+    .tabs{
+      max-width: 1280px;
+      margin: 14px auto 0;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      gap: 18px;
+      background: transparent;
+      overflow:auto;
+      scrollbar-width: thin;
+    }
+    .tab{
+      padding: 10px 2px;
+      color: var(--muted);
+      text-decoration:none;
+      font-weight: 800;
+      font-size: 13px;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .tab.active{
+      color: var(--text);
+      border-bottom-color: var(--brand);
+    }
+
+    /* Page layout */
+    .page{
+      max-width: 1280px;
+      margin: 14px auto 40px;
+      padding: 0 14px;
+    }
+
+    /* Variants: A (3 cols), B (2 cols), C (viewer focus) */
+    .layoutA .grid{ grid-template-columns: 360px 1fr 340px; }
+    .layoutB .grid{ grid-template-columns: 420px 1fr; }
+    .layoutC .grid{ grid-template-columns: 1fr 340px; }
+
+    .grid{
+      display:grid;
+      gap: var(--gap);
+      align-items:start;
+    }
+
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .cardHeader{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      background: #fff;
+    }
+    .cardTitle{
+      font-size: 12px;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      font-weight: 900;
+      color: var(--text);
+    }
+    .cardBody{ padding: 12px 14px; }
+
+    /* Left list */
+    .searchRow{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    .input{
+      flex: 1;
+      min-width: 180px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 10px;
+      font-weight: 700;
+      font-size: 13px;
+      outline: none;
+      background: #fff;
+    }
+    .select{
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 10px;
+      font-weight: 800;
+      font-size: 13px;
+      outline: none;
+      background: #fff;
+      color: var(--text);
+    }
+    .docList{
+      margin-top: 12px;
+      display:flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .docItem{
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 10px;
+      cursor:pointer;
+      background:#fff;
+    }
+    .docItem:hover{ border-color:#d2d0ce; }
+    .docItem.active{
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(15,108,189,.10);
+    }
+    .docTop{
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items:flex-start;
+    }
+    .docName{
+      font-weight: 900;
+      font-size: 13px;
+      margin: 0 0 4px 0;
+    }
+    .docMeta{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap: 6px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background:#fff;
+      font-size: 11.5px;
+      font-weight: 900;
+      color: var(--muted);
+    }
+    .chip.ok{ background: var(--okBg); border-color: var(--okBorder); color:#0b5a0b; }
+    .chip.warn{ background: var(--warnBg); border-color: var(--warnBorder); color:#7a4b00; }
+    .chip.danger{ background: var(--dangerBg); border-color: var(--dangerBorder); color:#7a0015; }
+
+    /* Viewer card */
+    .viewerWrap{
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .viewerHeaderRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .viewerControls{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .miniBtn{
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-weight: 900;
+      cursor: pointer;
+      font-size: 12.5px;
+    }
+    .miniBtn:hover{ background:#f8f8f8; }
+    .zoomLabel{ font-size: 12px; color: var(--muted); font-weight: 900; }
+    .range{ width: 160px; }
+    .banner{
+      border: 1px solid var(--warnBorder);
+      background: #fffaf0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 12.5px;
+      font-weight: 800;
+      display:flex;
+      gap: 10px;
+      align-items:flex-start;
+      color: #4f3a00;
+    }
+    .banner strong{ color: var(--text); }
+    .banner small{ display:block; color: var(--muted); font-weight: 800; margin-top: 2px; }
+
+    /* Document viewport */
+    .viewport{
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: #faf9f8;
+      padding: 12px;
+      overflow: auto;
+      height: 72vh;
+      min-height: 560px;
+    }
+
+    .pageA4{
+      width: calc(210mm * var(--zoom, 1));
+      height: calc(297mm * var(--zoom, 1));
+      background: var(--pageBg);
+      border: 1px solid var(--pageBorder);
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,.08);
+      margin: 0 auto 14px auto;
+      padding: calc(18mm * var(--zoom, 1));
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Fake document content */
+    .docH1{
+      font-size: calc(18px * var(--zoom,1));
+      margin: 0 0 8px 0;
+      font-weight: 900;
+    }
+    .docH2{
+      font-size: calc(13px * var(--zoom,1));
+      margin: 0 0 12px 0;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .docGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: calc(10px * var(--zoom,1));
+      margin-bottom: calc(12px * var(--zoom,1));
+    }
+    .kv{
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: calc(10px * var(--zoom,1));
+      background:#fff;
+    }
+    .kv .k{
+      font-size: calc(10px * var(--zoom,1));
+      color: var(--muted);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      margin-bottom: calc(4px * var(--zoom,1));
+    }
+    .kv .v{
+      font-size: calc(12px * var(--zoom,1));
+      font-weight: 900;
+      color: var(--text);
+    }
+    .block{
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: calc(12px * var(--zoom,1));
+      background:#fff;
+      margin-bottom: calc(12px * var(--zoom,1));
+    }
+    .blockTitle{
+      font-weight: 900;
+      font-size: calc(12px * var(--zoom,1));
+      margin: 0 0 calc(8px * var(--zoom,1)) 0;
+      color: var(--text);
+    }
+    .line{
+      height: 1px;
+      background: #f3f2f1;
+      margin: calc(10px * var(--zoom,1)) 0;
+    }
+    .list{
+      margin: 0;
+      padding-left: calc(16px * var(--zoom,1));
+      color: var(--text);
+      font-weight: 800;
+      font-size: calc(12px * var(--zoom,1));
+    }
+    .list li{ margin-bottom: calc(6px * var(--zoom,1)); }
+    .sig{
+      margin-top: calc(10px * var(--zoom,1));
+      font-size: calc(12px * var(--zoom,1));
+      font-weight: 900;
+      color: var(--muted);
+    }
+
+    /* Watermark overlay: subtle, readable */
+    .wmLayer{
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: .16; /* default subtle */
+      display: none;
+    }
+    .wmLayer.on{ display:block; }
+
+    .wmText{
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%,-50%) rotate(-25deg);
+      font-weight: 900;
+      letter-spacing: .6px;
+      color: #605e5c;
+      text-transform: uppercase;
+      text-align:center;
+      line-height: 1.35;
+      white-space: nowrap;
+      font-size: calc(18px * var(--zoom,1));
+    }
+    .wmCorner{
+      position:absolute;
+      font-weight: 900;
+      color:#8a8886;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      font-size: calc(10px * var(--zoom,1));
+      opacity: .85;
+    }
+    .wmCorner.tl{ top: 10px; left: 10px; }
+    .wmCorner.tr{ top: 10px; right: 10px; text-align:right; }
+    .wmCorner.bl{ bottom: 10px; left: 10px; }
+    .wmCorner.br{ bottom: 10px; right: 10px; text-align:right; }
+
+    /* Sidebar definition list */
+    .dl{
+      display:grid;
+      grid-template-columns: 140px 1fr;
+      row-gap: 10px;
+      column-gap: 12px;
+      margin:0;
+    }
+    .dt{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .dd{
+      margin:0;
+      font-weight: 800;
+      font-size: 12.5px;
+      color: var(--text);
+      word-break: break-word;
+    }
+
+    .note{
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Modal */
+    .modalMask{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.32);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .modalMask.on{ display:flex; }
+    .modal{
+      width: min(780px, 100%);
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 10px 28px rgba(0,0,0,.22);
+      overflow:hidden;
+    }
+    .modalHead{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .modalHead strong{ font-weight: 900; }
+    .modalBody{ padding: 12px 14px; }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      background:#faf9f8;
+      border:1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      overflow:auto;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px){
+      .layoutA .grid{ grid-template-columns: 1fr; }
+      .layoutB .grid{ grid-template-columns: 1fr; }
+      .layoutC .grid{ grid-template-columns: 1fr; }
+      .metaRow{ display:none; }
+      .viewport{ height: 64vh; min-height: 480px; }
+    }
+  </style>
+</head>
+
+<body class="layoutA">
+  <div class="topbar">
+    <span class="brandMark"></span>
+    Conecta Care <small>— GED (Visualização protegida • Custódia • Hash • Carimbo do tempo)</small>
+  </div>
+
+  <div class="commandbar">
+    <button class="cmd primary" id="btnUpload">Upload</button>
+    <button class="cmd" id="btnPrint">Imprimir derivado</button>
+    <button class="cmd" id="btnRequestOriginal">Solicitar original (link seguro)</button>
+    <button class="cmd" id="btnViewOriginal">Ver original</button>
+    <button class="cmd" id="btnPolicy">Ver política</button>
+
+    <span class="cmd sep"></span>
+
+    <span class="pill">
+      Variação:
+      <select id="variant">
+        <option value="A">A — 3 colunas (lista + viewer + sidebar)</option>
+        <option value="B">B — 2 colunas (lista + viewer, sidebar em cards)</option>
+        <option value="C">C — Viewer foco (viewer + sidebar; lista vira “pasta virtual”)</option>
+      </select>
+    </span>
+
+    <span class="pill">
+      Usuário:
+      <select id="userSelect">
+        <option>Flávia (Enfermagem)</option>
+        <option>Renato (Admin)</option>
+        <option>Juliana (Enfermagem)</option>
+      </select>
+    </span>
+
+    <span class="pill">
+      Hora:
+      <input id="timeNow" size="20" readonly />
+    </span>
+
+    <span class="toggle" id="toggleDev">
+      <span class="dot"></span> Modo DEV: liberar captura/print
+    </span>
+  </div>
+
+  <section class="recordHeader">
+    <div class="avatar">CS</div>
+    <div class="titleBlock">
+      <h1>Clezeide S.</h1>
+      <div class="subtitle">Paciente • Home Care • Documentos (GED)</div>
+    </div>
+
+    <div class="metaRow">
+      <div class="meta">
+        <div class="k">Custódia</div>
+        <div class="v"><span class="dotStatus"></span>Ativa</div>
+      </div>
+      <div class="meta">
+        <div class="k">Tenant</div>
+        <div class="v"><span class="link">Conecta Care Demo</span></div>
+      </div>
+      <div class="meta">
+        <div class="k">Retenção</div>
+        <div class="v">20 anos (padrão)</div>
+      </div>
+      <div class="meta">
+        <div class="k">Carimbo</div>
+        <div class="v">SERPRO (simulado DEV)</div>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <a class="tab" href="#">Dados pessoais</a>
+    <a class="tab" href="#">Endereço & logística</a>
+    <a class="tab" href="#">Rede de apoio</a>
+    <a class="tab" href="#">Administrativo</a>
+    <a class="tab" href="#">Financeiro</a>
+    <a class="tab" href="#">Clínico</a>
+    <a class="tab active" href="#">Documentos (GED)</a>
+    <a class="tab" href="#">Histórico & Auditoria</a>
+  </nav>
+
+  <main class="page">
+    <div class="grid" id="grid">
+
+      <!-- LEFT: Document list -->
+      <section class="card" id="leftPane">
+        <div class="cardHeader">
+          <div class="cardTitle">Documentos do paciente</div>
+          <span class="chip ok">Custódia ativa</span>
+        </div>
+        <div class="cardBody">
+          <div class="searchRow">
+            <input class="input" id="q" placeholder="Buscar por nome, hash, tag..." />
+            <select class="select" id="filterDomain">
+              <option value="all">Domínio: Todos</option>
+              <option value="Clinico">Clínico</option>
+              <option value="Administrativo">Administrativo</option>
+              <option value="Misto">Misto</option>
+            </select>
+            <select class="select" id="filterCategory">
+              <option value="all">Categoria: Todas</option>
+              <option value="clinico/receitas">Clínico / Receitas</option>
+              <option value="clinico/exames">Clínico / Exames</option>
+              <option value="clinico/laudos">Clínico / Laudos</option>
+              <option value="identidade">Identidade</option>
+              <option value="consentimentos">Consentimentos</option>
+              <option value="financeiro/faturas">Financeiro / Faturas</option>
+              <option value="outros">Outros</option>
+            </select>
+          </div>
+
+          <div class="note" style="margin-top:10px;">
+            Observação: o watermark é para <b>dissuadir e rastrear vazamentos (prints/fotos)</b>, não “prometer impossível copiar”.
+          </div>
+
+          <div class="docList" id="docList"></div>
+        </div>
+      </section>
+
+      <!-- CENTER: Viewer -->
+      <section class="card" id="centerPane">
+        <div class="cardHeader">
+          <div class="viewerHeaderRow" style="width:100%;">
+            <div>
+              <div class="cardTitle">Visualização protegida</div>
+              <div class="note" id="docSubtitle" style="margin-top:4px;">Selecione um documento</div>
+            </div>
+            <div class="viewerControls">
+              <span class="chip" id="chipDomain">—</span>
+              <span class="chip" id="chipType">—</span>
+              <span class="zoomLabel">Zoom</span>
+              <input type="range" min="70" max="140" value="100" class="range" id="zoom" />
+              <button class="miniBtn" id="btnFit">Ajustar</button>
+              <button class="miniBtn" id="btnRefreshTime">Atualizar data/hora</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cardBody">
+          <div class="banner">
+            <div>
+              <strong>Documento em custódia Conecta Care</strong>
+              <small>Original armazenado imutável • Exibição protegida por política • Logs de acesso/print</small>
+            </div>
+          </div>
+
+          <div class="viewport" id="viewport">
+            <!-- Pages injected here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: Sidebar -->
+      <aside class="card" id="rightPane">
+        <div class="cardHeader">
+          <div class="cardTitle">Metadados & integridade</div>
+          <span class="chip warn" id="chipStamp">Carimbo: DEV</span>
+        </div>
+        <div class="cardBody">
+          <dl class="dl">
+            <div class="dt">Documento</div><dd class="dd" id="metaTitle">—</dd>
+            <div class="dt">Categoria</div><dd class="dd" id="metaCategory">—</dd>
+            <div class="dt">Origem</div><dd class="dd" id="metaOrigin">—</dd>
+            <div class="dt">Fonte</div><dd class="dd" id="metaSource">—</dd>
+            <div class="dt">Entrada</div><dd class="dd" id="metaIngested">—</dd>
+            <div class="dt">SHA-256</div><dd class="dd mono" id="metaHash" style="margin-top:4px;">—</dd>
+            <div class="dt">Timestamp</div><dd class="dd" id="metaTSA">—</dd>
+            <div class="dt">Status</div><dd class="dd" id="metaStatus">—</dd>
+          </dl>
+
+          <div class="line"></div>
+
+          <div class="cardTitle" style="font-size:12px;margin-bottom:10px;">Eventos recentes (demo)</div>
+          <div id="events" class="note" style="display:flex;flex-direction:column;gap:8px;"></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modalMask" id="modalMask">
+    <div class="modal">
+      <div class="modalHead">
+        <strong id="modalTitle">—</strong>
+        <button class="miniBtn" id="modalClose">Fechar</button>
+      </div>
+      <div class="modalBody" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Demo data ----------
+    const docs = [
+      {
+        id: "doc-001",
+        title: "Receita — Antibioticoterapia",
+        domain: "Clinico",
+        type: "PDF",
+        category: "clinico/receitas",
+        origin: "Prescrição externa",
+        source: "Importacao",
+        status: "Ativo",
+        hash: "a3f1...9c0d (SHA-256)",
+        ingestedAt: "27/12/2025 10:30",
+        tsa: "SERPRO (DEV simulado) • 27/12/2025 10:30",
+        pages: 2
+      },
+      {
+        id: "doc-002",
+        title: "Laudo — Hemograma completo",
+        domain: "Clinico",
+        type: "PDF",
+        category: "clinico/laudos",
+        origin: "Laboratório",
+        source: "Portal",
+        status: "Ativo",
+        hash: "b8c2...11af (SHA-256)",
+        ingestedAt: "26/12/2025 18:12",
+        tsa: "SERPRO (DEV simulado) • 26/12/2025 18:12",
+        pages: 3
+      },
+      {
+        id: "doc-003",
+        title: "RG — Digitalização",
+        domain: "Administrativo",
+        type: "Imagem",
+        category: "identidade",
+        origin: "Upload manual",
+        source: "Portal",
+        status: "Ativo",
+        hash: "c9d0...4e12 (SHA-256)",
+        ingestedAt: "20/12/2025 14:01",
+        tsa: "SERPRO (DEV simulado) • 20/12/2025 14:01",
+        pages: 1
+      }
+    ];
+
+    let selected = docs[0];
+    let devMode = false; // when true, watermark overlay off (liberar captura/print)
+    let zoomPct = 100;
+
+    // ---------- Helpers ----------
+    const $ = (id) => document.getElementById(id);
+
+    function nowStr(){
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2,'0');
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    }
+
+    function addEvent(kind, detail){
+      const el = document.createElement('div');
+      el.innerHTML = `<b>${kind}</b> • <span>${nowStr()}</span><br/><span style="color:#605e5c">${detail}</span>`;
+      $('events').prepend(el);
+      // keep last 6
+      while ($('events').children.length > 6) $('events').removeChild($('events').lastChild);
+    }
+
+    function docMatches(d){
+      const q = $('q').value.trim().toLowerCase();
+      const fD = $('filterDomain').value;
+      const fC = $('filterCategory').value;
+
+      const okQ = !q || (d.title.toLowerCase().includes(q) || d.hash.toLowerCase().includes(q) || d.category.toLowerCase().includes(q));
+      const okD = (fD === 'all') || (d.domain === fD);
+      const okC = (fC === 'all') || (d.category === fC);
+      return okQ && okD && okC;
+    }
+
+    function renderList(){
+      const list = $('docList');
+      list.innerHTML = '';
+      docs.filter(docMatches).forEach(d => {
+        const item = document.createElement('div');
+        item.className = 'docItem' + (selected && selected.id === d.id ? ' active' : '');
+        item.onclick = () => { selected = d; renderAll(); addEvent('VIEW', `Visualização protegida: ${d.title}`); };
+
+        item.innerHTML = `
+          <div class="docTop">
+            <div>
+              <p class="docName">${d.title}</p>
+              <div class="docMeta">
+                <span class="chip">${d.category}</span>
+                <span class="chip ${d.domain==='Clinico'?'ok':'warn'}">${d.domain}</span>
+                <span class="chip">${d.type}</span>
+              </div>
+            </div>
+          </div>
+          <div class="docMeta" style="margin-top:6px;">
+            <span>${d.ingestedAt}</span>
+            <span>•</span>
+            <span>${d.hash}</span>
+          </div>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    function watermarkText(){
+      const user = $('userSelect').value;
+      const t = $('timeNow').value;
+      return `CONTA: ${user}\nCUSTÓDIA CONECTA CARE\n${t}`;
+    }
+
+    function makePage(pageIndex, totalPages){
+      const page = document.createElement('div');
+      page.className = 'pageA4';
+      page.style.setProperty('--zoom', (zoomPct/100).toFixed(2));
+
+      // Watermark overlay
+      const wm = document.createElement('div');
+      wm.className = 'wmLayer' + (!devMode ? ' on' : '');
+      wm.innerHTML = `
+        <div class="wmText">${watermarkText().replace(/\n/g,'<br/>')}</div>
+        <div class="wmCorner tl">Conecta Care • GED</div>
+        <div class="wmCorner tr">${selected.domain} • ${selected.type}</div>
+        <div class="wmCorner bl">${selected.id} • pág ${pageIndex}/${totalPages}</div>
+        <div class="wmCorner br">${selected.hash}</div>
+      `;
+      page.appendChild(wm);
+
+      // Document content (fake)
+      const h1 = document.createElement('div');
+      h1.className = 'docH1';
+      h1.textContent = selected.title;
+
+      const h2 = document.createElement('div');
+      h2.className = 'docH2';
+      h2.textContent = `Paciente: Clezeide S. • Origem: ${selected.origin} • Entrada: ${selected.ingestedAt}`;
+
+      const grid = document.createElement('div');
+      grid.className = 'docGrid';
+      grid.innerHTML = `
+        <div class="kv"><div class="k">Documento</div><div class="v">${selected.type} • ${selected.domain}</div></div>
+        <div class="kv"><div class="k">Carimbo do tempo</div><div class="v">${selected.tsa}</div></div>
+      `;
+
+      const block = document.createElement('div');
+      block.className = 'block';
+      block.innerHTML = `
+        <div class="blockTitle">Conteúdo (prévia simulada) — página ${pageIndex}/${totalPages}</div>
+        <div class="note" style="font-size: calc(12px * var(--zoom,1));">
+          Este viewer demonstra o padrão de exibição protegido: <b>o arquivo original não é alterado</b>.
+          A custódia é comprovada por <b>hash + carimbo do tempo</b> + trilha de logs. Para fins legais, sempre preservar o original.
+        </div>
+        <div class="line"></div>
+        <div class="blockTitle">Itens</div>
+        <ol class="list">
+          <li>Amoxicilina 500mg — 1 cápsula 8/8h por 7 dias</li>
+          <li>Hidratação oral</li>
+          <li>Retorno em 48h</li>
+        </ol>
+        <div class="sig">Assinatura do emissor: (externa) • QR/link de validação preservado no original</div>
+      `;
+
+      page.appendChild(h1);
+      page.appendChild(h2);
+      page.appendChild(grid);
+      page.appendChild(block);
+
+      return page;
+    }
+
+    function renderViewer(){
+      const viewport = $('viewport');
+      viewport.innerHTML = '';
+      if(!selected) return;
+
+      // compute pages
+      const total = selected.pages || 1;
+      for(let i=1;i<=total;i++){
+        viewport.appendChild(makePage(i, total));
+      }
+
+      $('docSubtitle').textContent = `${selected.category} • ${selected.origin} • ${selected.hash}`;
+      $('chipDomain').textContent = selected.domain;
+      $('chipDomain').className = 'chip ' + (selected.domain==='Clinico'?'ok':'warn');
+      $('chipType').textContent = selected.type;
+
+      // metadata
+      $('metaTitle').textContent = selected.title;
+      $('metaCategory').textContent = selected.category;
+      $('metaOrigin').textContent = selected.origin;
+      $('metaSource').textContent = selected.source;
+      $('metaIngested').textContent = selected.ingestedAt;
+      $('metaHash').textContent = selected.hash;
+      $('metaTSA').textContent = selected.tsa;
+      $('metaStatus').textContent = selected.status;
+
+      $('chipStamp').textContent = devMode ? 'Carimbo: DEV' : 'Carimbo: SERPRO';
+      $('chipStamp').className = 'chip ' + (devMode ? 'warn' : 'ok');
+    }
+
+    function setVariant(v){
+      document.body.classList.remove('layoutA','layoutB','layoutC');
+      document.body.classList.add(v==='A'?'layoutA':(v==='B'?'layoutB':'layoutC'));
+
+      // Variant behaviors
+      $('leftPane').style.display = (v==='C') ? 'none' : 'block';
+      $('rightPane').style.display = 'block';
+      $('centerPane').style.display = 'block';
+
+      // In B, sidebar becomes stacked under viewer (simulate by moving DOM)
+      const grid = $('grid');
+      // Ensure order: left, center, right always in DOM; but we can reorder by CSS grid if needed.
+      // Keep simple: do nothing.
+
+      addEvent('UI', `Variação selecionada: ${v}`);
+    }
+
+    function openModal(title, html){
+      $('modalTitle').textContent = title;
+      $('modalBody').innerHTML = html;
+      $('modalMask').classList.add('on');
+    }
+    function closeModal(){ $('modalMask').classList.remove('on'); }
+
+    function printDerived(){
+      if(!selected) return;
+      addEvent('PRINT', `Impressão derivada (com watermark): ${selected.title}`);
+
+      const user = $('userSelect').value;
+      const t = $('timeNow').value;
+
+      const w = window.open('', '_blank');
+      const zoom = (zoomPct/100).toFixed(2);
+
+      const printable = `
+        <!doctype html>
+        <html lang="pt-BR">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
+          <title>Impressão derivada — Conecta Care</title>
+          <style>
+            @page { size: A4; margin: 12mm; }
+            body{ margin:0; font-family: "Segoe UI", Arial, sans-serif; color:#323130; }
+            .head{
+              border: 1px solid #edebe9;
+              padding: 10px 12px;
+              margin-bottom: 10px;
+              border-radius: 6px;
+              background:#fffaf0;
+            }
+            .head b{ display:block; font-size: 14px; }
+            .head small{ color:#605e5c; font-weight:700; }
+            .page{
+              position: relative;
+              border: 1px solid #e1dfdd;
+              border-radius: 4px;
+              padding: 12mm;
+              height: calc(297mm - 24mm);
+              box-sizing: border-box;
+              overflow:hidden;
+            }
+            .wm{
+              position:absolute; inset:0; pointer-events:none; opacity:.18;
+              display:flex; align-items:center; justify-content:center;
+              transform: rotate(-25deg);
+              font-weight:900;
+              letter-spacing:.6px;
+              text-transform: uppercase;
+              color:#605e5c;
+              font-size: 14px;
+              text-align:center;
+              line-height: 1.35;
+              white-space: nowrap;
+            }
+            .h1{ font-size: 18px; font-weight: 900; margin:0 0 6px 0; }
+            .h2{ font-size: 12.5px; color:#605e5c; font-weight: 800; margin:0 0 12px 0; }
+            .block{
+              border: 1px solid #edebe9;
+              border-radius: 6px;
+              padding: 10px 12px;
+              background:#fff;
+              margin-bottom: 10px;
+            }
+            .blockTitle{ font-weight:900; font-size:12.5px; margin:0 0 8px 0; }
+            ol{ margin:0; padding-left: 18px; font-weight:800; font-size: 12.5px; }
+            li{ margin-bottom: 6px; }
+            .sig{ margin-top: 10px; font-size: 12px; font-weight: 900; color:#605e5c; }
+            .foot{
+              margin-top: 10px;
+              font-size: 11.5px;
+              color:#605e5c;
+              font-weight: 800;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="head">
+            <b>DERIVADO PARA IMPRESSÃO — Conecta Care (GED)</b>
+            <small>Documento sob custódia • Watermark de rastreio • Original preservado imutável • Evento de impressão registrado</small>
+          </div>
+          <div class="page">
+            <div class="wm">CONTA: ${user}<br/>CUSTÓDIA CONECTA CARE<br/>${t}<br/>${selected.hash}</div>
+            <div class="h1">${selected.title}</div>
+            <div class="h2">Paciente: Clezeide S. • Origem: ${selected.origin} • Entrada: ${selected.ingestedAt}</div>
+            <div class="block">
+              <div class="blockTitle">Itens</div>
+              <ol>
+                <li>Amoxicilina 500mg — 1 cápsula 8/8h por 7 dias</li>
+                <li>Hidratação oral</li>
+                <li>Retorno em 48h</li>
+              </ol>
+              <div class="sig">Assinatura do emissor: (externa) • QR/link de validação preservado no original</div>
+            </div>
+            <div class="foot">
+              Nota: este é um derivado de impressão (watermark overlay). Se precisar do original, use “Solicitar original (link seguro)”.
+            </div>
+          </div>
+          <script>window.onload = () => window.print();<\/script>
+        </body>
+        </html>
+      `;
+
+      w.document.open();
+      w.document.write(printable);
+      w.document.close();
+    }
+
+    // ---------- UI wiring ----------
+    function renderAll(){
+      $('timeNow').value = nowStr();
+      renderList();
+      renderViewer();
+    }
+
+    // init events
+    $('q').addEventListener('input', renderList);
+    $('filterDomain').addEventListener('change', renderList);
+    $('filterCategory').addEventListener('change', renderList);
+
+    $('variant').addEventListener('change', (e)=> setVariant(e.target.value));
+    $('userSelect').addEventListener('change', ()=> { renderViewer(); addEvent('CTX', `Usuário ativo: ${$('userSelect').value}`); });
+
+    $('zoom').addEventListener('input', (e)=>{
+      zoomPct = Number(e.target.value);
+      renderViewer();
+    });
+
+    $('btnFit').addEventListener('click', ()=>{
+      zoomPct = 100;
+      $('zoom').value = '100';
+      renderViewer();
+      addEvent('UI', 'Zoom ajustado para 100%');
+    });
+
+    $('btnRefreshTime').addEventListener('click', ()=>{
+      $('timeNow').value = nowStr();
+      renderViewer();
+      addEvent('UI', 'Data/hora atualizada');
+    });
+
+    $('toggleDev').addEventListener('click', ()=>{
+      devMode = !devMode;
+      $('toggleDev').classList.toggle('on', devMode);
+      renderViewer();
+      addEvent('SEC', devMode ? 'Modo DEV ativado (overlay OFF)' : 'Modo DEV desativado (overlay ON)');
+    });
+
+    $('btnPrint').addEventListener('click', ()=>{
+      if(devMode){
+        openModal('Impressão (DEV)', `
+          <div class="note">
+            Você está em <b>Modo DEV</b> (overlay OFF). Mesmo assim, a impressão derivada sempre gera watermark no papel.
+          </div>
+          <div style="margin-top:10px;">
+            <button class="cmd primary" onclick="window.__doPrint()">Imprimir derivado agora</button>
+          </div>
+        `);
+        window.__doPrint = ()=> { closeModal(); printDerived(); };
+      }else{
+        printDerived();
+      }
+    });
+
+    $('btnRequestOriginal').addEventListener('click', ()=>{
+      if(!selected) return;
+      addEvent('REQ_ORIGINAL', `Solicitação de original: ${selected.title}`);
+      const ttlDays = 7;
+      const link = `https://conectacare.local/secure/original/${selected.id}?token=ONE_TIME_DEMO`;
+      openModal('Solicitar original (link seguro)', `
+        <div class="note">
+          Regras (demo): <b>expira em ${ttlDays} dias</b> • <b>acesso autenticado</b> • <b>download único</b> • evento registrado.
+        </div>
+        <div style="margin-top:10px;" class="mono">${link}</div>
+        <div class="note" style="margin-top:10px;">
+          Na implementação real, o link deve exigir sessão do tenant + registrar view/download + revogação.
+        </div>
+      `);
+    });
+
+    $('btnViewOriginal').addEventListener('click', ()=>{
+      if(!selected) return;
+      addEvent('VIEW_ORIGINAL', `Acesso ao original (demo): ${selected.title}`);
+      openModal('Ver original (demo)', `
+        <div class="note">
+          Aqui seria o <b>viewer do original</b> (sem watermark overlay), controlado por política.
+          <br/>No P0 (DEV) você liberou para todos do tenant, mas em produção isso vira perfil/política.
+        </div>
+      `);
+    });
+
+    $('btnPolicy').addEventListener('click', ()=>{
+      openModal('Política de visualização protegida (resumo)', `
+        <ul style="margin:0;padding-left:18px;font-weight:800;color:#323130;">
+          <li>Original sempre imutável; nunca sobrescrever.</li>
+          <li>Watermark é overlay (UI), para dissuadir e rastrear vazamentos (prints/fotos).</li>
+          <li>Impressão sempre gera derivado com watermark; o derivado não vira versão.</li>
+          <li>Solicitar original gera link seguro com expiração, acesso autenticado e download único.</li>
+          <li>Eventos de view/print/request_original sempre registrados.</li>
+        </ul>
+      `);
+    });
+
+    $('btnUpload').addEventListener('click', ()=>{
+      addEvent('UPLOAD', 'Upload (demo): entrada gera hash + timestamp + carimbo do tempo');
+      openModal('Upload (demo)', `
+        <div class="note">
+          No fluxo real: upload → SHA-256 → carimbo do tempo (SERPRO) → storage (original) → metadados → evento na timeline.
+        </div>
+      `);
+    });
+
+    $('modalClose').addEventListener('click', closeModal);
+    $('modalMask').addEventListener('click', (e)=> { if(e.target.id==='modalMask') closeModal(); });
+
+    // init
+    function init(){
+      $('timeNow').value = nowStr();
+      setVariant('A');
+      selected = docs[0];
+      $('toggleDev').classList.toggle('on', devMode);
+      renderAll();
+      addEvent('SYS', 'Viewer GED inicializado (demo)');
+    }
+    init();
+  </script>
+</body>
+</html>

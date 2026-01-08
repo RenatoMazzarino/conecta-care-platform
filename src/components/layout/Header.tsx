@@ -13,6 +13,11 @@ import {
   MenuItem,
   MenuDivider,
   Tooltip,
+  Toaster,
+  Toast,
+  ToastTitle,
+  useId,
+  useToastController,
 } from '@fluentui/react-components';
 import {
   SearchRegular,
@@ -24,8 +29,10 @@ import {
   WeatherMoonRegular,
   WeatherSunnyRegular,
 } from '@fluentui/react-icons';
+import { useRouter } from 'next/navigation';
 import { AppLauncher } from './AppLauncher';
 import { useThemeContext } from '../FluentProviderWrapper';
+import { getSupabaseClient } from '@/lib/supabase/client';
 
 const useStyles = makeStyles({
   header: {
@@ -85,6 +92,35 @@ const useStyles = makeStyles({
 export function Header() {
   const styles = useStyles();
   const { isDarkMode, toggleTheme } = useThemeContext();
+  const router = useRouter();
+  const toasterId = useId('header-toast');
+  const { dispatchToast } = useToastController(toasterId);
+
+  const handleSignOut = async () => {
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        dispatchToast(
+          <Toast>
+            <ToastTitle>Falha ao sair. Tente novamente.</ToastTitle>
+          </Toast>,
+          { intent: 'error' },
+        );
+        return;
+      }
+
+      router.replace('/login?logout=1');
+    } catch (err) {
+      console.error('[auth] signOut failed', err);
+      dispatchToast(
+        <Toast>
+          <ToastTitle>Falha ao sair. Tente novamente.</ToastTitle>
+        </Toast>,
+        { intent: 'error' },
+      );
+    }
+  };
 
   return (
     <header className={styles.header}>
@@ -154,11 +190,14 @@ export function Header() {
               <MenuItem icon={<PersonRegular />}>Meu perfil</MenuItem>
               <MenuItem icon={<SettingsRegular />}>Configurações da conta</MenuItem>
               <MenuDivider />
-              <MenuItem icon={<SignOutRegular />}>Sair</MenuItem>
+              <MenuItem icon={<SignOutRegular />} onClick={handleSignOut}>
+                Sair
+              </MenuItem>
             </MenuList>
           </MenuPopover>
         </Menu>
       </div>
+      <Toaster toasterId={toasterId} />
     </header>
   );
 }

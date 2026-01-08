@@ -7,6 +7,7 @@ import {
   ArrowClockwiseRegular,
   DismissRegular,
   EditRegular,
+  FolderOpenRegular,
   PrintRegular,
   SaveRegular,
   ShareRegular,
@@ -16,11 +17,9 @@ import { DadosPessoaisTab, type DadosPessoaisTabHandle } from '@/components/pati
 import { EnderecoLogisticaTab, type EnderecoLogisticaTabHandle } from '@/components/patient/EnderecoLogisticaTab';
 import { RedeApoioTab, type RedeApoioTabHandle } from '@/components/patient/RedeApoioTab';
 import { AdminFinancialTab, type AdminFinancialTabHandle } from '@/components/patient/AdminFinancialTab';
+import { GedTab } from '@/components/patient/GedTab';
 import { getPatientById, type PatientRow } from '@/features/pacientes/actions/getPatientById';
 import { getSupabaseClient } from '@/lib/supabase/client';
-
-const isDevBypassEnabled =
-  process.env.NODE_ENV === 'development' && Boolean(process.env.NEXT_PUBLIC_SUPABASE_DEV_ACCESS_TOKEN);
 
 const useStyles = makeStyles({
   page: {
@@ -384,7 +383,22 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
         console.error('[auth] getSession failed', error);
       }
 
-      if (session || isDevBypassEnabled) {
+      if (session) {
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (cancelled) return;
+
+        if (!user || userError) {
+          await supabase.auth.signOut();
+          setIsAuthenticated(false);
+          setAuthChecked(true);
+          router.replace(`/login?next=${encodeURIComponent(`/pacientes/${patientId}`)}`);
+          return;
+        }
+
         setIsAuthenticated(true);
         setAuthChecked(true);
         return;
@@ -516,31 +530,7 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
     </div>
   );
 
-  const renderDocumentos = () => (
-    <div className={styles.tabGrid}>
-      <div className={styles.tabLeftCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Documentos (GED)</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>Placeholder para futura implementação de GED.</p>
-          </div>
-        </section>
-      </div>
-
-      <aside className={styles.tabRightCol}>
-        <section className={styles.card}>
-          <div className={styles.cardHeader}>
-            <div className={styles.cardTitle}>Notas</div>
-          </div>
-          <div className={styles.cardBody}>
-            <p className={styles.muted}>Aba “Documentos” será integrada ao Storage + catálogo GED.</p>
-          </div>
-        </section>
-      </aside>
-    </div>
-  );
+  const renderDocumentos = () => <GedTab patientId={patientId} />;
 
   const renderVisaoGeral = () => (
     <div className={styles.tabGrid}>
@@ -727,6 +717,10 @@ export function PatientPageClient({ patientId }: PatientPageClientProps) {
             <button className={styles.cmd} type="button">
               <ShareRegular />
               Compartilhar
+            </button>
+            <button className={styles.cmd} type="button" onClick={() => router.push(`/pacientes/${patientId}/ged`)}>
+              <FolderOpenRegular />
+              GED
             </button>
 
             {isEditableTabSelected && isEditingActiveTab && (
